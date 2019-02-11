@@ -271,26 +271,21 @@ echo "Retrieving sequenced files and removing PhiX contamination."
   do
       echo -ne "Processing sample: $SAMPLES ($i / $NSAMPLES)\r"
       # Retrieve sequenced reads
-      a="_";
+      SAMPLEDELIM="_";
       NAME=$SAMPLES;
       #find /space/sequences/ -name $NAME*R1* 2>/dev/null -exec gzip -cd {} \;
       #find /space/sequences/ -name $NAME*R1* 2>/dev/null -exec cp {} samplegz/ \;
       #find /space/sequences/ -name $NAME* 2>/dev/null -exec cp {} samplegz/ \;
-      find $SEQPATH -name $NAME$a*R1* 2>/dev/null -exec gzip -cd {} \; > rawdata/$NAME.R1.fq
-      find $SEQPATH -name $NAME$a*R2* 2>/dev/null -exec gzip -cd {} \; > rawdata/$NAME.R2.fq
+      find $SEQPATH -name $NAME$SAMPLEDELIM*R1* 2>/dev/null -exec gzip -cd {} \; > rawdata/$NAME.R1.fq
+      find $SEQPATH -name $NAME$SAMPLEDELIM*R2* 2>/dev/null -exec gzip -cd {} \; > rawdata/$NAME.R2.fq
       # Filter phix
       usearch10 -filter_phix rawdata/$NAME.R1.fq -reverse rawdata/$NAME.R2.fq -output phix_filtered/$NAME.R1.fq -output2 phix_filtered/$NAME.R2.fq -threads $NUMTHREADS -quiet
   done < samples_tmp.txt
 
 #rm -rf rawdata/
-
-
-    
 }
 
-
 Merge_Function () {
-
 # Merge paired end reads
 # Add sample name to read label (-relabel option)
 # Pool samples together
@@ -467,7 +462,7 @@ echo "Making an OTU table"
 FASTAFILE=$1
 OTUSFILE=$2
 SINTAX=$3
-usearch10 -otutab $FASTAFILE -otus $OTUSFILE -otutabout otutable_notax.txt -id 0.97 -threads $NUMTHREADS -quiet -sample_delim .
+usearch10 -otutab $FASTAFILE -otus $OTUSFILE -otutabout otutable_notax.txt -id 0.97 -threads $NUMTHREADS -quiet -sample_delim $SAMPLEDELIM
 
 bash /space/users/ey/Documents/Scripts/otutab_sintax_to_ampvis.v1.1.sh -i otutable_notax.txt -t $SINTAX -r $REFDATABASE
 
@@ -493,9 +488,13 @@ FASTAFILE=$1
 ZOTUSFILE=$2
 SINTAX=$3
 sed 's/Zotu/Otu/g' $ZOTUSFILE > zotus.tmp
-usearch10 -otutab $FASTAFILE -otus zotus.tmp -otutabout zotutable_notax.txt -id 0.97 -threads $NUMTHREADS -quiet -sample_delim .
+usearch10 -otutab $FASTAFILE -zotus zotus.tmp -otutabout zotutable_notax.txt -id 0.97 -threads $NUMTHREADS -quiet -sample_delim $SAMPLEDELIM
 sed -i 's/Otu/Zotu/g' zotutable_notax.txt
 rm zotus.tmp
+#sort
+head -n 1 zotutable_notax.txt > tmp
+tail -n +2 zotutable_notax.txt | sort -V >> tmp
+mv tmp zotutable_notax.txt
 
 bash /space/users/ey/Documents/Scripts/otutab_sintax_to_ampvis.v1.1.sh -i zotutable_notax.txt -t $SINTAX -r $REFDATABASE
 
