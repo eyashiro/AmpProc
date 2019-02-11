@@ -266,9 +266,10 @@ echo "Retrieving sequenced files and removing PhiX contamination."
 # copy sample sequence files to current directory,
 # Filter PhiX
 # Path to sequences folders: $SEQPATH = /space/sequences/
- 
-  while read SAMPLES
+  NSAMPLES=$(wc -w < samples_tmp.txt)
+  while ((i++)); read SAMPLES
   do
+      echo -ne "Processing sample: $SAMPLES ($i / $NSAMPLES)\r"
       # Retrieve sequenced reads
       a="_";
       NAME=$SAMPLES;
