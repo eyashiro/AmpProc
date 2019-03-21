@@ -33,6 +33,8 @@ fi
 set -e
 set -o pipefail
 
+# Remove log file
+rm -f ampproc.log
 
 #########################################################
 # HELP
@@ -107,6 +109,9 @@ NUMTHREADS=5
 # OTHER PARAMS
 #########################################################
 
+# Define location of script
+SCRIPTPATH="/space/users/ey/Documents/Scripts/git_work/AmpProc"
+
 # Define the location of the sequences folders
 SEQPATH="/space/sequences/"
 
@@ -118,10 +123,13 @@ mkdir -p /tmp/$USER
 #########################################################
 
 echoWithDate() {
-  CURRENTTIME=date '+%Y-%m-%d %H:%M:%S'
+  echo ""
+  echo "" >> ampproc.log
+
+  CURRENTTIME=[$(date '+%Y-%m-%d %H:%M:%S')]
   #echo "[$(date '+%Y-%m-%d %H:%M:%S')]: $1"
   echo "$CURRENTTIME: $1"
-  echo "$CURRENTTIME: $1" >> ammproc.log
+  echo "$CURRENTTIME: $1" >> ampproc.log
 }
 
 Find_reads_phix_Function () {
@@ -775,6 +783,28 @@ mv *_summary.txt taxonomy_summary/.
 
 }
 
+WORKFLOW_MIDAS_Function () {
+
+echoWithDate "Running MIDAS ASV workflow to generate raw table and taxonomy"
+
+# Run Kasper's ASV script
+$SCRIPTPATH/ASVpipeline.sh
+
+# Append asv table to sintax taxonomy
+echoWithDate "Using AmpProc to generate ASV table for AmpVis"
+
+mv ASVtable.tsv ASVtable_notax.tsv
+
+bash $SCRIPTPATH/otutab_sintax_to_ampvis.v1.2.sh -i ASVtable_notax.tsv -t ASVs.R1.sintax -r MIDAS
+
+mv otutable_MIDAS.txt ASVtable_MIDAS.tsv
+
+exit 0
+
+}
+
+
+
 #########################################################
 # ARGUMENTS
 #########################################################
@@ -906,6 +936,34 @@ echo "Read the README file for more information on how to cite this workflow."
 echo "Description of all the output files are also found in the README file."
 date
 echo ""
+
+# Standard or MiDAS workflow
+echo ""
+echo "What workflow do you want to run?"
+echo "        S  - Standard workflow"
+echo "        M  - MiDAS ASV workflow"
+read WORKFLOW
+
+# Check that the question answer is script readable
+if [[ ! "$WORKFLOW" =~ ^(S|M)$ ]]
+   then
+   echo""
+   echo "Workflow type: $WORKFLOW is an invalid argument."
+   echo "Sorry I didn't understand what you wrote. Please also make sure that you have the correct upper/lower case letters."
+   echoWithDate "    Exiting script"
+   exit 1
+fi
+
+   if [ $WORKFLOW = "M" ]
+     then
+     WORKFLOW_MIDAS_Function
+     else
+     if [ $WORKFLOW = "S" ]
+       then
+       echo ""
+       echo "Continuing with standard workflow"
+     fi
+fi
 
 # Copy the README file
 cp /space/users/ey/Documents/Scripts/amplicon_workflow/README_amplicon.workflow_v$VERSIONNUMBER.txt .

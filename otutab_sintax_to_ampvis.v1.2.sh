@@ -1,0 +1,1 @@
+../../otutab_sintax_to_ampvis.v1.2.sh
