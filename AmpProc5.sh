@@ -1,12 +1,12 @@
 #!/bin/bash
 
-VERSIONNUMBER=5.0.3.beta1.0
+VERSIONNUMBER=5.1.0.beta1.0
 
 ###################################################################################################
 #
 #  Amplicon DNA workflow
 #
-#  Version 5.0.3.beta1.0
+#  Version 5.1.0.beta1.0
 #
 #  This workflow script generates OTU tables from raw bacterial V13 and V4
 #  16S rRNA and fungal ITS 1 amplicon data.
@@ -15,7 +15,7 @@ VERSIONNUMBER=5.0.3.beta1.0
 #
 #  Author: Erika Yashiro, Ph.D.
 #
-#  Last modified: 2 November, 2018
+#  Last modified: 21 March, 2019
 #
 ###################################################################################################
 
@@ -55,21 +55,22 @@ Help_Function () {
     echo "#"
     echo "#  Erika Yashiro, Ph.D."
     echo "#"
-    echo "#  Last modified: 2 November, 2018"
+    echo "#  Last modified: 21 March 2019"
     echo "#"
     echo "############################################################################"
     echo ""
     echo ""
     echo "To run the script's full pipeline: "
     echo "   1. Make sure that you create an empty directory, where you have just the samples file."
-    echo "   2. Type in the terminal:      bash amplicon.workflow.v5.0.sh"
-    echo "                             or  AmpProc5"   
+    echo "   2. Type in the terminal:      AmpProc5"
+    echo ""   
     echo "   3. Be prepared to answer the questions asked by the script." 
     echo "      Answers are case-sensitive!"
     echo "       - Whether you want OTU and ZOTU tables"
     echo "       - Whether you want single-end and/or paired-end read processing"
     echo "       - Which ribosomal region you have"
     echo "       - Which reference database to use for taxonomy prediction"
+    echo "       - MiDAS samples also have a separate workflow"
     echo ""
     echo "To obtain the README file, Run Step 2. and then type quit. The README file contains the description of all the output files from the workflow, citation of external tools used, and version history."
     echo ""
@@ -115,6 +116,13 @@ mkdir -p /tmp/$USER
 #########################################################
 # FUNCTIONS
 #########################################################
+
+echoWithDate() {
+  CURRENTTIME=date '+%Y-%m-%d %H:%M:%S'
+  #echo "[$(date '+%Y-%m-%d %H:%M:%S')]: $1"
+  echo "$CURRENTTIME: $1"
+  echo "$CURRENTTIME: $1" >> ammproc.log
+}
 
 Find_reads_phix_Function () {
 
@@ -776,6 +784,11 @@ mv *_summary.txt taxonomy_summary/.
 if [[ "$1" =~ ^(-help|-h)$ ]]
     then
     Help_Function
+      else
+      if [[ "$1" =~ ^(-v|-V|--version)$ ]]
+        then
+        echo $VERSIONNUMBER
+        exit
     else
     # if there are arguments present
     if [ $1 ]
@@ -864,6 +877,7 @@ if [[ "$1" =~ ^(-help|-h)$ ]]
 	fi
     fi
 fi
+fi
     
 
 #########################################################
@@ -930,9 +944,9 @@ fi
 
 # Define single read process = SR/PE/both (SINGLEREADS)
 echo ""
-echo "Do you want process single-end reads or paired-end reads? (yes/no/both)"
+echo "Do you want to process single-end reads or paired-end reads? (yes/no/both)"
 echo "Select to run single end reads if you want to control for species that have very long variable regions between the forward and reverse primers. These species can be rare in the community but will get filtered out if the paired end reads do not overlap."
-echo "        SR  - Process only single reads"
+echo "        SR   - Process only single reads"
 echo "        PE   - Process only paired-end reads"
 echo "        both - process both single reads and paired-end reads"
 read SINGLEREADS
