@@ -84,7 +84,7 @@ Help_Function () {
     echo "              3  - RDP training set v16"
     echo "              4  - UNITE v7.2 (2017-12-01)"
     echo ""
-    echo "To incorporate the new taxonomy output into an OTU table, run the script: otutab_sintax_to_ampvis.v1.1.sh"
+    echo "To incorporate the new taxonomy output into an OTU table, run the script: otutab_sintax_to_ampvis.v1.2.sh"
     echo ""
     echo "To change the number of CPUs used by the USEARCH stages of the pipeline, adjust the number of threads when running the script."
     echo "The fasttree typically uses about 20 cores at its maximum run and this cannot be adjusted."
@@ -480,7 +480,7 @@ OTUSFILE=$2
 SINTAX=$3
 usearch10 -otutab $FASTAFILE -otus $OTUSFILE -otutabout otutable_notax.txt -id 0.97 -threads $NUMTHREADS -quiet -sample_delim .
 
-bash /space/users/ey/Documents/Scripts/otutab_sintax_to_ampvis.v1.1.sh -i otutable_notax.txt -t $SINTAX -r $REFDATABASE
+bash $SCRIPTPATH/otutab_sintax_to_ampvis.v1.2.sh -i otutable_notax.txt -t $SINTAX -r $REFDATABASE
 
 rm otutable_notax.txt
 mv otutable_notax_sorted.txt otutable_notax.txt
@@ -508,7 +508,7 @@ usearch10 -otutab $FASTAFILE -otus zotus.tmp -otutabout zotutable_notax.txt -id 
 sed -i 's/Otu/Zotu/g' zotutable_notax.txt
 rm zotus.tmp
 
-bash /space/users/ey/Documents/Scripts/otutab_sintax_to_ampvis.v1.1.sh -i zotutable_notax.txt -t $SINTAX -r $REFDATABASE
+bash $SCRIPTPATH/otutab_sintax_to_ampvis.v1.2.sh -i zotutable_notax.txt -t $SINTAX -r $REFDATABASE
 
 rm zotutable_notax.txt
 mv otutable_notax_sorted.txt zotutable_notax.txt
@@ -896,7 +896,9 @@ if [[ "$1" =~ ^(-help|-h)$ ]]
         # input file radical, remove file extension
         FILERAD=`echo $OTUINFILE | sed -e 's/\.fa$//g' -e 's/\.fas$//g' -e 's/\.fasta$//g'`
         mv sintax_out.txt $FILERAD.sintax.$TAXFILE.txt
-        echo "Output files of the OTU/ZOTU taxonomy assignment: $FILERAD.sintax.$TAXFILE.txt"
+        # Append new sintax to otu table
+        $SCRIPTPATH/otutab_sintax_to_ampvis.v1.2.sh -i otutable_notax.txt -t $FILERAD.sintax.$TAXFILE.txt -r $TAXFILE
+        echo "Output files of the OTU/ZOTU taxonomy assignment: $FILERAD.sintax.$TAXFILE.txt, otutable_$TAXFILE.txt"
         date
         echo ""
         exit 0

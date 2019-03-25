@@ -84,7 +84,7 @@ Help_Function () {
     echo "              3  - RDP training set v16"
     echo "              4  - UNITE v7.2 (2017-12-01)"
     echo ""
-    echo "To incorporate the new taxonomy output into an OTU table, run the script: otutab_sintax_to_ampvis.v1.1.sh"
+    echo "To incorporate the new taxonomy output into an OTU table, run the script: otutab_sintax_to_ampvis.v1.2.sh"
     echo ""
     echo "To change the number of CPUs used by the USEARCH stages of the pipeline, adjust the number of threads when running the script."
     echo "The fasttree typically uses about 20 cores at its maximum run and this cannot be adjusted."
@@ -110,7 +110,8 @@ NUMTHREADS=5
 #########################################################
 
 # Define location of script
-SCRIPTPATH="/space/users/ey/Documents/Scripts/git_work/AmpProc"
+#SCRIPTPATH="/space/users/ey/Documents/Scripts/git_work/AmpProc"
+SCRIPTPATH="/space/sharedbin/Workflows_EY"
 
 # Define the location of the sequences folders
 SEQPATH="/space/sequences/"
@@ -479,7 +480,7 @@ OTUSFILE=$2
 SINTAX=$3
 usearch10 -otutab $FASTAFILE -otus $OTUSFILE -otutabout otutable_notax.txt -id 0.97 -threads $NUMTHREADS -quiet -sample_delim .
 
-bash /space/users/ey/Documents/Scripts/otutab_sintax_to_ampvis.v1.1.sh -i otutable_notax.txt -t $SINTAX -r $REFDATABASE
+bash $SCRIPTPATH/otutab_sintax_to_ampvis.v1.2.sh -i otutable_notax.txt -t $SINTAX -r $REFDATABASE
 
 rm otutable_notax.txt
 mv otutable_notax_sorted.txt otutable_notax.txt
@@ -507,7 +508,7 @@ usearch10 -otutab $FASTAFILE -otus zotus.tmp -otutabout zotutable_notax.txt -id 
 sed -i 's/Otu/Zotu/g' zotutable_notax.txt
 rm zotus.tmp
 
-bash /space/users/ey/Documents/Scripts/otutab_sintax_to_ampvis.v1.1.sh -i zotutable_notax.txt -t $SINTAX -r $REFDATABASE
+bash $SCRIPTPATH/otutab_sintax_to_ampvis.v1.2.sh -i zotutable_notax.txt -t $SINTAX -r $REFDATABASE
 
 rm zotutable_notax.txt
 mv otutable_notax_sorted.txt zotutable_notax.txt
@@ -798,6 +799,8 @@ mv ASVtable.tsv ASVtable_notax.tsv
 bash $SCRIPTPATH/otutab_sintax_to_ampvis.v1.2.sh -i ASVtable_notax.tsv -t ASVs.R1.sintax -r MIDAS
 
 mv otutable_MIDAS.txt ASVtable_MIDAS.tsv
+
+echoWithDate "MiDAS workflow is done. Have a nice day!"
 
 exit 0
 
