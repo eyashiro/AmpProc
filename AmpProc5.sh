@@ -110,7 +110,8 @@ NUMTHREADS=5
 #########################################################
 
 # Define location of script
-SCRIPTPATH="/space/users/ey/Documents/Scripts/git_work/AmpProc"
+#SCRIPTPATH="/space/users/ey/Documents/Scripts/git_work/AmpProc"
+SCRIPTPATH="/space/sharedbin/Workflows_EY"
 
 # Define the location of the sequences folders
 SEQPATH="/space/sequences/"
@@ -798,6 +799,8 @@ mv ASVtable.tsv ASVtable_notax.tsv
 bash $SCRIPTPATH/otutab_sintax_to_ampvis.v1.2.sh -i ASVtable_notax.tsv -t ASVs.R1.sintax -r MIDAS
 
 mv otutable_MIDAS.txt ASVtable_MIDAS.tsv
+
+echoWithDate "MiDAS workflow is done. Have a nice day!"
 
 exit 0
 
