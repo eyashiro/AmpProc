@@ -80,11 +80,13 @@ Help_Function () {
     echo "  -i    Input file. Must be otus.fa or zotus.fa (or single read variants)."
     echo "  -t    Reference database number for taxonomy prediction."
     echo "              1  - MiDAS v2.1.3"
-    echo "              2  - SILVA LTP v128"
-    echo "              3  - RDP training set v16"
-    echo "              4  - UNITE v7.2 (2017-12-01)"
+    echo "              2  - MiDAS v3.0 (2019-01-09)"
+    echo "              3  - SILVA LTP v128"
+    echo "              4  - RDP training set v16"
+    echo "              5  - UNITE fungi ITS 1&2 v8.0 (2019-02-02)"
+    echo "              6  - UNITE eukaryotes ITS 1&2 v8.0 (2019-02-02)"
     echo ""
-    echo "To incorporate the new taxonomy output into an OTU table, run the script: otutab_sintax_to_ampvis.v1.2.sh"
+    echo "To incorporate the new taxonomy output into an OTU table, run the script: otutab_sintax_to_ampvis.v1.2.sh (Run with -h for more information)"
     echo ""
     echo "To change the number of CPUs used by the USEARCH stages of the pipeline, adjust the number of threads when running the script."
     echo "The fasttree typically uses about 20 cores at its maximum run and this cannot be adjusted."
@@ -131,6 +133,10 @@ echoWithDate() {
   #echo "[$(date '+%Y-%m-%d %H:%M:%S')]: $1"
   echo "$CURRENTTIME: $1"
   echo "$CURRENTTIME: $1" >> ampproc.log
+}
+
+echoPlus() {
+  
 }
 
 Find_reads_phix_Function () {
@@ -534,25 +540,37 @@ echo "Predicting taxonomy (Classifying the $ELEMENT) using SINTAX"
 if [ $REFDATABASE == 1 ]
     then
     REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/midas_database/MiDAS_S123_2.1.3.sintax.cleaned.20180103.udb"
-    echo "using MiDAS reference database."
+    echo "using MiDAS v2 reference database."
 fi
 
 if [ $REFDATABASE == 2 ]
     then
-    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/SILVA_LTP/LTPs128_SSU_unaligned.sintax.udb"
-    echo "using SILVA LTP reference database."
+    REFDATAPATH="/space/users/ksa/Documents/Work/ESV_pipeline_final/midas30_20190109/output/ESVs_w_sintax.fa"
+    echo "using MiDAS 3.0 reference database."
 fi
 
 if [ $REFDATABASE == 3 ]
+    then
+    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/SILVA_LTP/LTPs132_SSU_unaligned.sintax.udb"
+    echo "using SILVA LTP reference database."
+fi
+
+if [ $REFDATABASE == 4 ]
     then
     REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/RDP_training_set/rdp_16s_v16s_sp_sintax.cleaned.20180103.udb"
     echo "using RDP reference database."
 fi
 
-if [ $REFDATABASE == 4 ]
+if [ $REFDATABASE == 5 ]
     then
-    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/UNITE_vers_7.2/utax_reference_dataset_01.12.2017.cleaned.20180103.udb"
-    echo "using UNITE reference database."
+    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/UNITE/utax_reference_dataset_fungi_02.02.2019.udb"
+    echo "using UNITE fungi reference database."
+fi
+
+if [ $REFDATABASE == 6 ]
+    then
+    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/UNITE/utax_reference_dataset_all_02.02.2019.corrected.udb"
+    echo "using UNITE eukaryotes reference database."
 fi
 
 # Run usearch
@@ -866,7 +884,7 @@ if [[ "$1" =~ ^(-help|-h)$ ]]
 	if [ $TAX -lt 1 ] || [ $TAX -gt 4 ]
             then
             echo ""
-            echo "Taxonomy needs to be selected (1,2,3, or 4). Check -help or -h for more information. Exiting script."
+            echo "Taxonomy needs to be selected (1,2,3,4,5, or 6). Check -help or -h for more information. Exiting script."
             echo ""
             exit 1
         fi
@@ -874,23 +892,34 @@ if [[ "$1" =~ ^(-help|-h)$ ]]
         REFDATABASE=$TAX
         if [ $TAX == 1 ]
          then
-         TAXFILE="midas"
+         TAXFILE="midas2"
         fi
         
         if [ $TAX == 2 ]
          then
-         TAXFILE="silva"
+         TAXFILE="midas3"
         fi
-        
+
         if [ $TAX == 3 ]
          then
-         TAXFILE="rdp"
+         TAXFILE="silva"
         fi
         
         if [ $TAX == 4 ]
          then
-         TAXFILE="unite"
+         TAXFILE="rdp"
         fi
+        
+        if [ $TAX == 5 ]
+         then
+         TAXFILE="uniteFUN"
+        fi
+
+        if [ $TAX == 6 ]
+         then
+         TAXFILE="uniteEUK"
+        fi
+
         # Run taxonomy prediction with specified reference database
         Predict_taxonomy_Function $OTUINFILE OTUs
         # input file radical, remove file extension
@@ -922,7 +951,7 @@ fi
 # Define ZOTUS = yes/no
 # Define single read = yes/no/both (SINGLEREADS)
 # Define amplicon region = V13/V4/ITS (AMPREGION)
-# Define reference database = 1/2/3/4 (REFDATABASE)
+# Define reference database = 1/2/3/4/5/6 (REFDATABASE)
 
 
 #########################################################
@@ -939,6 +968,8 @@ echo "Use the -h or -help options to run the Help function"
 echo ""
 echo "Read the README file for more information on how to cite this workflow."
 echo "Description of all the output files are also found in the README file."
+echo ""
+echo "This tool is for academic use only."
 date
 echo ""
 
@@ -1026,9 +1057,15 @@ read AMPREGION
 echo ""
 echo "Which reference database do you want to use for taxonomy prediction? ()"
 echo "        1  - MiDAS v2.1.3"
-echo "        2  - SILVA LTP v128"
-echo "        3  - RDP training set v16"
-echo "        4  - UNITE v7.2 (2017-12-01) [Select for Fungal analysis!]"
+echo "        2  - MiDAS v3.0 (2019-01-09)"
+echo "        3  - SILVA LTP v132"
+echo "        4  - RDP training set v16"
+echo "        5  - UNITE fungi ITS 1&2 v8.0 (2019-02-02)"
+echo "        6  - UNITE eukaryotes ITS 1&2 v8.0 (2019-02-02)"
+echo ""
+echo "Note: MiDAS datasets are for waste water treatment systems."
+echo "For general bacteria and archaea, use SILVA LTP"
+
 read REFDATABASE
 
 # Define number of threads to use (NUMTHREADS)
@@ -1066,8 +1103,7 @@ if [[ ! "$AMPREGION" =~ ^(V13|V4|ITS)$ ]]
     exit 1
 fi
 
-#if [[ ! "$REFDATABASE" =~ ^(1|2|3|4)$ ]]
-if [[ "$REFDATABASE" -lt 1 ]] || [[ "$REFDATABASE" -gt 4 ]]
+if [[ "$REFDATABASE" -lt 1 ]] || [[ "$REFDATABASE" -gt 6 ]]
     then
     echo ""
     echo "Reference database: $REFDATABASE invalid argument."
