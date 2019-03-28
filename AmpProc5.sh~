@@ -905,35 +905,7 @@ if [[ "$1" =~ ^(-help|-h)$ ]]
         fi
         
         REFDATABASE=$TAX
-        if [ $TAX == 1 ]
-         then
-         TAXFILE="midas2"
-        fi
-        
-        if [ $TAX == 2 ]
-         then
-         TAXFILE="midas3"
-        fi
-
-        if [ $TAX == 3 ]
-         then
-         TAXFILE="silva"
-        fi
-        
-        if [ $TAX == 4 ]
-         then
-         TAXFILE="rdp"
-        fi
-        
-        if [ $TAX == 5 ]
-         then
-         TAXFILE="uniteFUN"
-        fi
-
-        if [ $TAX == 6 ]
-         then
-         TAXFILE="uniteEUK"
-        fi
+        Refdatabase_Name_Function
 
         # Run taxonomy prediction with specified reference database
         Predict_taxonomy_Function $OTUINFILE OTUs
@@ -1130,6 +1102,10 @@ if [[ "$REFDATABASE" -lt 1 ]] || [[ "$REFDATABASE" -gt 6 ]]
     echoPlus ""
     exit 1
 fi
+
+# Extract Reference database name and version
+Refdatabase_Name_Function
+
 
 
 

@@ -585,6 +585,51 @@ fi
 }
 
 
+Refdatabase_Name_Function () {
+
+# The function assigns the name and version number to the reference database being used.
+# Requires that $REFDATABASE argument to be assigned already.
+
+# Refdatabase_Name_Function requires $REFDATABASE
+# => $TAXFILE, $TAXVERS
+
+ if [ $REFDATABASE == 1 ]
+         then
+         TAXFILE="midas2"
+         TAXVERS="v2.1.3"
+        fi
+        
+        if [ $REFDATABASE == 2 ]
+         then
+         TAXFILE="midas3"
+         TAXVERS="v3.0 (2019-01-09)"
+        fi
+
+        if [ $REFDATABASE == 3 ]
+         then
+         TAXFILE="silva"
+         TAXVERS="LPT v128"
+        fi
+        
+        if [ $REFDATABASE == 4 ]
+         then
+         TAXFILE="rdp"
+         TAXVERS="training set v16"
+        fi
+        
+        if [ $REFDATABASE == 5 ]
+         then
+         TAXFILE="uniteFUN"
+         TAXVERS="v8.0 (2019-02-02)"
+        fi
+
+        if [ $REFDATABASE == 6 ]
+         then
+         TAXFILE="uniteEUK"
+         TAXVERS="v8.0 (2019-02-02)"
+        fi
+}
+
 Taxonomy_reports_Function () {
 # Taxonomy summary reports
 # INFILE1=sintax_out.txt
@@ -905,35 +950,7 @@ if [[ "$1" =~ ^(-help|-h)$ ]]
         fi
         
         REFDATABASE=$TAX
-        if [ $TAX == 1 ]
-         then
-         TAXFILE="midas2"
-        fi
-        
-        if [ $TAX == 2 ]
-         then
-         TAXFILE="midas3"
-        fi
-
-        if [ $TAX == 3 ]
-         then
-         TAXFILE="silva"
-        fi
-        
-        if [ $TAX == 4 ]
-         then
-         TAXFILE="rdp"
-        fi
-        
-        if [ $TAX == 5 ]
-         then
-         TAXFILE="uniteFUN"
-        fi
-
-        if [ $TAX == 6 ]
-         then
-         TAXFILE="uniteEUK"
-        fi
+        Refdatabase_Name_Function
 
         # Run taxonomy prediction with specified reference database
         Predict_taxonomy_Function $OTUINFILE OTUs
@@ -1130,6 +1147,10 @@ if [[ "$REFDATABASE" -lt 1 ]] || [[ "$REFDATABASE" -gt 6 ]]
     echoPlus ""
     exit 1
 fi
+
+# Extract Reference database name and version
+Refdatabase_Name_Function
+
 
 
 
