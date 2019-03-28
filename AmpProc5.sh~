@@ -121,52 +121,56 @@ SEQPATH="/space/sequences/"
 # Make /tmp/$USER directory as needed
 mkdir -p /tmp/$USER
 
+# Define script start date-time
+STARTTIME=$(date '+%Y%m%d-%H%M%S')
+
 #########################################################
 # FUNCTIONS
 #########################################################
 
 echoWithDate() {
   echo ""
-  echo "" >> ampproc.log
+  echo "" >> ampproc-$STARTTIME.log
 
   CURRENTTIME=[$(date '+%Y-%m-%d %H:%M:%S')]
   #echo "[$(date '+%Y-%m-%d %H:%M:%S')]: $1"
   echo "$CURRENTTIME: $1"
-  echo "$CURRENTTIME: $1" >> ampproc.log
+  echo "$CURRENTTIME: $1" >> ampproc-$STARTTIME.log
 }
 
 echoPlus() {
-  
+  echo $1
+  echo $1 >> ampproc.log
 }
 
 Find_reads_phix_Function () {
 
 # Check that samples file exists, if yes, make sure carriage return is not used.
-echo ""
-echo "Checking the presence of a \"samples\" file"
+echoPlus ""
+echoPlus "Checking the presence of a \"samples\" file"
 
 if [ -f "samples" ]
     then
         # remove carriage returns, add newline at the end of file if it's not there, remove empty lines and white spaces.
         cat samples | tr "\r" "\n" | sed -e '$a\' | sed -e '/^$/d' -e 's/ //g' > samples_tmp.txt
-        echo ""
-        echo "    Done"
-        date
+        echoPlus ""
+        echoWithDate "    Done"
+        #date
     
     else
-        echo ""
-        echo "Please make sure that you have a samples list file named \"samples\" in your current directory, and then run this script again."
-        echo "You can also run the help function with the option -h or -help."
-        echo "    Exiting script."
-        date
-        echo ""
+        echoPlus ""
+        echoPlus "Please make sure that you have a samples list file named \"samples\" in your current directory, and then run this script again."
+        echoPlus "You can also run the help function with the option -h or -help."
+        echoWithDate "    Exiting script."
+        #date
+        echoPlus ""
         exit 1
 fi    
 
 
 # Check that the working directories, or files with the same names, don't exist.
-echo ""
-echo "Checking the presence of previous samples directories in the current directory"
+echoPlus ""
+echoPlus "Checking the presence of previous samples directories in the current directory"
 
 if [ -f "rawdata" ]
     then
@@ -271,12 +275,12 @@ if [ -d "phix_filtered" ]
         fi
 fi
 
-echo ""
-echo "    Done"
-date
+echoWithDate ""
+echoWithDate "    Done"
+#date
 
-echo ""
-echo "Retrieving sequenced files and removing PhiX contamination."
+echoPlus ""
+echoPlus "Retrieving sequenced files and removing PhiX contamination."
 
 # Make new working directories
   mkdir -p rawdata
@@ -322,8 +326,8 @@ Merge_Function () {
 #    cat phix_filtered/$NAME.merged.fq >> mergeout.fq
 #    done < samples_tmp.txt
 
-echo ""
-echo "Merging paired end reads"
+echoPlus ""
+echoPlus "Merging paired end reads"
 
 usearch10 -fastq_mergepairs phix_filtered/*.R1.fq -reverse phix_filtered/*.R2.fq -fastqout mergeout.fq -relabel @ -fastq_maxdiffs 15 -threads $NUMTHREADS -quiet
 
@@ -344,8 +348,8 @@ Fastqc_Function () {
 INFILE=$1
 SEQLEN=$2
 
-echo ""
-echo "Quality filtering and removing consensus reads less than $SEQLEN bp"
+echoPlus ""
+echoPlus "Quality filtering and removing consensus reads less than $SEQLEN bp"
 
 usearch10 -fastq_filter $INFILE -fastq_maxee 1.0 -fastaout QCout.fa -fastq_minlen $SEQLEN -quiet -threads $NUMTHREADS
 
@@ -358,8 +362,8 @@ Fastqc_singlereads_Function () {
 # Truncate reads to 250bp
 # Remove reads less than 250bp
 
-echo ""
-echo "Quality filtering, truncating reads to 200bp, and removing reads less than 200bp."
+echoPlus ""
+echoPlus "Quality filtering, truncating reads to 200bp, and removing reads less than 200bp."
 
 # make temporary directory
 mkdir phix_filtered/tempdir
@@ -391,8 +395,8 @@ while read SAMPLES
 Dereplicate_Function () {
 
 # Find unique read sequences and abundances => Dereplicating
-echo ""
-echo "Dereplicating reads"
+echoPlus ""
+echoPlus "Dereplicating reads"
 
 # INFILE=all.merged.nophix.qc.fa and file variants.
 # output: DEREPout.fa, which is typically renamed as uniques.fa afterwards.
@@ -416,9 +420,9 @@ usearch10 -fastx_uniques $INFILE -sizeout -fastaout DEREPout.fa -relabel Uniq -q
 Prefilter_60pc_Function () {
 
 # Prefilter reads <60% ID to reference dataset from full Silva
-echo ""
-echo "Prefiltering reads that are <60% similar to reference reads"
-echo ""
+echoPlus ""
+echoPlus "Prefiltering reads that are <60% similar to reference reads"
+echoPlus ""
 
 # INFILE=uniques.fa or otus.fa
 # output: prefilt_out.fa
@@ -435,7 +439,7 @@ usearch10 -usearch_global $INFILE -db $REF_DATABASE -strand both -id 0.6 -maxacc
 
 #rm prefilt_out.tmp
 
-echo ""
+echoPlus ""
 
 }
 
@@ -444,8 +448,8 @@ Cluster_otus_Function () {
 
 # Make 97% OTUs and filter chimeras, use de novo
 # cluster_otus: OTU clustering with chimera filtering (UPARSE-OTU algorithm)
-echo ""
-echo "Making 97% OTUs and filter chimeras"
+echoPlus ""
+echoPlus "Making 97% OTUs and filter chimeras"
 
 # INFILE=prefilt_out.fa or uniques.fa
 # output: otus.fa
@@ -458,8 +462,8 @@ usearch10 -cluster_otus $INFILE -otus otus.fa -relabel OTU -minsize 2 -quiet
 Unoise3_Function () {
 
 # Denoise: predict biological sequences and filter chimeras
-echo ""
-echo "Creating ZOTUs of dereplicated reads file using UNOISE3"
+echoPlus ""
+echoPlus "Creating ZOTUs of dereplicated reads file using UNOISE3"
 
 # INFILE=prefilt_out.fa
 # output: zotus.fa
@@ -475,8 +479,8 @@ Make_otutable_Function () {
 # Ensure that taxonomy file is available
 # OTU table without taxonomy information
 
-echo ""
-echo "Making an OTU table"
+echoPlus ""
+echoPlus "Making an OTU table"
 
 # FASTAFILE=all.merged.nophix.qc.fa (output from Fastqc_singlereads_Function)
 # OTUSFILE=otus.fa (output from Cluster_otus_function)
@@ -500,8 +504,8 @@ Make_zotutable_Function () {
 # Make ZOTU table
 # Ensure that taxonomy file is available
 
-echo ""
-echo "Making a zOTU table"
+echoPlus ""
+echoPlus "Making a zOTU table"
  
 # FASTAFILE=all.merged.nophix.qc.fa (output from Fastqc_Function)
 # OTUSFILE=zotus.fa (output from Unoise3_Function)
@@ -533,8 +537,8 @@ ELEMENT=$2
 # INFILE is the otus.fa file
 # $ELEMENT is either otus or zotus
 
-echo ""
-echo "Predicting taxonomy (Classifying the $ELEMENT) using SINTAX"
+echoPlus ""
+echoPlus "Predicting taxonomy (Classifying the $ELEMENT) using SINTAX"
 
 # Determine reference database for taxonomy predictions
 if [ $REFDATABASE == 1 ]
@@ -590,28 +594,28 @@ INFILE1=$1
 INFILE2=$2
 OUTFILE=$3
 
-echo ""
-echo "Generating $OUTFILE taxonomy summary"
+echoPlus ""
+echoPlus "Generating $OUTFILE taxonomy summary"
 
 # if no taxonomy consensus was found for an otu and the 4th column is blank, then sintax_summary causes error, so add something.
 sed -i 's/+\t$/+\td:__unknown__/g' $INFILE1
 sed -i 's/-\t$/-\td:__unknown__/g' $INFILE1
 
 usearch10 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank p -output $OUTFILE.phylum_summary.txt -quiet
-echo ""
-echo "    Output phlyum summary: $OUTFILE.phylum_summary.txt"
+echoPlus ""
+echoPlus "    Output phlyum summary: $OUTFILE.phylum_summary.txt"
 
 usearch10 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank c -output $OUTFILE.sintax.class_summary.txt -quiet
-echo "    Output class summary: $OUTFILE.sintax.class_summary.txt"
+echoPlus "    Output class summary: $OUTFILE.sintax.class_summary.txt"
 
 usearch10 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank o -output $OUTFILE.sintax.order_summary.txt -quiet
-echo "    Output order summary: $OUTFILE.sintax.order_summary.txt"
+echoPlus "    Output order summary: $OUTFILE.sintax.order_summary.txt"
 
 usearch10 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank f -output $OUTFILE.sintax.family_summary.txt -quiet
-echo "    Output family summary: $OUTFILE.sintax.family_summary.txt"
+echoPlus "    Output family summary: $OUTFILE.sintax.family_summary.txt"
 
 usearch10 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank g -output $OUTFILE.sintax.genus_summary.txt -quiet
-echo "    Output genus summary: $OUTFILE.sintax.genus_summary.txt"
+echoPlus "    Output genus summary: $OUTFILE.sintax.genus_summary.txt"
 
 
 }
@@ -636,12 +640,12 @@ ELEMENT=$3
 REP_ALIGNED_PATH="/space/users/ey/Documents/Amplicon_databases/core_set_aligned.fasta.imputed"
 USER_PATH=`echo $PWD`
 
-echo ""
-echo "Building beta diversity matrices."
+echoPlus ""
+echoPlus "Building beta diversity matrices."
 
 # Calculate number of reads per sample
-echo ""
-echo "   Normalizing the OTU table to 1000"
+echoPlus ""
+echoPlus "   Normalizing the OTU table to 1000"
 OTUTABLE2=`echo $OTUTABLE | sed 's/.txt$//g'`
 usearch10 -alpha_div $OTUTABLE -output $OTUTABLE2.number_reads_per_sample.txt -metrics reads -quiet
 
@@ -657,24 +661,24 @@ if [ "$SAMPLESIZE" = "OVER1000" ]
   usearch10 -otutab_trim $OTUTABLE -min_sample_size 1000 -output $OTUTABLE2.tmp -quiet
   usearch10 -otutab_norm $OTUTABLE2.tmp -sample_size 1000 -output $OTUTABLE2.norm1000.txt -quiet
   rm $OTUTABLE2.tmp
-  echo ""
-  echo "    Output of normalized OTU table: $OTUTABLE2.norm1000.txt"
+  echoPlus ""
+  echoPlus "    Output of normalized OTU table: $OTUTABLE2.norm1000.txt"
   else
-  echo ""
-  echo "   Cannot normalize OTU table to 1000 reads per sample because none of the samples have >1000 reads." 
-  echo "   Using only non-normalized OTU table."
+  echoPlus ""
+  echoPlus "   Cannot normalize OTU table to 1000 reads per sample because none of the samples have >1000 reads." 
+  echoPlus "   Using only non-normalized OTU table."
 fi
 
 if [[ $AMPREGION =~ ^(V4|V13)$ ]]
     then
-    echo ""
-    echo "   Aligning the bacterial sequenced reads using PyNAST with QIIME native parameters."
+    echoPlus ""
+    echoPlus "   Aligning the bacterial sequenced reads using PyNAST with QIIME native parameters."
     # Using PyNAST in Unifrac 1.8.0
     align_seqs.py -i $USER_PATH/$INFILE -m pynast -t $REP_ALIGNED_PATH -o $USER_PATH/aligned_seqs_$ELEMENT/
 
-    echo ""
-    echo "   Generating FastTree maximum likelihood tree of the bacterial sequenced reads with QIIME native parameters"
-    echo ""
+    echoPlus ""
+    echoPlus "   Generating FastTree maximum likelihood tree of the bacterial sequenced reads with QIIME native parameters"
+    echoPlus ""
     
     # Qiime 1.8 / 1.9 default params is fasttree default params.
     # Set the number of threads for fasttreeMP to 16 cores
@@ -689,10 +693,10 @@ if [[ $AMPREGION =~ ^(V4|V13)$ ]]
     
     # or: make_phylogeny.py -i $USER_PATH/aligned_seqs/${INFILE2}_aligned.fasta -o $USER_PATH/$INFILE.tre
 
-    echo ""
-    echo "   Warning: The R package Ampvis uses the Generalized UniFrac instead of the original weighted and unweighted UniFrac equations implemented in QIIME version 1.x.x."
-    echo ""
-    echo "   Generating beta diversity matrices: Bray Curtis, original version of weighted & unweighted UniFrac from Fasttree tree"
+    echoPlus ""
+    echoPlus "   Warning: The R package Ampvis uses the Generalized UniFrac instead of the original weighted and unweighted UniFrac equations implemented in QIIME version 1.x.x."
+    echoPlus ""
+    echoPlus "   Generating beta diversity matrices: Bray Curtis, original version of weighted & unweighted UniFrac from Fasttree tree"
 
     # Create betadiv folder
     mkdir beta_div_$ELEMENT
@@ -722,19 +726,19 @@ if [[ $AMPREGION =~ ^(V4|V13)$ ]]
 
       # Run Usearch for Bray Curtis matrix
       usearch10 -beta_div $OTUTABLE2.norm1000.txt -metrics bray_curtis -filename_prefix beta_div_norm1000_$ELEMENT/$ELEMENT. -quiet
-      else
-      echo ""
-      echo "   Note: Beta diversity matrices from normalized OTU table could not be generated."
+      elsePlus
+      echoPlus ""
+      echoPlus "   Note: Beta diversity matrices from normalized OTU table could not be generated."
    fi
     
     
-    echo ""
-    echo "    Output files of alignment in aligned_seqs_$ELEMENT/"
-    echo "    Output files of beta diversity in beta_div_$ELEMENT/"
+    echoPlus ""
+    echoPlus "    Output files of alignment in aligned_seqs_$ELEMENT/"
+    echoPlus "    Output files of beta diversity in beta_div_$ELEMENT/"
 
    if [ "$SAMPLESIZE" = "OVER1000" ] && [ "$SAMPLENUM" -gt 1 ]
       then
-    echo "    Output files of beta diversity of normalized data in beta_div_norm1000_$ELEMENT/"
+    echoPlus "    Output files of beta diversity of normalized data in beta_div_norm1000_$ELEMENT/"
    fi
 fi
 
@@ -746,20 +750,20 @@ if [ $AMPREGION = "ITS" ]
 
     if [ $NUMOTUS -le 1 ]
       then
-      echo ""
-      echo "   There is not enough $ELEMENT to generate beta diversity output. No matrices generated"
+      echoPlus ""
+      echoPlus "   There is not enough $ELEMENT to generate beta diversity output. No matrices generated"
       else
        # Build clustering tree for fungi
-       echo ""
-       echo "  Using maximum linkage clustering to build OTU tree"
+       echoPlus ""
+       echoPlus "  Using maximum linkage clustering to build OTU tree"
        mkdir beta_div_$ELEMENT
 
        usearch10 -cluster_agg $INFILE -treeout beta_div_$ELEMENT/$ELEMENT.cluster.tre -id 0.80 -linkage max -quiet
     
-       echo ""
-       echo "   Warning: Fungal ITS regions are too variable for proper phylogenetic tree. Therefore the maximum linkage tree will be used for generating phlyogeny-based beta diversity matrices."
-       echo ""
-       echo "   Generating beta diversity matrices: Bray Curtis, weighted & unweighted UniFrac from clustering tree"
+       echoPlus ""
+       echoPlus "   Warning: Fungal ITS regions are too variable for proper phylogenetic tree. Therefore the maximum linkage tree will be used for generating phlyogeny-based beta diversity matrices."
+       echoPlus ""
+       echoPlus "   Generating beta diversity matrices: Bray Curtis, weighted & unweighted UniFrac from clustering tree"
 
        
        # Calculate beta diversity matrices
@@ -769,14 +773,14 @@ if [ $AMPREGION = "ITS" ]
          then
          # Calculate beta diveristy matrices for normalized otu table of normalized otu table is large enough.
          usearch10 -beta_div $OTUTABLE2.norm1000.txt -metrics bray_curtis,unifrac,unifrac_binary -tree beta_div_$ELEMENT/$ELEMENT.cluster.tre -filename_prefix beta_div_$ELEMENT/$ELEMENT.norm1000_ -quiet
-         else
-         echo ""
-         echo "   Note: Beta diversity matrices from normalized OTU table could not be generated."
+         elsePlus
+         echoPlus ""
+         echoPlus "   Note: Beta diversity matrices from normalized OTU table could not be generated."
       fi
         
-       echo ""
-       echo "    Output files of clustering: $ELEMENT.cluster.tre"
-       echo "    Output files of beta diversity in beta_div_$ELEMENT/"
+       echoPlus ""
+       echoPlus "    Output files of clustering: $ELEMENT.cluster.tre"
+       echoPlus "    Output files of beta diversity in beta_div_$ELEMENT/"
    fi
 fi
 
@@ -811,6 +815,7 @@ $SCRIPTPATH/ASVpipeline.sh
 
 # Append asv table to sintax taxonomy
 echoWithDate "Using AmpProc to generate ASV table for AmpVis"
+echoPlus ""
 
 mv ASVtable.tsv ASVtable_notax.tsv
 
@@ -844,11 +849,11 @@ if [[ "$1" =~ ^(-help|-h)$ ]]
     # if there are arguments present
     if [ $1 ]
         then
-        echo ""
-        echo "Running: 16S workflow version $VERSIONNUMBER"
-        echo "A postiori taxonomy assignment"
-        echo "To incorporate new taxonomy into OTU table, run otutab_sintax_to_ampvis.v1.1.sh"
-        date
+        echoWithDate ""
+        echoWithDate "Running: 16S workflow version $VERSIONNUMBER"
+        echoWithDate "A postiori taxonomy assignment"
+        #echo "To incorporate new taxonomy into OTU table, run otutab_sintax_to_ampvis.v1.1.sh"
+        #date
         while getopts :i:t: option
             do
             case "${option}"
@@ -927,16 +932,16 @@ if [[ "$1" =~ ^(-help|-h)$ ]]
         mv sintax_out.txt $FILERAD.sintax.$TAXFILE.txt
         # Append new sintax to otu table
         $SCRIPTPATH/otutab_sintax_to_ampvis.v1.2.sh -i otutable_notax.txt -t $FILERAD.sintax.$TAXFILE.txt -r $TAXFILE
-        echo "Output files of the OTU/ZOTU taxonomy assignment: $FILERAD.sintax.$TAXFILE.txt, otutable_$TAXFILE.txt"
-        date
-        echo ""
+        echoWithDate "Output files of the OTU/ZOTU taxonomy assignment: $FILERAD.sintax.$TAXFILE.txt, otutable_$TAXFILE.txt"
+        #date
+        echoPlus ""
         exit 0
         
         else
         if [ ! -f "samples" ]
         then 
-        echo "samples file does not exist. Check -help or -h for more information. Exiting script."  
-        echo ""
+        echoWithDate "samples file does not exist. Check -help or -h for more information. Exiting script."  
+        echoPlus ""
         exit 1
 	fi
     fi
@@ -959,33 +964,33 @@ fi
 #########################################################
 
 clear
-echo ""
-echo "Running: 16S workflow version $VERSIONNUMBER"
-echo ""
-echo "WARNING: Please note that this version uses a different workflow than v.4.3, so you are advised to rerun this script on your older datasets if you wish to proceed with comparative analyses with the older data."
-echo ""
-echo "Use the -h or -help options to run the Help function"
-echo ""
-echo "Read the README file for more information on how to cite this workflow."
-echo "Description of all the output files are also found in the README file."
-echo ""
-echo "This tool is for academic use only."
-date
-echo ""
+echoWithDate ""
+echoPlus "Running: 16S workflow version $VERSIONNUMBER"
+echoPlus ""
+echoPlus "WARNING: Please note that this version uses a different workflow than v.4.3, so you are advised to rerun this script on your older datasets if you wish to proceed with comparative analyses with the older data."
+echoPlus ""
+echoPlus "Use the -h or -help options to run the Help function"
+echoPlus ""
+echoPlus "Read the README file for more information on how to cite this workflow."
+echoPlus "Description of all the output files are also found in the README file."
+echoPlus ""
+echoPlus "This tool is for academic use only."
+#date
+echoPlus ""
 
 # Standard or MiDAS workflow
-echo ""
-echo "What workflow do you want to run?"
-echo "        S  - Standard workflow"
-echo "        M  - MiDAS ASV workflow"
+echoPlus ""
+echoPlus "What workflow do you want to run?"
+echoPlus "        S  - Standard workflow"
+echoPlus "        M  - MiDAS ASV workflow"
 read WORKFLOW
 
 # Check that the question answer is script readable
 if [[ ! "$WORKFLOW" =~ ^(S|M)$ ]]
    then
-   echo""
-   echo "Workflow type: $WORKFLOW is an invalid argument."
-   echo "Sorry I didn't understand what you wrote. Please also make sure that you have the correct upper/lower case letters."
+   echoPlus ""
+   echoPlus "Workflow type: $WORKFLOW is an invalid argument."
+   echoPlus "Sorry I didn't understand what you wrote. Please also make sure that you have the correct upper/lower case letters."
    echoWithDate "    Exiting script"
    exit 1
 fi
@@ -996,8 +1001,8 @@ fi
      else
      if [ $WORKFLOW = "S" ]
        then
-       echo ""
-       echo "Continuing with standard workflow"
+       echoPlus ""
+       echoPlus "Continuing with standard workflow"
      fi
 fi
 
@@ -1005,74 +1010,74 @@ fi
 cp /space/users/ey/Documents/Scripts/amplicon_workflow/README_amplicon.workflow_v$VERSIONNUMBER.txt .
 
 # Define ZOTUs = yes/no
-echo ""
-echo "In addition to an OTU table, do you want to generate a ZOTU table using UNOISE3? (yes/no/quit)"
-echo "        yes  - Generate ZOTU table and OTU table"
-echo "        no   - Generate only OTU table"
-echo "        quit - Quit the script so I can go and read up on UNOISE3"
+echoPlus ""
+echoPlus "In addition to an OTU table, do you want to generate a ZOTU table using UNOISE3? (yes/no/quit)"
+echoPlus "        yes  - Generate ZOTU table and OTU table"
+echoPlus "        no   - Generate only OTU table"
+echoPlus "        quit - Quit the script so I can go and read up on UNOISE3"
 read ZOTUS
 
 # Check that the question answers are script readable.
 # note: arg between quotes means it can be nothing without producing error.
 if [[ ! "$ZOTUS" =~ ^(yes|no|quit)$ ]]
     then
-    echo ""
-    echo "OTU / ZOTU table: $ZOTUS is an invalid argument."
-    echo "Sorry I didn't understand what you wrote. Please also make sure that you have the correct upper/lower case letters."
-    echo "You can also run the help function with the option -help or -h."
-    echo "    Exiting script"
-    date
-    echo ""
+    echoPlus ""
+    echoPlus "OTU / ZOTU table: $ZOTUS is an invalid argument."
+    echoPlus "Sorry I didn't understand what you wrote. Please also make sure that you have the correct upper/lower case letters."
+    echoPlus "You can also run the help function with the option -help or -h."
+    echoWithDate "    Exiting script"
+    #date
+    echoPlus ""
     exit 1
     else
     if [ $ZOTUS = "quit" ]
         then
-        echo ""
-        echo "    Exiting script"
-        date
-        echo ""
+        echoPlus ""
+        echoWithDate "    Exiting script"
+        #date
+        echoPlus ""
         exit 0
     fi
 fi
 
 
 # Define single read process = SR/PE/both (SINGLEREADS)
-echo ""
-echo "Do you want to process single-end reads or paired-end reads? (yes/no/both)"
-echo "Select to run single end reads if you want to control for species that have very long variable regions between the forward and reverse primers. These species can be rare in the community but will get filtered out if the paired end reads do not overlap."
-echo "        SR   - Process only single reads"
-echo "        PE   - Process only paired-end reads"
-echo "        both - process both single reads and paired-end reads"
+echoPlus ""
+echoPlus "Do you want to process single-end reads or paired-end reads? (yes/no/both)"
+echoPlus "Select to run single end reads if you want to control for species that have very long variable regions between the forward and reverse primers. These species can be rare in the community but will get filtered out if the paired end reads do not overlap."
+echoPlus "        SR   - Process only single reads"
+echoPlus "        PE   - Process only paired-end reads"
+echoPlus "        both - process both single reads and paired-end reads"
 read SINGLEREADS
 
 # Define amplicon region = V13/V4/ITS (AMPREGION)
-echo ""
-echo "What genomic region does your PCR amplicons amplify? (V13/V4/ITS)"
-echo "        V13 - Bacterial 16S rRNA hypervariable regions 1 & 3"
-echo "        V4  - Bacterial 16S rRNA hypervariable region 4"
-echo "        ITS - Fungal ribosomal ITS 1 region"
+echoPlus ""
+echoPlus "What genomic region does your PCR amplicons amplify? (V13/V4/ITS)"
+echoPlus "        V13 - Bacterial 16S rRNA hypervariable regions 1 & 3"
+echoPlus "        V4  - Bacterial 16S rRNA hypervariable region 4"
+echoPlus "        ITS - Fungal ribosomal ITS 1 region"
 read AMPREGION
 
 # Define reference database for taxonomy prediction of OTUs (REFDATABASE)
-echo ""
-echo "Which reference database do you want to use for taxonomy prediction? ()"
-echo "        1  - MiDAS v2.1.3"
-echo "        2  - MiDAS v3.0 (2019-01-09)"
-echo "        3  - SILVA LTP v132"
-echo "        4  - RDP training set v16"
-echo "        5  - UNITE fungi ITS 1&2 v8.0 (2019-02-02)"
-echo "        6  - UNITE eukaryotes ITS 1&2 v8.0 (2019-02-02)"
-echo ""
-echo "Note: MiDAS datasets are for waste water treatment systems."
-echo "For general bacteria and archaea, use SILVA LTP"
+echoPlus ""
+echoPlus "Which reference database do you want to use for taxonomy prediction? ()"
+echoPlus "        1  - MiDAS v2.1.3"
+echoPlus "        2  - MiDAS v3.0 (2019-01-09)"
+echoPlus "        3  - SILVA LTP v132"
+echoPlus "        4  - RDP training set v16"
+echoPlus "        5  - UNITE fungi ITS 1&2 v8.0 (2019-02-02)"
+echoPlus "        6  - UNITE eukaryotes ITS 1&2 v8.0 (2019-02-02)"
+echoPlus ""
+echoPlus "Note: MiDAS datasets are for waste water treatment systems."
+echoPlus "For general bacteria and archaea, use SILVA LTP"
 
 read REFDATABASE
 
 # Define number of threads to use (NUMTHREADS)
-echo ""
-echo "How many CPUs do you want to use at maximum run?"
-echo "Dragon (up to 80), Coco and Peanut (up to 12)"
-echo "If unsure, then start the run with 5 threads"
+echoPlus ""
+echoPlus "How many CPUs do you want to use at maximum run?"
+echoPlus "Dragon (up to 80), Coco and Peanut (up to 12)"
+echoPlus "If unsure, then start the run with 5 threads"
 read NUMTHREADS
 
 
@@ -1081,37 +1086,37 @@ read NUMTHREADS
 
 if [[ ! "$SINGLEREADS" =~ ^(SR|both|PE)$ ]]
     then
-    echo ""
-    echo "Single reads / SR+PE: $SINGLEREADS invalid argument."
-    echo "Sorry I didn't understand what you wrote. Please also make sure that you have the correct upper/lower case letters."
-    echo "You can also run the help function with the option -help or -h."
-    echo "    Exiting script"
-    date
-    echo ""
+    echoPlus ""
+    echoPlus "Single reads / SR+PE: $SINGLEREADS invalid argument."
+    echoPlus "Sorry I didn't understand what you wrote. Please also make sure that you have the correct upper/lower case letters."
+    echoPlus "You can also run the help function with the option -help or -h."
+    echoWithDate "    Exiting script"
+    #date
+    echoPlus ""
     exit 1
 fi
 
 if [[ ! "$AMPREGION" =~ ^(V13|V4|ITS)$ ]]
     then
-    echo ""
-    echo "Amplicon region: $AMPREGION invalid argument."
-    echo "Sorry I didn't understand what you wrote. Please also make sure that you have the correct upper/lower case letters."
-    echo "You can also run the help function with the option -help or -h."
-    echo "    Exiting script"
-    date
-    echo ""
+    echoPlus ""
+    echoPlus "Amplicon region: $AMPREGION invalid argument."
+    echoPlus "Sorry I didn't understand what you wrote. Please also make sure that you have the correct upper/lower case letters."
+    echoPlus "You can also run the help function with the option -help or -h."
+    echoWithDate "    Exiting script"
+    #date
+    echoPlus ""
     exit 1
 fi
 
 if [[ "$REFDATABASE" -lt 1 ]] || [[ "$REFDATABASE" -gt 6 ]]
     then
-    echo ""
-    echo "Reference database: $REFDATABASE invalid argument."
-    echo "Sorry I didn't understand what you wrote. Please make sure that you select the correct database."
-    echo "You can also run the help function with the option -help or -h."
-    echo "    Exiting script"
-    date
-    echo ""
+    echoPlus ""
+    echoPlus "Reference database: $REFDATABASE invalid argument."
+    echoPlus "Sorry I didn't understand what you wrote. Please make sure that you select the correct database."
+    echoPlus "You can also run the help function with the option -help or -h."
+    echoWithDate "    Exiting script"
+    #date
+    echoPlus ""
     exit 1
 fi
 
@@ -1124,11 +1129,11 @@ fi
 
 # Finding your samples and copying them to the current directory
 # Filter potential phiX contamination
-echo ""
-echo "Finding your samples and copying them to the current directory, and filtering potential phiX contamination"
+echoPlus ""
+echoPlus "Finding your samples and copying them to the current directory, and filtering potential phiX contamination"
 Find_reads_phix_Function
-echo "     Output raw sequences in phix_filtered/"
-date
+echoWithDate "     Output raw sequences in phix_filtered/"
+#date
 
 
 ################
@@ -1139,18 +1144,18 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
     then
     # Quality filtering
     Fastqc_singlereads_Function
-    echo "    Output files of QC:" 
-    echo "      all.singlereads.nophix.qc.R1.fa"
-    echo "      all.singlereads.nophix.qc.R2.fa"
-    date
+    echoWithDate "    Output files of QC:" 
+    echoPlus "      all.singlereads.nophix.qc.R1.fa"
+    echoPlus "      all.singlereads.nophix.qc.R2.fa"
+    #date
 
     # Dereplicate uniques
     Dereplicate_Function all.singlereads.nophix.qc.R1.fa
     mv DEREPout.fa uniques.R1.fa
     Dereplicate_Function all.singlereads.nophix.qc.R2.fa
     mv DEREPout.fa uniques.R2.fa
-    echo "    Output files of derep: uniques.R1.fa and uniques.R2.fa"
-    date
+    echoWithDate "    Output files of derep: uniques.R1.fa and uniques.R2.fa"
+    #date
   
 #############          
  #   # Prefilter to remove anomalous reads
@@ -1189,13 +1194,13 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
       Prefilter_60pc_Function otus.R2.tmp
       mv prefilt_out.fa otus.R2.fa
    fi
-    echo "    Output files of OTU clustering: otus.R1.fa and otus.R2.fa"
+    echoWithDate "    Output files of OTU clustering: otus.R1.fa and otus.R2.fa"
            
     Predict_taxonomy_Function otus.R1.fa OTUsR1
     mv sintax_out.txt sintax_out.otus.R1.txt
     Predict_taxonomy_Function otus.R2.fa OTUsR2
     mv sintax_out.txt sintax_out.otus.R2.txt
-    echo "    Output files of OTU taxonomy assignment: sintax_out.otus.R1.txt and sintax_out.otus.R2.txt"
+    echoWithDate "    Output files of OTU taxonomy assignment: sintax_out.otus.R1.txt and sintax_out.otus.R2.txt"
     
     if [ $ZOTUS = "yes" ]
         then
@@ -1220,15 +1225,15 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
         mv prefilt_out.fa zotus.R2.fa
         rm zotus.R1.tmp zotus.R2.tmp
      fi
-        echo "    Output ZOTU files: zotus.R1.fa and zotus.R2.fa"
-        date
+        echoWithDate "    Output ZOTU files: zotus.R1.fa and zotus.R2.fa"
+        #date
                 
         Predict_taxonomy_Function zotus.R1.fa ZOTUsR1
         mv sintax_out.txt sintax_out.zotus.R1.txt
         Predict_taxonomy_Function zotus.R2.fa ZOTUsR2
         mv sintax_out.txt sintax_out.zotus.R2.txt
-        echo "    Output ZOTU taxonomy files: sintax_out.zotus.R1.txt and sintax_out.zotus.R2.txt"
-        date
+        echoWithDate "    Output ZOTU taxonomy files: sintax_out.zotus.R1.txt and sintax_out.zotus.R2.txt"
+        #date
     fi
             
     # Build OTU table
@@ -1238,9 +1243,9 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
     Make_otutable_Function all.singlereads.nophix.R2.fq otus.R2.fa sintax_out.otus.R2.txt
     mv otutable.txt otutable.R2.txt
     mv otutable_notax.txt otutable_notax.R2.txt
-    echo "    Output file of OTU table: otutable_notax.R1.txt and otutable_notax.R1.txt"
-    echo "    Output file for final otu table: otutable.R1.txt and otutable.R2.txt"
-    date
+    echoWithDate "    Output file of OTU table: otutable_notax.R1.txt and otutable_notax.R1.txt"
+    echoWithDate "    Output file for final otu table: otutable.R1.txt and otutable.R2.txt"
+    #date
 
     # Build zOTU table
     if [ $ZOTUS = "yes" ]
@@ -1252,9 +1257,9 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
         mv zotutable.txt zotutable.R2.txt
         mv zotutable_notax.txt zotutable_notax.R2.txt
     
-        echo "    Output file of zOTU table: zotutable_notax.txt"
-        echo "    Output file for final zOTU table: zotutable.txt"
-        date
+        echoWithDate "    Output file of zOTU table: zotutable_notax.txt"
+        echoWithDate "    Output file for final zOTU table: zotutable.txt"
+        #date
     fi
 
     # Taxonomy reports from SINTAX output
@@ -1270,21 +1275,21 @@ fi
 
 if [ $SINGLEREADS = "SR" ]
     then
-    echo ""
-    echo "Removing temporary files and directories"
+    echoPlus ""
+    echoPlus "Removing temporary files and directories"
     Cleanup_Function
-    echo ""
-    echo "Single read data processing is done. Enjoy."
-    date
-    echo ""
+    echoPlus ""
+    echoWithDate "Single read data processing is done. Enjoy."
+    #date
+    echoPlus ""
     exit 0
     
     else
     if [ $SINGLEREADS = "both" ]
       then
-      echo ""
-      echo "Single read data processing is done."
-      date
+      echoPlus ""
+      echoWithDate "Single read data processing is done."
+      #date
     fi
 fi
 
@@ -1293,14 +1298,14 @@ fi
 # PE READS
 ################
 
-echo ""
-echo "Starting workflow for paired-end read data."
+echoPlus ""
+echoPlus "Starting workflow for paired-end read data."
 
 # Merge paired ends
 Merge_Function
 mv mergeout.fq all.merged.nophix.fq
-echo "    Output file of merging: all.merged.nophix.fq"
-date
+echoWithDate "    Output file of merging: all.merged.nophix.fq"
+#date
 
 # Quality filtering
 if [ $AMPREGION = "V13" ]
@@ -1319,14 +1324,14 @@ if [ $AMPREGION = "ITS" ]
 fi
 
 mv QCout.fa all.merged.nophix.qc.fa
-echo "    Output file of QC: all.merged.nophix.qc.fa"
-date
+echoWithDate "    Output file of QC: all.merged.nophix.qc.fa"
+#date
 
 # Dereplicate to uniques
 Dereplicate_Function all.merged.nophix.qc.fa
 mv DEREPout.fa uniques.fa
-echo "    Output file of derep: uniques.fa"
-date
+echoWithDate "    Output file of derep: uniques.fa"
+#date
 
 ########################
 ## Prefiltering at 60% ID not implemented for ITS.
@@ -1355,8 +1360,8 @@ if [ $AMPREGION = "ITS" ]
     Prefilter_60pc_Function otus.tmp
     mv prefilt_out.fa otus.fa
 fi
-echo "    Output file of OTU clustering: otus.fa"
-date
+echoWithDate "    Output file of OTU clustering: otus.fa"
+#date
 
 Predict_taxonomy_Function otus.fa OTUs
 mv sintax_out.txt sintax_out.otus.txt
@@ -1365,13 +1370,14 @@ date
 
 # Build OTU table
 Make_otutable_Function all.merged.nophix.fq otus.fa sintax_out.otus.txt
-echo "    Output file of OTU table: otutable_notax.txt"
-echo "    Output file for final otu table: otutable.txt"
-date
+echoWithDate "    Output file of OTU table: otutable_notax.txt"
+echoWithDate "    Output file for final otu table: otutable.txt"
+#date
 
 # Taxonomy reports from SINTAX output
 Taxonomy_reports_Function sintax_out.otus.txt otutable_notax.txt otus
-date
+echoWithDate ""
+#date
 
 # Align sequences, build tree, and generate beta diversity matrices that can be fed into Ampvis or R base.
 Betadiv_Function otus.fa otutable_notax.txt OTUS
@@ -1379,7 +1385,8 @@ Betadiv_Function otus.fa otutable_notax.txt OTUS
 #echo ""
 #echo "    Output files of alignment in aligned_seqs_OTUS/"
 #echo "    Output files of beta diversity in beta_div_OTUS/"
-date
+#date
+echoWithDate ""
 
 # Cluster zOTUs + taxonomy assignment
 if [ $ZOTUS = "yes" ]
@@ -1398,27 +1405,29 @@ if [ $ZOTUS = "yes" ]
          mv prefilt_out.fa zotus.fa
      fi
 
-    echo "    Output zotu file: zotus.fa"
-    date
+    echoWithDate "    Output zotu file: zotus.fa"
+    #date
 
     Predict_taxonomy_Function zotus.fa ZOTUs
     mv sintax_out.txt sintax_out.zotus.txt
-    echo "    Output file of ZOTU taxonomy files: sintax_out.zotus.txt"
-    date
+    echoWithDate "    Output file of ZOTU taxonomy files: sintax_out.zotus.txt"
+    #date
 
     # Build zOTU table
     Make_zotutable_Function all.merged.nophix.fq zotus.fa sintax_out.zotus.txt
-    echo "    Output file of zOTU table: zotutable_notax.txt"
-    echo "    Output file for final zOTU table: zotutable.txt"
-    date
+    echoWithDate "    Output file of zOTU table: zotutable_notax.txt"
+    echoWithDate "    Output file for final zOTU table: zotutable.txt"
+    #date
 
     # Taxonomy reports from SINTAX output
     Taxonomy_reports_Function sintax_out.zotus.txt zotutable_notax.txt zotus
-    date
+    #date
+    echoWithDate ""
 
     # Align sequences, build tree, and generate beta diversity matrices that can be fed into Ampvis or R base.
     Betadiv_Function zotus.fa zotutable_notax.txt ZOTUS
-    date
+    #date
+    echoWithDate ""
 fi
 
 
@@ -1429,14 +1438,14 @@ fi
 #########################################################
 
 # Remove temporary files and directories
-echo ""
-echo "Removing temporary files and directories"
+echoPlus ""
+echoPlus "Removing temporary files and directories"
 
 Cleanup_Function
 
-echo ""
-echo "Paired-end read processing is done. Enjoy."
-date
-echo ""
+echoPlus ""
+echoWithDate "Paired-end read processing is done. Enjoy."
+#date
+echoPlus ""
 
 
