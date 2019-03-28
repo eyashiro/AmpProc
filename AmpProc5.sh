@@ -34,7 +34,7 @@ set -e
 set -o pipefail
 
 # Remove log file
-rm -f ampproc.log
+#rm -f ampproc.log
 
 #########################################################
 # HELP
@@ -876,6 +876,31 @@ exit 0
 }
 
 
+Run_Time_Params_Function () {
+
+# Write out the command and arguments into a log file.
+# => ammproc_params-'date-time'.log
+
+printf "File created: " > ampproc_params-$STARTTIME.log
+date >> ampproc_params-$STARTTIME.log
+echo "" >> ampproc_params-$STARTTIME.log
+
+echo "AmpProc5 version: $VERSIONNUMBER" >> ampproc_params-$STARTTIME.log
+
+echo "" >> ampproc_params-$STARTTIME.log
+
+  # full command string
+printf "Full command: " >> ampproc_params-$STARTTIME.log
+echo "$0 $@" >> ampproc_params-$STARTTIME.log
+
+echo "What workflow do you want to run (MiDAS / Standard)?            $WORKFLOW" >> ampproc_params-$STARTTIME.log
+echo "Generate a ZOTU table using UNOISE3?                            $ZOTUS" >> ampproc_params-$STARTTIME.log
+echo "Process single-end reads (SR)and/or paired-end reads (PE)?      $SINGLEREADS" >> ampproc_params-$STARTTIME.log
+echo "Amplicon region?                                                $AMPREGION" >> ampproc_params-$STARTTIME.log
+echo "Reference database to use for taxonomy prediction?              $REFDATABASE ) $TAXFILE $TAXVERS" >> ampproc_params-$STARTTIME.log
+echo "Number of threads:                                              $NUMTHREADS" >> ampproc_params-$STARTTIME.log
+
+}
 
 #########################################################
 # ARGUMENTS
@@ -886,8 +911,8 @@ exit 0
 if [[ "$1" =~ ^(-help|-h)$ ]]
     then
     Help_Function
-      else
-      if [[ "$1" =~ ^(-v|-V|--version)$ ]]
+    else
+    if [[ "$1" =~ ^(-v|-V|--version)$ ]]
         then
         echo $VERSIONNUMBER
         exit
@@ -949,8 +974,12 @@ if [[ "$1" =~ ^(-help|-h)$ ]]
             exit 1
         fi
         
+        # Assign ref database name
         REFDATABASE=$TAX
         Refdatabase_Name_Function
+        
+        # Write command parameters to log
+        Run_Time_Params_Function
 
         # Run taxonomy prediction with specified reference database
         Predict_taxonomy_Function $OTUINFILE OTUs
@@ -993,7 +1022,7 @@ fi
 
 clear
 echoWithDate ""
-echoPlus "Running: 16S workflow version $VERSIONNUMBER"
+echoPlus "Running: AmpProc5 version $VERSIONNUMBER"
 echoPlus ""
 echoPlus "WARNING: Please note that this version uses a different workflow than v.4.3, so you are advised to rerun this script on your older datasets if you wish to proceed with comparative analyses with the older data."
 echoPlus ""
@@ -1151,7 +1180,8 @@ fi
 # Extract Reference database name and version
 Refdatabase_Name_Function
 
-
+# Write command parameters to log
+Run_Time_Params_Function
 
 
 #########################################################
