@@ -14,6 +14,10 @@
 #
 #######################################################
 
+# Set error check
+set -e
+set -o pipefail
+
 
 while getopts :i:t:r: option
    do
@@ -61,11 +65,21 @@ awk -F "\t" '{ print $1"\t"$4 }' $SINTAX | sort -k1 -V > $SINTAX.sorted.tmp0
 # Extract just the taxonomy column
 awk -F "\t" '{ print $2 }' $SINTAX.sorted.tmp0 > $SINTAX.sorted.tmp
 
+echo "Hello, $SINTAX.sorted.tmp"
+
 # Swap domain for kingdom if presented as such
-DOMAIN=`grep --max-count=1 "d:" $SINTAX.sorted.tmp`
-if [ -n $DOMAIN ]
+#DOMAIN=`grep --max-count=1 "d:" $SINTAX.sorted.tmp`
+BACTDOMAIN=`echo "Hello!!!!"`
+#BACTDOMAIN=`sed -n '1p' $SINTAX.sorted.tmp | grep -c "d:"`
+head -n10 $SINTAX.sorted.tmp | grep "d:" | wc -l
+
+echo "domain: $BACTDOMAIN"
+#if [ -n $DOMAIN ]
+if [ "$BACTDOMAIN" -gt 0 ]
   then
   sed -i 's/d:/k:/g' $SINTAX.sorted.tmp
+  else
+  echo ""
 fi
 
 # Check presence of all taxonomy levels
@@ -84,7 +98,8 @@ awk -F ',' 'OFS="," { if ($6 !~ /g:/) {$6="g:,"$6; print $0} else {print $0} }' 
 awk -F ',' 'OFS="," { if ($7 !~ /s:/) {$7="s:"$7; print $0} else {print $0} }' $SINTAX.sorted.tmpf > $SINTAX.sorted.tmpg
 
 # replace kingdom with domain if necessary
-if [ -n $DOMAIN ]
+#if [ -n $DOMAIN ]
+if [ "$DOMAINpresent" -gt 0 ]
   then
   sed -i 's/k:/d:/g' $SINTAX.sorted.tmpg
 fi
@@ -99,11 +114,13 @@ paste -d "\t" $SINTAX.sorted.tmp00 $SINTAX.sorted.tmpg > $SINTAX.sorted.tmph
 
 
 # Append tax to otutable
-join -t '	' otutable_notax_sorted.txt $SINTAX.sorted > $(FILERAD)_$(REFDATABASE).txt
+join -t '	' otutable_notax_sorted.txt $SINTAX.sorted > ${FILERAD}_${REFDATABASE}.txt
+
+mv otutable_notax_sorted.txt ${FILERAD}_${REFDATABASE}.sorted.txt
 
 rm $SINTAX.sorted
 rm $SINTAX.sorted.tmp*
-rm otutable_notax_sorted.txt
+#rm otutable_notax_sorted.txt
 
 
 

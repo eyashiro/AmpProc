@@ -494,8 +494,9 @@ usearch10 -otutab $FASTAFILE -otus $OTUSFILE -otutabout otutable_notax.txt -id 0
 bash $SCRIPTPATH/otutab_sintax_to_ampvis.v1.2.sh -i otutable_notax.txt -t $SINTAX -r $REFDATABASE
 
 rm otutable_notax.txt
-mv otutable_notax_sorted.txt otutable_notax.txt
-mv otutable_$REFDATABASE.txt otutable.txt
+#mv otutable_notax_sorted.txt otutable_notax.txt
+mv otutable_notax_$REFDATABASE.sorted.txt otutable_notax.txt
+mv otutable_notax_$REFDATABASE.txt otutable.txt
 
 }
 
@@ -515,15 +516,17 @@ FASTAFILE=$1
 ZOTUSFILE=$2
 SINTAX=$3
 sed 's/Zotu/Otu/g' $ZOTUSFILE > zotus.tmp
-usearch10 -otutab $FASTAFILE -otus zotus.tmp -otutabout zotutable_notax.txt -id 0.97 -threads $NUMTHREADS -quiet -sample_delim .
-sed -i 's/Otu/Zotu/g' zotutable_notax.txt
+#usearch10 -otutab $FASTAFILE -otus zotus.tmp -otutabout zotutable_notax.txt -id 0.97 -threads $NUMTHREADS -quiet -sample_delim .
+usearch11 -otutab $FASTAFILE -zotus $ZOTUSFILE -otutabout zotutable_notax.txt -id 0.97 -threads $NUMTHREADS -quiet -sample_delim .
+#sed -i 's/Otu/Zotu/g' zotutable_notax.txt
 rm zotus.tmp
 
 bash $SCRIPTPATH/otutab_sintax_to_ampvis.v1.2.sh -i zotutable_notax.txt -t $SINTAX -r $REFDATABASE
 
 rm zotutable_notax.txt
-mv otutable_notax_sorted.txt zotutable_notax.txt
-mv otutable_$REFDATABASE.txt zotutable.txt
+#mv otutable_notax_sorted.txt zotutable_notax.txt
+mv zotutable_notax_$REFDATABASE.sorted.txt zotutable_notax.txt
+mv zotutable_notax_$REFDATABASE.txt zotutable.txt
 #sed -i 's/Otu/Zotu/g' zotutable.txt
 #sed -i 's/Otu/Zotu/g' zotutable_notax.txt
 
@@ -568,13 +571,13 @@ fi
 
 if [ $REFDATABASE == 5 ]
     then
-    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/UNITE/utax_reference_dataset_fungi_02.02.2019.udb"
+    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/UNITE/utax_reference_dataset_fungi_02.02.2019.corrected.udb"
     echo "using UNITE fungi reference database."
 fi
 
 if [ $REFDATABASE == 6 ]
     then
-    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/UNITE/utax_reference_dataset_all_02.02.2019.corrected.udb"
+    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/UNITE/utax_reference_dataset_all_02.02.2019.corrected2.udb"
     echo "using UNITE eukaryotes reference database."
 fi
 
@@ -772,7 +775,7 @@ if [[ $AMPREGION =~ ^(V4|V13)$ ]]
 
       # Run Usearch for Bray Curtis matrix
       usearch10 -beta_div $OTUTABLE2.norm1000.txt -metrics bray_curtis -filename_prefix beta_div_norm1000_$ELEMENT/$ELEMENT. -quiet
-      elsePlus
+      echoPlus
       echoPlus ""
       echoPlus "   Note: Beta diversity matrices from normalized OTU table could not be generated."
    fi
@@ -982,7 +985,8 @@ if [[ "$1" =~ ^(-help|-h)$ ]]
         Run_Time_Params_Function
 
         # Run taxonomy prediction with specified reference database
-        Predict_taxonomy_Function $OTUINFILE OTUs
+        PREDTYPE=`echo $OTUINFILE | sed 's/\..*//g'`
+        Predict_taxonomy_Function $OTUINFILE $PREDTYPE
         # input file radical, remove file extension
         FILERAD=`echo $OTUINFILE | sed -e 's/\.fa$//g' -e 's/\.fas$//g' -e 's/\.fasta$//g'`
         TABFILERAD=`echo $OTUTAB | sed 's/\..*//g'`
@@ -1063,8 +1067,8 @@ fi
      fi
 fi
 
-# Copy the README file
-cp /space/users/ey/Documents/Scripts/amplicon_workflow/README_amplicon.workflow_v$VERSIONNUMBER.txt .
+# Copy the README file  => UPDATE!!!!!
+#cp /space/users/ey/Documents/Scripts/amplicon_workflow/README_amplicon.workflow_v$VERSIONNUMBER.txt .
 
 # Define ZOTUs = yes/no
 echoPlus ""
