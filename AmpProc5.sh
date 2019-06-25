@@ -63,7 +63,7 @@ Help_Function () {
     echo ""
     echo ""
     echo "To run the script's full pipeline: "
-    echo "   1. Make sure that you create an empty directory, where you have just the samples file."
+    echo "   1. Make sure that you create an empty directory, where you have just the file containing your sample ID names. Call your file: samples."
     echo "   2. Type in the terminal:      AmpProc5"
     echo ""   
     echo "   3. Be prepared to answer the questions asked by the script." 
