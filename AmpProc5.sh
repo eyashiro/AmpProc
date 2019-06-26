@@ -1045,6 +1045,7 @@ echoPlus "What workflow do you want to run?"
 echoPlus "        S  - Standard workflow"
 echoPlus "        M  - MiDAS ASV workflow"
 read WORKFLOW
+echo $WORKFLOW >> ampproc-$STARTTIME.log
 
 # Check that the question answer is script readable
 if [[ ! "$WORKFLOW" =~ ^(S|M)$ ]]
@@ -1077,6 +1078,7 @@ echoPlus "        yes  - Generate ZOTU table and OTU table"
 echoPlus "        no   - Generate only OTU table"
 echoPlus "        quit - Quit the script so I can go and read up on UNOISE3"
 read ZOTUS
+echo "$ZOTUS" >> ampproc-$STARTTIME.log
 
 # Check that the question answers are script readable.
 # note: arg between quotes means it can be nothing without producing error.
@@ -1110,6 +1112,7 @@ echoPlus "        SR   - Process only single reads"
 echoPlus "        PE   - Process only paired-end reads"
 echoPlus "        both - process both single reads and paired-end reads"
 read SINGLEREADS
+echo "$SINGLEREADS" >> ampproc-$STARTTIME.log
 
 # Define amplicon region = V13/V4/ITS (AMPREGION)
 echoPlus ""
@@ -1118,6 +1121,7 @@ echoPlus "        V13 - Bacterial 16S rRNA hypervariable regions 1 & 3"
 echoPlus "        V4  - Bacterial 16S rRNA hypervariable region 4"
 echoPlus "        ITS - Fungal ribosomal ITS 1 region"
 read AMPREGION
+echo "$AMPREGION" >> ampproc-$STARTTIME.log
 
 # Define reference database for taxonomy prediction of OTUs (REFDATABASE)
 echoPlus ""
@@ -1133,6 +1137,7 @@ echoPlus "Note: MiDAS datasets are for waste water treatment systems."
 echoPlus "For general bacteria and archaea, use SILVA LTP"
 
 read REFDATABASE
+echo "$REFDATABASE" >> ampproc-$STARTTIME.log
 
 # Define number of threads to use (NUMTHREADS)
 echoPlus ""
@@ -1140,7 +1145,7 @@ echoPlus "How many CPUs do you want to use at maximum run?"
 echoPlus "Dragon (up to 80), Coco and Peanut (up to 12)"
 echoPlus "If unsure, then start the run with 5 threads"
 read NUMTHREADS
-
+echo "$NUMTHREADS" >> ampproc-$STARTTIME.log
 
 # Check that the question answers are script readable.
 # note: arg between quotes means it can be nothing without producing error.
