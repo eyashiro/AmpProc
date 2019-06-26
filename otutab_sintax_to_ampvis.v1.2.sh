@@ -58,9 +58,19 @@ FILERAD=`echo $OTUTABLE_NOTAX | sed 's/\..*//g'`
 # Sort otu table (-V is version sort)
 awk 'NR<2{print $0; next}{print $0 | "sort -k1 -V"}' $OTUTABLE_NOTAX | sed 's/#OTU ID/OTU/g' > otutable_notax_sorted.txt
 
+# In some cases, especially with zotus, a couple raw reads match the same otus/zotus. In such a case some of the otus/zotus get eliminated from the final z/otu table and cause the joining of taxonomy and frequency table to fail.
+# Remove entries that don't match up between z/otu table and sintax output.
+   # z/otu list from z/otu table
+cut -f1 $OTUTABLE_NOTAX > label_otu
+  # z/otu list from sintax output
+cut -f1 $SINTAX > label_sintax
+  # remove non-congruent z/otus from sintax file
+cat label_otu label_sintax | sort | uniq -u > label_uniques
+grep -v -w -F -f label_uniques $SINTAX | sed '/^--$/d' > $SINTAX.trimmed
+
 # Extract columns, sort
 #awk -F "\t" '{ print $1"\t"$4 }' $SINTAX | sed 's/,/\t/g' | sort -k1 -V >> $SINTAX.sorted.tmp
-awk -F "\t" '{ print $1"\t"$4 }' $SINTAX | sort -k1 -V > $SINTAX.sorted.tmp0
+awk -F "\t" '{ print $1"\t"$4 }' $SINTAX.trimmed | sort -k1 -V > $SINTAX.sorted.tmp0
 
 # Extract just the taxonomy column
 awk -F "\t" '{ print $2 }' $SINTAX.sorted.tmp0 > $SINTAX.sorted.tmp
@@ -112,10 +122,12 @@ paste -d "\t" $SINTAX.sorted.tmp00 $SINTAX.sorted.tmpg > $SINTAX.sorted.tmph
 
 
 # Append tax to otutable
-join -t '	' otutable_notax_sorted.txt $SINTAX.sorted > ${FILERAD}_${REFDATABASE}.txt
+#join -t '	' otutable_notax_sorted.txt $SINTAX.sorted > ${FILERAD}_${REFDATABASE}.txt
+join -t $'\t' otutable_notax_sorted.txt $SINTAX.sorted > ${FILERAD}_${REFDATABASE}.txt
 
 mv otutable_notax_sorted.txt ${FILERAD}_${REFDATABASE}.sorted.txt
 
+rm $SINTAX.trimmed label_otu label_sintax label_uniques
 rm $SINTAX.sorted
 rm $SINTAX.sorted.tmp*
 #rm otutable_notax_sorted.txt
