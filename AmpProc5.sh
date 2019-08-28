@@ -1103,9 +1103,10 @@ fi
 
 # Define ZOTUs = yes/no
 echoPlus ""
-echoPlus "In addition to an OTU table, do you want to generate a ZOTU table using UNOISE3? (yes/no/quit)"
-echoPlus "        yes  - Generate ZOTU table and OTU table"
-echoPlus "        no   - Generate only OTU table"
+echoPlus "Do you want to generate an OTU table and/or a ZOTU table using UNOISE3? (yes/no/quit)"
+echoPlus "        otu  - Generate OTU table"
+echoPlus "        zotu - Generate ZOTU table"
+echoPlus "        both - Generate OTU and ZOTU table"
 echoPlus "        quit - Quit the script so I can go and read up on UNOISE3"
 read ZOTUS
 echo "$ZOTUS" >> ampproc-$STARTTIME.log
@@ -1274,36 +1275,39 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
  #           echo "    Output files of prefiltering: prefilt_out.R1.fa and prefilt_out.R2.fa"
  #   fi
  #############
-           
-    # Cluster OTUs + taxonomy assignment
- #   Cluster_otus_Function prefilt_out.R1.fa
-    Cluster_otus_Function uniques.R1.fa
-    mv otus.fa otus.R1.tmp
-#    Cluster_otus_Function prefilt_out.R2.fa
-    Cluster_otus_Function uniques.R2.fa
-    mv otus.fa otus.R2.tmp
-
-   # Prefilter to remove anomalous reads
-   # Prefiltering at 60% ID not implemented for ITS.
-   if [ $AMPREGION = "ITS" ]
-    then
-      mv otus.R1.tmp otus.R1.fa
-      mv otus.R2.tmp otus.R2.fa
-    else
-      Prefilter_60pc_Function otus.R1.tmp
-      mv prefilt_out.fa otus.R1.fa
-      Prefilter_60pc_Function otus.R2.tmp
-      mv prefilt_out.fa otus.R2.fa
-   fi
-    echoWithDate "    Output files of OTU clustering: otus.R1.fa and otus.R2.fa"
-           
-    Predict_taxonomy_Function otus.R1.fa OTUsR1
-    mv sintax_out.txt sintax_out.otus.R1.txt
-    Predict_taxonomy_Function otus.R2.fa OTUsR2
-    mv sintax_out.txt sintax_out.otus.R2.txt
-    echoWithDate "    Output files of OTU taxonomy assignment: sintax_out.otus.R1.txt and sintax_out.otus.R2.txt"
     
-    if [ $ZOTUS = "yes" ]
+    if [ $ZOTUS =~ ^(otu|both)$ ]
+       then       
+       # Cluster OTUs + taxonomy assignment
+    #   Cluster_otus_Function prefilt_out.R1.fa
+       Cluster_otus_Function uniques.R1.fa
+       mv otus.fa otus.R1.tmp
+   #    Cluster_otus_Function prefilt_out.R2.fa
+       Cluster_otus_Function uniques.R2.fa
+       mv otus.fa otus.R2.tmp
+
+      # Prefilter to remove anomalous reads
+      # Prefiltering at 60% ID not implemented for ITS.
+      if [ $AMPREGION = "ITS" ]
+       then
+         mv otus.R1.tmp otus.R1.fa
+         mv otus.R2.tmp otus.R2.fa
+       else
+         Prefilter_60pc_Function otus.R1.tmp
+         mv prefilt_out.fa otus.R1.fa
+         Prefilter_60pc_Function otus.R2.tmp
+         mv prefilt_out.fa otus.R2.fa
+      fi
+       echoWithDate "    Output files of OTU clustering: otus.R1.fa and otus.R2.fa"
+           
+       Predict_taxonomy_Function otus.R1.fa OTUsR1
+       mv sintax_out.txt sintax_out.otus.R1.txt
+       Predict_taxonomy_Function otus.R2.fa OTUsR2
+       mv sintax_out.txt sintax_out.otus.R2.txt
+       echoWithDate "    Output files of OTU taxonomy assignment: sintax_out.otus.R1.txt and sintax_out.otus.R2.txt"
+    fi
+    
+    if [ $ZOTUS =~ ^(zotu|both)$ ]   # Run the zotu workflow
         then
         # Cluster zOTUs + taxonomy assignment
 #        Unoise3_Function prefilt_out.R1.fa
