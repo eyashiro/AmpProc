@@ -1,6 +1,7 @@
 #!/bin/bash
 
 VERSIONNUMBER=5.1.0.beta1.0
+MODIFIEDDATE="28 August, 2019"
 
 ###################################################################################################
 #
@@ -15,7 +16,7 @@ VERSIONNUMBER=5.1.0.beta1.0
 #
 #  Author: Erika Yashiro, Ph.D.
 #
-#  Last modified: 21 March, 2019
+#  Last modified: 28 August, 2019
 #
 ###################################################################################################
 
@@ -57,7 +58,7 @@ Help_Function () {
     echo "#"
     echo "#  Erika Yashiro, Ph.D."
     echo "#"
-    echo "#  Last modified: 21 March 2019"
+    echo "#  Last modified: $MODIFIEDDATE"
     echo "#"
     echo "############################################################################"
     echo ""
