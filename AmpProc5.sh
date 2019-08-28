@@ -1172,7 +1172,7 @@ echo "$REFDATABASE" >> ampproc-$STARTTIME.log
 # Define number of threads to use (NUMTHREADS)
 echoPlus ""
 echoPlus "How many CPUs do you want to use at maximum run?"
-echoPlus "Dragon (up to 80), Coco and Peanut (up to 12)"
+echoPlus "Dragon (up to 70), Coco and Peanut (up to 10)"
 echoPlus "If unsure, then start the run with 5 threads"
 read NUMTHREADS
 echo "$NUMTHREADS" >> ampproc-$STARTTIME.log

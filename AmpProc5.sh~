@@ -680,7 +680,7 @@ MaketreeProk_Function() {
     USER_PATH=`echo $PWD`
 
     echoPlus ""
-    echoPlus "   Aligning the bacterial sequenced reads using PyNAST with QIIME native parameters."
+    echoPlus "   Aligning the bacterial sequenced reads using PyNAST with QIIME v1 native parameters."
     # Using PyNAST in Unifrac 1.8.0
     align_seqs.py -i $USER_PATH/$INFILE -m pynast -t $REP_ALIGNED_PATH -o $USER_PATH/aligned_seqs_$ELEMENT/
 
@@ -714,7 +714,7 @@ MaketreeFung_Function() {
     USER_PATH=`echo $PWD`
 
     echoPlus ""
-    echoPlus "  Using maximum linkage clustering to build OTU tree"
+    echoPlus "  Using USEARCH maximum linkage clustering to build OTU tree"
     mkdir aggr_tree_$ELEMENT
 
     usearch10 -cluster_agg $INFILE -treeout aggr_tree_$ELEMENT/$ELEMENT.cluster.tre -id 0.80 -linkage max -quiet
