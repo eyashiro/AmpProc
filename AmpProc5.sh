@@ -670,6 +670,61 @@ echoPlus "    Output genus summary: $OUTFILE.sintax.genus_summary.txt"
 
 }
 
+MaketreeProk_Function() {
+    # INFILE=otus.fa
+    # ELEMENT=suffix for type of otu/zotu
+
+    INFILE=$1
+    ELEMENT=$2
+    REP_ALIGNED_PATH="/space/users/ey/Documents/Amplicon_databases/core_set_aligned.fasta.imputed"
+    USER_PATH=`echo $PWD`
+
+    echoPlus ""
+    echoPlus "   Aligning the bacterial sequenced reads using PyNAST with QIIME v1 native parameters."
+    # Using PyNAST in Unifrac 1.8.0
+    align_seqs.py -i $USER_PATH/$INFILE -m pynast -t $REP_ALIGNED_PATH -o $USER_PATH/aligned_seqs_$ELEMENT/
+
+    echoPlus ""
+    echoPlus "   Generating FastTree maximum likelihood tree of the bacterial sequenced reads with QIIME native parameters"
+    echoPlus ""
+    
+    # Qiime 1.8 / 1.9 default params is fasttree default params.
+    # Set the number of threads for fasttreeMP to 16 cores
+    #export OMP_NUM_THREADS=16
+    
+    #fasttree
+    INFILE2=`echo $INFILE | sed 's/.fa$//g'`
+    fasttreeMP -nt aligned_seqs_$ELEMENT/${INFILE2}_aligned.fasta > aligned_seqs_$ELEMENT/$INFILE.$ELEMENT.tre
+    
+    # Reset the OMP threads
+    #export OMP_NUM_THREADS=""
+    
+    # or: make_phylogeny.py -i $USER_PATH/aligned_seqs/${INFILE2}_aligned.fasta -o $USER_PATH/$INFILE.tre
+
+    echoPlus "    "
+    echoPlus "    Output files of alignment and tree are in aligned_seqs_$ELEMENT/"
+}
+
+MaketreeFung_Function() {
+    # INFILE=otus.fa
+    # ELEMENT=suffix for type of otu/zotu
+
+    INFILE=$1
+    ELEMENT=$2
+    USER_PATH=`echo $PWD`
+
+    echoPlus ""
+    echoPlus "  Using USEARCH maximum linkage clustering to build OTU tree"
+    mkdir aggr_tree_$ELEMENT
+
+    usearch10 -cluster_agg $INFILE -treeout aggr_tree_$ELEMENT/$ELEMENT.cluster.tre -id 0.80 -linkage max -quiet
+    
+    echoPlus ""
+    echoPlus "   Warning: Fungal ITS regions are too variable for proper phylogenetic tree. Therefore the maximum linkage tree will be used for generating phlyogeny-based beta diversity matrices."
+    echoPlus "    "
+    echoPlus "    Output files of linkage tree tree are in aggr_tree_$ELEMENT/"
+}
+
 Betadiv_Function () {
 # Build phylogenetic tree, probably for use in calculating unifrac. Therefore, using fasttree.
 # As of December 2017, Current version installed on Dragon is FastTree v2.1.7.
@@ -687,7 +742,6 @@ Betadiv_Function () {
 INFILE=$1
 OTUTABLE=$2
 ELEMENT=$3
-REP_ALIGNED_PATH="/space/users/ey/Documents/Amplicon_databases/core_set_aligned.fasta.imputed"
 USER_PATH=`echo $PWD`
 
 echoPlus ""
@@ -721,27 +775,8 @@ fi
 
 if [[ $AMPREGION =~ ^(V4|V13)$ ]]
     then
-    echoPlus ""
-    echoPlus "   Aligning the bacterial sequenced reads using PyNAST with QIIME native parameters."
-    # Using PyNAST in Unifrac 1.8.0
-    align_seqs.py -i $USER_PATH/$INFILE -m pynast -t $REP_ALIGNED_PATH -o $USER_PATH/aligned_seqs_$ELEMENT/
-
-    echoPlus ""
-    echoPlus "   Generating FastTree maximum likelihood tree of the bacterial sequenced reads with QIIME native parameters"
-    echoPlus ""
-    
-    # Qiime 1.8 / 1.9 default params is fasttree default params.
-    # Set the number of threads for fasttreeMP to 16 cores
-    #export OMP_NUM_THREADS=16
-    
-    #fasttree
-    INFILE2=`echo $INFILE | sed 's/.fa$//g'`
-    fasttreeMP -nt aligned_seqs_$ELEMENT/${INFILE2}_aligned.fasta > aligned_seqs_$ELEMENT/$INFILE.$ELEMENT.tre
-    
-    # Reset the OMP threads
-    #export OMP_NUM_THREADS=""
-    
-    # or: make_phylogeny.py -i $USER_PATH/aligned_seqs/${INFILE2}_aligned.fasta -o $USER_PATH/$INFILE.tre
+    # Align reads and build phylogenetic tree
+    MaketreeProk_Function $INFILE $ELEMENT
 
     echoPlus ""
     echoPlus "   Warning: The R package Ampvis uses the Generalized UniFrac instead of the original weighted and unweighted UniFrac equations implemented in QIIME version 1.x.x."
@@ -783,7 +818,6 @@ if [[ $AMPREGION =~ ^(V4|V13)$ ]]
     
     
     echoPlus ""
-    echoPlus "    Output files of alignment in aligned_seqs_$ELEMENT/"
     echoPlus "    Output files of beta diversity in beta_div_$ELEMENT/"
 
    if [ "$SAMPLESIZE" = "OVER1000" ] && [ "$SAMPLENUM" -gt 1 ]
@@ -804,32 +838,27 @@ if [ $AMPREGION = "ITS" ]
       echoPlus "   There is not enough $ELEMENT to generate beta diversity output. No matrices generated"
       else
        # Build clustering tree for fungi
-       echoPlus ""
-       echoPlus "  Using maximum linkage clustering to build OTU tree"
-       mkdir beta_div_$ELEMENT
+       MaketreeFung_Function $INFILE $ELEMENT
 
-       usearch10 -cluster_agg $INFILE -treeout beta_div_$ELEMENT/$ELEMENT.cluster.tre -id 0.80 -linkage max -quiet
-    
-       echoPlus ""
-       echoPlus "   Warning: Fungal ITS regions are too variable for proper phylogenetic tree. Therefore the maximum linkage tree will be used for generating phlyogeny-based beta diversity matrices."
        echoPlus ""
        echoPlus "   Generating beta diversity matrices: Bray Curtis, weighted & unweighted UniFrac from clustering tree"
 
        
        # Calculate beta diversity matrices
-       usearch11 -beta_div $OTUTABLE -metrics bray_curtis,unifrac,unifrac_binary -tree beta_div_$ELEMENT/$ELEMENT.cluster.tre -filename_prefix beta_div_$ELEMENT/$ELEMENT. -quiet
+       mkdir beta_div_$ELEMENT
+       usearch11 -beta_div $OTUTABLE -metrics bray_curtis,unifrac,unifrac_binary -tree aggr_tree_$ELEMENT/$ELEMENT.cluster.tre -filename_prefix beta_div_$ELEMENT/$ELEMENT. -quiet
     
       if [ $SAMPLESIZE = "OVER1000" ] && [ "$SAMPLENUM" -gt 1 ]
          then
          # Calculate beta diveristy matrices for normalized otu table of normalized otu table is large enough.
-         usearch11 -beta_div $OTUTABLE2.norm1000.txt -metrics bray_curtis,unifrac,unifrac_binary -tree beta_div_$ELEMENT/$ELEMENT.cluster.tre -filename_prefix beta_div_$ELEMENT/$ELEMENT.norm1000_ -quiet
+         usearch11 -beta_div $OTUTABLE2.norm1000.txt -metrics bray_curtis,unifrac,unifrac_binary -tree aggr_tree_$ELEMENT/$ELEMENT.cluster.tre -filename_prefix beta_div_$ELEMENT/$ELEMENT.norm1000_ -quiet
          elsePlus
          echoPlus ""
          echoPlus "   Note: Beta diversity matrices from normalized OTU table could not be generated."
       fi
         
        echoPlus ""
-       echoPlus "    Output files of clustering: $ELEMENT.cluster.tre"
+       echoPlus "    Output files of clustering: aggr_tree_$ELEMENT/"
        echoPlus "    Output files of beta diversity in beta_div_$ELEMENT/"
    fi
 fi
