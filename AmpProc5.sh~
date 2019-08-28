@@ -583,7 +583,7 @@ if [ $REFDATABASE == 6 ]
 fi
 
 # Run usearch
-    usearch10 -sintax $INFILE -db $REFDATAPATH -strand both -tabbedout sintax_out.txt -sintax_cutoff 0.8 -threads $NUMTHREADS -quiet
+    usearch11 -sintax $INFILE -db $REFDATAPATH -strand both -tabbedout sintax_out.txt -sintax_cutoff 0.8 -threads $NUMTHREADS -quiet
 
 
 }
@@ -651,20 +651,20 @@ echoPlus "Generating $OUTFILE taxonomy summary"
 sed -i 's/+\t$/+\td:__unknown__/g' $INFILE1
 sed -i 's/-\t$/-\td:__unknown__/g' $INFILE1
 
-usearch10 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank p -output $OUTFILE.phylum_summary.txt -quiet
+usearch11 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank p -output $OUTFILE.phylum_summary.txt -quiet
 echoPlus ""
 echoPlus "    Output phlyum summary: $OUTFILE.phylum_summary.txt"
 
-usearch10 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank c -output $OUTFILE.sintax.class_summary.txt -quiet
+usearch11 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank c -output $OUTFILE.sintax.class_summary.txt -quiet
 echoPlus "    Output class summary: $OUTFILE.sintax.class_summary.txt"
 
-usearch10 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank o -output $OUTFILE.sintax.order_summary.txt -quiet
+usearch11 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank o -output $OUTFILE.sintax.order_summary.txt -quiet
 echoPlus "    Output order summary: $OUTFILE.sintax.order_summary.txt"
 
-usearch10 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank f -output $OUTFILE.sintax.family_summary.txt -quiet
+usearch11 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank f -output $OUTFILE.sintax.family_summary.txt -quiet
 echoPlus "    Output family summary: $OUTFILE.sintax.family_summary.txt"
 
-usearch10 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank g -output $OUTFILE.sintax.genus_summary.txt -quiet
+usearch11 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank g -output $OUTFILE.sintax.genus_summary.txt -quiet
 echoPlus "    Output genus summary: $OUTFILE.sintax.genus_summary.txt"
 
 

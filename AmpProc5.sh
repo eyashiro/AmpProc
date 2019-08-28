@@ -697,7 +697,7 @@ echoPlus "Building beta diversity matrices."
 echoPlus ""
 echoPlus "   Normalizing the OTU table to 1000"
 OTUTABLE2=`echo $OTUTABLE | sed 's/.txt$//g'`
-usearch10 -alpha_div $OTUTABLE -output $OTUTABLE2.number_reads_per_sample.txt -metrics reads -quiet
+usearch11 -alpha_div $OTUTABLE -output $OTUTABLE2.number_reads_per_sample.txt -metrics reads -quiet
 
   # Check that at least one sample has at least 1000 reads total.
 SAMPLESIZE=`awk -F "\t" 'NR>1{ if ($2 > 1000) {print "OVER1000";exit} }' $OTUTABLE2.number_reads_per_sample.txt`
@@ -708,8 +708,8 @@ SAMPLENUM=`awk -F "\t" 'NR>1{ if ($2 > 1000) {print "OVER1000"} }' $OTUTABLE2.nu
 if [ "$SAMPLESIZE" = "OVER1000" ]
   then
   # Normalize OTU table to 1000 reads per sample
-  usearch10 -otutab_trim $OTUTABLE -min_sample_size 1000 -output $OTUTABLE2.tmp -quiet
-  usearch10 -otutab_norm $OTUTABLE2.tmp -sample_size 1000 -output $OTUTABLE2.norm1000.txt -quiet
+  usearch11 -otutab_trim $OTUTABLE -min_sample_size 1000 -output $OTUTABLE2.tmp -quiet
+  usearch11 -otutab_rare $OTUTABLE2.tmp -sample_size 1000 -output $OTUTABLE2.norm1000.txt -quiet
   rm $OTUTABLE2.tmp
   echoPlus ""
   echoPlus "    Output of normalized OTU table: $OTUTABLE2.norm1000.txt"
