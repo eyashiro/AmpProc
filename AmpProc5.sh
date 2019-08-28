@@ -761,7 +761,7 @@ if [[ $AMPREGION =~ ^(V4|V13)$ ]]
     mv beta_div_$ELEMENT/unweighted_unifrac_$OTUTABLE.txt beta_div_$ELEMENT/$ELEMENT.unweighted_unifrac.txt
 
     # Run Usearch for Bray Curtis
-    usearch10 -beta_div $OTUTABLE -metrics bray_curtis -filename_prefix beta_div_$ELEMENT/$ELEMENT. -quiet
+    usearch11 -beta_div $OTUTABLE -metrics bray_curtis -filename_prefix beta_div_$ELEMENT/$ELEMENT. -quiet
     
    if [ "$SAMPLESIZE" = "OVER1000" ] && [ "$SAMPLENUM" -gt 1 ]
       then
@@ -775,7 +775,7 @@ if [[ $AMPREGION =~ ^(V4|V13)$ ]]
       mv beta_div_norm1000_$ELEMENT/unweighted_unifrac_$OTUTABLE2.norm1000.txt beta_div_norm1000_$ELEMENT/$ELEMENT.unweighted_unifrac.txt
 
       # Run Usearch for Bray Curtis matrix
-      usearch10 -beta_div $OTUTABLE2.norm1000.txt -metrics bray_curtis -filename_prefix beta_div_norm1000_$ELEMENT/$ELEMENT. -quiet
+      usearch11 -beta_div $OTUTABLE2.norm1000.txt -metrics bray_curtis -filename_prefix beta_div_norm1000_$ELEMENT/$ELEMENT. -quiet
       else
       echoPlus ""
       echoPlus "   Note: Beta diversity matrices from normalized OTU table could not be generated."
@@ -817,12 +817,12 @@ if [ $AMPREGION = "ITS" ]
 
        
        # Calculate beta diversity matrices
-       usearch10 -beta_div $OTUTABLE -metrics bray_curtis,unifrac,unifrac_binary -tree beta_div_$ELEMENT/$ELEMENT.cluster.tre -filename_prefix beta_div_$ELEMENT/$ELEMENT. -quiet
+       usearch11 -beta_div $OTUTABLE -metrics bray_curtis,unifrac,unifrac_binary -tree beta_div_$ELEMENT/$ELEMENT.cluster.tre -filename_prefix beta_div_$ELEMENT/$ELEMENT. -quiet
     
       if [ $SAMPLESIZE = "OVER1000" ] && [ "$SAMPLENUM" -gt 1 ]
          then
          # Calculate beta diveristy matrices for normalized otu table of normalized otu table is large enough.
-         usearch10 -beta_div $OTUTABLE2.norm1000.txt -metrics bray_curtis,unifrac,unifrac_binary -tree beta_div_$ELEMENT/$ELEMENT.cluster.tre -filename_prefix beta_div_$ELEMENT/$ELEMENT.norm1000_ -quiet
+         usearch11 -beta_div $OTUTABLE2.norm1000.txt -metrics bray_curtis,unifrac,unifrac_binary -tree beta_div_$ELEMENT/$ELEMENT.cluster.tre -filename_prefix beta_div_$ELEMENT/$ELEMENT.norm1000_ -quiet
          elsePlus
          echoPlus ""
          echoPlus "   Note: Beta diversity matrices from normalized OTU table could not be generated."
