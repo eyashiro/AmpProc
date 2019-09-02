@@ -1066,7 +1066,6 @@ echoPlus "Read the README file for more information on how to cite this workflow
 echoPlus "Description of all the output files are also found in the README file."
 echoPlus ""
 echoPlus "This tool is for academic use only."
-#date
 echoPlus ""
 
 # Standard or MiDAS workflow
@@ -1098,12 +1097,12 @@ fi
      fi
 fi
 
-# Copy the README file  => UPDATE!!!!!
-#cp /space/users/ey/Documents/Scripts/amplicon_workflow/README_amplicon.workflow_v$VERSIONNUMBER.txt .
+# Copy the README file
+cp /space/users/ey/Documents/Scripts/amplicon_workflow/README_amplicon.workflow_v$VERSIONNUMBER.txt .
 
 # Define ZOTUs = yes/no
 echoPlus ""
-echoPlus "Do you want to generate an OTU table and/or a ZOTU table using UNOISE3? (yes/no/quit)"
+echoPlus "Do you want to generate an OTU table and/or a ZOTU table using UNOISE3?"
 echoPlus "        otu  - Generate OTU table"
 echoPlus "        zotu - Generate ZOTU table"
 echoPlus "        both - Generate OTU and ZOTU table"
@@ -1113,14 +1112,13 @@ echo "$ZOTUS" >> ampproc-$STARTTIME.log
 
 # Check that the question answers are script readable.
 # note: arg between quotes means it can be nothing without producing error.
-if [[ ! "$ZOTUS" =~ ^(yes|no|quit)$ ]]
+if [[ ! "$ZOTUS" =~ ^(otu|zotu|both|quit)$ ]]
     then
     echoPlus ""
     echoPlus "OTU / ZOTU table: $ZOTUS is an invalid argument."
     echoPlus "Sorry I didn't understand what you wrote. Please also make sure that you have the correct upper/lower case letters."
     echoPlus "You can also run the help function with the option -help or -h."
     echoWithDate "    Exiting script"
-    #date
     echoPlus ""
     exit 1
     else
@@ -1128,7 +1126,6 @@ if [[ ! "$ZOTUS" =~ ^(yes|no|quit)$ ]]
         then
         echoPlus ""
         echoWithDate "    Exiting script"
-        #date
         echoPlus ""
         exit 0
     fi
@@ -1137,7 +1134,7 @@ fi
 
 # Define single read process = SR/PE/both (SINGLEREADS)
 echoPlus ""
-echoPlus "Do you want to process single-end reads or paired-end reads? (yes/no/both)"
+echoPlus "Do you want to process single-end reads or paired-end reads?"
 echoPlus "Select to run single end reads if you want to control for species that have very long variable regions between the forward and reverse primers. These species can be rare in the community but will get filtered out if the paired end reads do not overlap."
 echoPlus "        SR   - Process only single reads"
 echoPlus "        PE   - Process only paired-end reads"
@@ -1147,7 +1144,7 @@ echo "$SINGLEREADS" >> ampproc-$STARTTIME.log
 
 # Define amplicon region = V13/V4/ITS (AMPREGION)
 echoPlus ""
-echoPlus "What genomic region does your PCR amplicons amplify? (V13/V4/ITS)"
+echoPlus "What genomic region does your PCR amplicons amplify?"
 echoPlus "        V13 - Bacterial 16S rRNA hypervariable regions 1 & 3"
 echoPlus "        V4  - Bacterial 16S rRNA hypervariable region 4"
 echoPlus "        ITS - Fungal ribosomal ITS 1 region"
@@ -1156,7 +1153,7 @@ echo "$AMPREGION" >> ampproc-$STARTTIME.log
 
 # Define reference database for taxonomy prediction of OTUs (REFDATABASE)
 echoPlus ""
-echoPlus "Which reference database do you want to use for taxonomy prediction? ()"
+echoPlus "Which reference database do you want to use for taxonomy prediction?"
 echoPlus "        1  - MiDAS v2.1.3"
 echoPlus "        2  - MiDAS v3.0 (2019-01-09)"
 echoPlus "        3  - SILVA LTP v132"
@@ -1188,7 +1185,6 @@ if [[ ! "$SINGLEREADS" =~ ^(SR|both|PE)$ ]]
     echoPlus "Sorry I didn't understand what you wrote. Please also make sure that you have the correct upper/lower case letters."
     echoPlus "You can also run the help function with the option -help or -h."
     echoWithDate "    Exiting script"
-    #date
     echoPlus ""
     exit 1
 fi
@@ -1200,7 +1196,6 @@ if [[ ! "$AMPREGION" =~ ^(V13|V4|ITS)$ ]]
     echoPlus "Sorry I didn't understand what you wrote. Please also make sure that you have the correct upper/lower case letters."
     echoPlus "You can also run the help function with the option -help or -h."
     echoWithDate "    Exiting script"
-    #date
     echoPlus ""
     exit 1
 fi
@@ -1212,7 +1207,6 @@ if [[ "$REFDATABASE" -lt 1 ]] || [[ "$REFDATABASE" -gt 6 ]]
     echoPlus "Sorry I didn't understand what you wrote. Please make sure that you select the correct database."
     echoPlus "You can also run the help function with the option -help or -h."
     echoWithDate "    Exiting script"
-    #date
     echoPlus ""
     exit 1
 fi
@@ -1235,7 +1229,6 @@ echoPlus ""
 echoPlus "Finding your samples and copying them to the current directory, and filtering potential phiX contamination"
 Find_reads_phix_Function
 echoWithDate "     Output raw sequences in phix_filtered/"
-#date
 
 
 ################
@@ -1305,6 +1298,7 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
        Predict_taxonomy_Function otus.R2.fa OTUsR2
        mv sintax_out.txt sintax_out.otus.R2.txt
        echoWithDate "    Output files of OTU taxonomy assignment: sintax_out.otus.R1.txt and sintax_out.otus.R2.txt"
+
       # Build OTU table
       Make_otutable_Function all.singlereads.nophix.R1.fq otus.R1.fa sintax_out.otus.R1.txt
       mv otutable.txt otutable.R1.txt
@@ -1314,6 +1308,10 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
       mv otutable_notax.txt otutable_notax.R2.txt
       echoWithDate "    Output file of OTU table: otutable_notax.R1.txt and otutable_notax.R1.txt"
       echoWithDate "    Output file for final otu table: otutable.R1.txt and otutable.R2.txt"
+
+      # Taxonomy reports from SINTAX output
+      Taxonomy_reports_Function sintax_out.otus.R1.txt otutable_notax.R1.txt otusR1
+      Taxonomy_reports_Function sintax_out.otus.R2.txt otutable_notax.R2.txt otusR2
  
     fi
     
@@ -1341,20 +1339,14 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
         rm zotus.R1.tmp zotus.R2.tmp
      fi
         echoWithDate "    Output ZOTU files: zotus.R1.fa and zotus.R2.fa"
-        #date
                 
         Predict_taxonomy_Function zotus.R1.fa ZOTUsR1
         mv sintax_out.txt sintax_out.zotus.R1.txt
         Predict_taxonomy_Function zotus.R2.fa ZOTUsR2
         mv sintax_out.txt sintax_out.zotus.R2.txt
         echoWithDate "    Output ZOTU taxonomy files: sintax_out.zotus.R1.txt and sintax_out.zotus.R2.txt"
-        #date
-    fi
-            
-    
-    # Build zOTU table
-    if [ $ZOTUS = "yes" ]
-        then
+
+        # Build zOTU table
         Make_zotutable_Function all.singlereads.nophix.R1.fq zotus.R1.fa sintax_out.zotus.R1.txt
         mv zotutable.txt zotutable.R1.txt
         mv zotutable_notax.txt zotutable_notax.R1.txt
@@ -1364,18 +1356,11 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
     
         echoWithDate "    Output file of zOTU table: zotutable_notax.txt"
         echoWithDate "    Output file for final zOTU table: zotutable.txt"
-        #date
-    fi
 
-    # Taxonomy reports from SINTAX output
-    Taxonomy_reports_Function sintax_out.otus.R1.txt otutable_notax.R1.txt otusR1
-    Taxonomy_reports_Function sintax_out.otus.R2.txt otutable_notax.R2.txt otusR2
-
-    if [ $ZOTUS = "yes" ]
-        then
         Taxonomy_reports_Function sintax_out.zotus.R1.txt zotutable_notax.R1.txt zotusR1
         Taxonomy_reports_Function sintax_out.zotus.R2.txt zotutable_notax.R2.txt zotusR2
-    fi
+
+     fi  
 fi
 
 if [ $SINGLEREADS = "SR" ]
@@ -1410,7 +1395,6 @@ echoPlus "Starting workflow for paired-end read data."
 Merge_Function
 mv mergeout.fq all.merged.nophix.fq
 echoWithDate "    Output file of merging: all.merged.nophix.fq"
-#date
 
 # Quality filtering
 if [ $AMPREGION = "V13" ]
@@ -1430,13 +1414,11 @@ fi
 
 mv QCout.fa all.merged.nophix.qc.fa
 echoWithDate "    Output file of QC: all.merged.nophix.qc.fa"
-#date
 
 # Dereplicate to uniques
 Dereplicate_Function all.merged.nophix.qc.fa
 mv DEREPout.fa uniques.fa
 echoWithDate "    Output file of derep: uniques.fa"
-#date
 
 ########################
 ## Prefiltering at 60% ID not implemented for ITS.
@@ -1466,7 +1448,6 @@ if [ $AMPREGION = "ITS" ]
     mv prefilt_out.fa otus.fa
 fi
 echoWithDate "    Output file of OTU clustering: otus.fa"
-#date
 
 Predict_taxonomy_Function otus.fa OTUs
 mv sintax_out.txt sintax_out.otus.txt
@@ -1477,12 +1458,10 @@ date
 Make_otutable_Function all.merged.nophix.fq otus.fa sintax_out.otus.txt
 echoWithDate "    Output file of OTU table: otutable_notax.txt"
 echoWithDate "    Output file for final otu table: otutable.txt"
-#date
 
 # Taxonomy reports from SINTAX output
 Taxonomy_reports_Function sintax_out.otus.txt otutable_notax.txt otus
 echoWithDate ""
-#date
 
 # Align sequences, build tree, and generate beta diversity matrices that can be fed into Ampvis or R base.
 Betadiv_Function otus.fa otutable_notax.txt OTUS
@@ -1511,27 +1490,23 @@ if [ $ZOTUS = "yes" ]
      fi
 
     echoWithDate "    Output zotu file: zotus.fa"
-    #date
 
     Predict_taxonomy_Function zotus.fa ZOTUs
     mv sintax_out.txt sintax_out.zotus.txt
     echoWithDate "    Output file of ZOTU taxonomy files: sintax_out.zotus.txt"
-    #date
 
     # Build zOTU table
     Make_zotutable_Function all.merged.nophix.fq zotus.fa sintax_out.zotus.txt
     echoWithDate "    Output file of zOTU table: zotutable_notax.txt"
     echoWithDate "    Output file for final zOTU table: zotutable.txt"
-    #date
+
 
     # Taxonomy reports from SINTAX output
     Taxonomy_reports_Function sintax_out.zotus.txt zotutable_notax.txt zotus
-    #date
     echoWithDate ""
 
     # Align sequences, build tree, and generate beta diversity matrices that can be fed into Ampvis or R base.
     Betadiv_Function zotus.fa zotutable_notax.txt ZOTUS
-    #date
     echoWithDate ""
 fi
 
@@ -1550,7 +1525,6 @@ Cleanup_Function
 
 echoPlus ""
 echoWithDate "Paired-end read processing is done. Enjoy."
-#date
 echoPlus ""
 
 
