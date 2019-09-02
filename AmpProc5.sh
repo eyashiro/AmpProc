@@ -1305,6 +1305,21 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
        Predict_taxonomy_Function otus.R2.fa OTUsR2
        mv sintax_out.txt sintax_out.otus.R2.txt
        echoWithDate "    Output files of OTU taxonomy assignment: sintax_out.otus.R1.txt and sintax_out.otus.R2.txt"
+
+      # Build OTU table
+      Make_otutable_Function all.singlereads.nophix.R1.fq otus.R1.fa sintax_out.otus.R1.txt
+      mv otutable.txt otutable.R1.txt
+      mv otutable_notax.txt otutable_notax.R1.txt
+      Make_otutable_Function all.singlereads.nophix.R2.fq otus.R2.fa sintax_out.otus.R2.txt
+      mv otutable.txt otutable.R2.txt
+      mv otutable_notax.txt otutable_notax.R2.txt
+      echoWithDate "    Output file of OTU table: otutable_notax.R1.txt and otutable_notax.R1.txt"
+      echoWithDate "    Output file for final otu table: otutable.R1.txt and otutable.R2.txt"
+
+      # Taxonomy reports from SINTAX output
+      Taxonomy_reports_Function sintax_out.otus.R1.txt otutable_notax.R1.txt otusR1
+      Taxonomy_reports_Function sintax_out.otus.R2.txt otutable_notax.R2.txt otusR2
+ 
     fi
     
     if [ $ZOTUS =~ ^(zotu|both)$ ]   # Run the zotu workflow
@@ -1339,22 +1354,8 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
         mv sintax_out.txt sintax_out.zotus.R2.txt
         echoWithDate "    Output ZOTU taxonomy files: sintax_out.zotus.R1.txt and sintax_out.zotus.R2.txt"
         #date
-    fi
-            
-    # Build OTU table
-    Make_otutable_Function all.singlereads.nophix.R1.fq otus.R1.fa sintax_out.otus.R1.txt
-    mv otutable.txt otutable.R1.txt
-    mv otutable_notax.txt otutable_notax.R1.txt
-    Make_otutable_Function all.singlereads.nophix.R2.fq otus.R2.fa sintax_out.otus.R2.txt
-    mv otutable.txt otutable.R2.txt
-    mv otutable_notax.txt otutable_notax.R2.txt
-    echoWithDate "    Output file of OTU table: otutable_notax.R1.txt and otutable_notax.R1.txt"
-    echoWithDate "    Output file for final otu table: otutable.R1.txt and otutable.R2.txt"
-    #date
 
-    # Build zOTU table
-    if [ $ZOTUS = "yes" ]
-        then
+        # Build zOTU table
         Make_zotutable_Function all.singlereads.nophix.R1.fq zotus.R1.fa sintax_out.zotus.R1.txt
         mv zotutable.txt zotutable.R1.txt
         mv zotutable_notax.txt zotutable_notax.R1.txt
@@ -1364,18 +1365,11 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
     
         echoWithDate "    Output file of zOTU table: zotutable_notax.txt"
         echoWithDate "    Output file for final zOTU table: zotutable.txt"
-        #date
-    fi
 
-    # Taxonomy reports from SINTAX output
-    Taxonomy_reports_Function sintax_out.otus.R1.txt otutable_notax.R1.txt otusR1
-    Taxonomy_reports_Function sintax_out.otus.R2.txt otutable_notax.R2.txt otusR2
-
-    if [ $ZOTUS = "yes" ]
-        then
         Taxonomy_reports_Function sintax_out.zotus.R1.txt zotutable_notax.R1.txt zotusR1
         Taxonomy_reports_Function sintax_out.zotus.R2.txt zotutable_notax.R2.txt zotusR2
-    fi
+
+     fi  
 fi
 
 if [ $SINGLEREADS = "SR" ]

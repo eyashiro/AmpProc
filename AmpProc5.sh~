@@ -1276,7 +1276,7 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
  #   fi
  #############
     
-    if [ $ZOTUS =~ (otus|both)$ ]
+    if [ $ZOTUS =~ ^(otu|both)$ ]
        then       
        # Cluster OTUs + taxonomy assignment
     #   Cluster_otus_Function prefilt_out.R1.fa
@@ -1305,6 +1305,16 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
        Predict_taxonomy_Function otus.R2.fa OTUsR2
        mv sintax_out.txt sintax_out.otus.R2.txt
        echoWithDate "    Output files of OTU taxonomy assignment: sintax_out.otus.R1.txt and sintax_out.otus.R2.txt"
+      # Build OTU table
+      Make_otutable_Function all.singlereads.nophix.R1.fq otus.R1.fa sintax_out.otus.R1.txt
+      mv otutable.txt otutable.R1.txt
+      mv otutable_notax.txt otutable_notax.R1.txt
+      Make_otutable_Function all.singlereads.nophix.R2.fq otus.R2.fa sintax_out.otus.R2.txt
+      mv otutable.txt otutable.R2.txt
+      mv otutable_notax.txt otutable_notax.R2.txt
+      echoWithDate "    Output file of OTU table: otutable_notax.R1.txt and otutable_notax.R1.txt"
+      echoWithDate "    Output file for final otu table: otutable.R1.txt and otutable.R2.txt"
+ 
     fi
     
     if [ $ZOTUS =~ ^(zotu|both)$ ]   # Run the zotu workflow
@@ -1341,17 +1351,7 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
         #date
     fi
             
-    # Build OTU table
-    Make_otutable_Function all.singlereads.nophix.R1.fq otus.R1.fa sintax_out.otus.R1.txt
-    mv otutable.txt otutable.R1.txt
-    mv otutable_notax.txt otutable_notax.R1.txt
-    Make_otutable_Function all.singlereads.nophix.R2.fq otus.R2.fa sintax_out.otus.R2.txt
-    mv otutable.txt otutable.R2.txt
-    mv otutable_notax.txt otutable_notax.R2.txt
-    echoWithDate "    Output file of OTU table: otutable_notax.R1.txt and otutable_notax.R1.txt"
-    echoWithDate "    Output file for final otu table: otutable.R1.txt and otutable.R2.txt"
-    #date
-
+    
     # Build zOTU table
     if [ $ZOTUS = "yes" ]
         then
