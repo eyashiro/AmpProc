@@ -49,9 +49,9 @@ Help_Function () {
     echo ""
     echo "############################################################################"
     echo "#"
-    echo "#  amplicon.workflow.v$VERSIONNUMBER.sh"
+    echo "#  AmpProc5  version $VERSIONNUMBER"
     echo "#"
-    echo "#  This workflow script generates OTU tables from raw bacterial V13 and V4 "
+    echo "#  This workflow script generates OTU and ZOTU tables from raw bacterial "
     echo "#  16S rRNA and fungal ITS 1 amplicon data."
     echo "#"
     echo "#  It is currently only supported for internal use at Aalborg University."
@@ -1269,7 +1269,7 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
  #   fi
  #############
     
-    if [ $ZOTUS =~ ^(otu|both)$ ]
+    if [[ $ZOTUS =~ ^(otu|both)$ ]]
        then       
        # Cluster OTUs + taxonomy assignment
     #   Cluster_otus_Function prefilt_out.R1.fa
@@ -1315,7 +1315,7 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
  
     fi
     
-    if [ $ZOTUS =~ ^(zotu|both)$ ]   # Run the zotu workflow
+    if [[ $ZOTUS =~ ^(zotu|both)$ ]]   # Run the zotu workflow
         then
         # Cluster zOTUs + taxonomy assignment
 #        Unoise3_Function prefilt_out.R1.fa
@@ -1435,45 +1435,49 @@ echoWithDate "    Output file of derep: uniques.fa"
 #########################
 
 # Cluster OTUs + taxonomy assignment
-#Cluster_otus_Function prefilt_out.fa
-Cluster_otus_Function uniques.fa
-mv otus.fa otus.tmp
-
-if [ $AMPREGION = "ITS" ]
+if [[ $ZOTUS =~ ^(otu|both)$ ]]
   then
-    mv otus.tmp otus.fa
-  else
-    # Prefilter to remove any other anomalous reads
-    Prefilter_60pc_Function otus.tmp
-    mv prefilt_out.fa otus.fa
+  #Cluster_otus_Function prefilt_out.fa
+  Cluster_otus_Function uniques.fa
+  mv otus.fa otus.tmp
+
+  if [ $AMPREGION = "ITS" ]
+    then
+      mv otus.tmp otus.fa
+    else
+      # Prefilter to remove any other anomalous reads
+      Prefilter_60pc_Function otus.tmp
+      mv prefilt_out.fa otus.fa
+  fi
+  echoWithDate "    Output file of OTU clustering: otus.fa"
+
+  Predict_taxonomy_Function otus.fa OTUs
+  mv sintax_out.txt sintax_out.otus.txt
+  echo "    Output file of taxonomy: sintax_out.otus.txt"
+  date
+
+  # Build OTU table
+  Make_otutable_Function all.merged.nophix.fq otus.fa sintax_out.otus.txt
+  echoWithDate "    Output file of OTU table: otutable_notax.txt"
+  echoWithDate "    Output file for final otu table: otutable.txt"
+
+  # Taxonomy reports from SINTAX output
+  Taxonomy_reports_Function sintax_out.otus.txt otutable_notax.txt otus
+  echoWithDate ""
+
+  # Align sequences, build tree, and generate beta diversity matrices that can be fed into Ampvis or R base.
+  Betadiv_Function otus.fa otutable_notax.txt OTUS
+
+  #echo ""
+  #echo "    Output files of alignment in aligned_seqs_OTUS/"
+  #echo "    Output files of beta diversity in beta_div_OTUS/"
+  #date
+  echoWithDate ""
 fi
-echoWithDate "    Output file of OTU clustering: otus.fa"
 
-Predict_taxonomy_Function otus.fa OTUs
-mv sintax_out.txt sintax_out.otus.txt
-echo "    Output file of taxonomy: sintax_out.otus.txt"
-date
-
-# Build OTU table
-Make_otutable_Function all.merged.nophix.fq otus.fa sintax_out.otus.txt
-echoWithDate "    Output file of OTU table: otutable_notax.txt"
-echoWithDate "    Output file for final otu table: otutable.txt"
-
-# Taxonomy reports from SINTAX output
-Taxonomy_reports_Function sintax_out.otus.txt otutable_notax.txt otus
-echoWithDate ""
-
-# Align sequences, build tree, and generate beta diversity matrices that can be fed into Ampvis or R base.
-Betadiv_Function otus.fa otutable_notax.txt OTUS
-
-#echo ""
-#echo "    Output files of alignment in aligned_seqs_OTUS/"
-#echo "    Output files of beta diversity in beta_div_OTUS/"
-#date
-echoWithDate ""
 
 # Cluster zOTUs + taxonomy assignment
-if [ $ZOTUS = "yes" ]
+if [[ $ZOTUS =~ ^(zotu|both)$ ]
     then
 #    Unoise3_Function prefilt_out.fa 
 #    #mv zotus.fa zotus.fa
