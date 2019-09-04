@@ -45,6 +45,18 @@ while getopts :i:t:r: option
    esac
 done
 
+####################
+# FUNCTIONS
+####################
+
+REMOVE_FUNCTION () {
+rm -f $SINTAX.trimmed label_otu label_sintax label_uniques
+rm -f $SINTAX.sorted
+rm -f $SINTAX.sorted.tmp*
+#rm otutable_notax_sorted.txt
+}
+
+####################
 
 # Input files:
 #OTUTABLE_NOTAX=$1
@@ -64,6 +76,18 @@ awk 'NR<2{print $0; next}{print $0 | "sort -k1 -V"}' $OTUTABLE_NOTAX | sed 's/#O
 cut -f1 $OTUTABLE_NOTAX > label_otu
   # z/otu list from sintax output
 cut -f1 $SINTAX > label_sintax
+
+  # Check that z/otu table and sintax output are congruent sample sets
+  CONGRUENTLABELS=`cat label_otu label_sintax | sort | uniq -d | wc -l`
+  if [ $CONGRUENTLABELS -lt 1 ]
+     then
+     echo ""
+     echo "The input table and fasta file do not contain the same samples."
+     echo "Exiting script"
+     REMOVE_FUNCTION
+     exit 1
+  fi
+
   # remove non-congruent z/otus from sintax file
 cat label_otu label_sintax | sort | uniq -u > label_uniques
 grep -v -w -F -f label_uniques $SINTAX | sed '/^--$/d' > $SINTAX.trimmed
@@ -141,10 +165,7 @@ join -t $'\t' otutable_notax_sorted.txt $SINTAX.sorted > ${FILERAD}_${REFDATABAS
 
 mv otutable_notax_sorted.txt ${FILERAD}.sorted.txt
 
-rm $SINTAX.trimmed label_otu label_sintax label_uniques
-rm $SINTAX.sorted
-rm $SINTAX.sorted.tmp*
-#rm otutable_notax_sorted.txt
 
+REMOVE_FUNCTION
 
 
