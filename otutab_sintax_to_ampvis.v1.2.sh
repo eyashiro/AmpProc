@@ -6,7 +6,7 @@
 #
 # Author: Erika Yashiro, Ph.D.
 #
-# Last modified: 13 March, 2018
+# Last modified: 3 September 2019
 #
 # script.sh -i [otu table_notax] -t [sintax.out.txt] -r [which reference database used for sintax]
 #
@@ -91,7 +91,21 @@ awk -F "\t" '{ print $2 }' $SINTAX.sorted.tmp0 > $SINTAX.sorted.tmp
 #fi
 
 # Check presence of all taxonomy levels
-awk -F ',' 'OFS="," { if ($1 !~ /k:/) {$1="k:,"$1; print $0} else {print $0} }' $SINTAX.sorted.tmp > $SINTAX.sorted.tmpa
+
+  # use domain or kingdom designation
+  # count number of occurences of d__ domain, vs k__ kingdom
+KDNUM=`grep -c "d:" $SINTAX.sorted.tmp`
+echo "number of domains is $KDNUM"
+
+if [ $KDNUM -lt 1 ]
+  then
+  awk -F ',' 'OFS="," { if ($1 !~ /k:/) {$1="k:,"$1; print $0} else {print $0} }' $SINTAX.sorted.tmp > $SINTAX.sorted.tmpa
+fi
+
+if [ $KDNUM -ge 1 ]
+  then
+  awk -F ',' 'OFS="," { if ($1 !~ /d:/) {$1="d:,"$1; print $0} else {print $0} }' $SINTAX.sorted.tmp > $SINTAX.sorted.tmpa
+fi
 
 awk -F ',' 'OFS="," { if ($2 !~ /p:/) {$2="p:,"$2; print $0} else {print $0} }' $SINTAX.sorted.tmpa > $SINTAX.sorted.tmpb
 
@@ -125,7 +139,7 @@ paste -d "\t" $SINTAX.sorted.tmp00 $SINTAX.sorted.tmpg > $SINTAX.sorted.tmph
 #join -t '	' otutable_notax_sorted.txt $SINTAX.sorted > ${FILERAD}_${REFDATABASE}.txt
 join -t $'\t' otutable_notax_sorted.txt $SINTAX.sorted > ${FILERAD}_${REFDATABASE}.txt
 
-mv otutable_notax_sorted.txt ${FILERAD}_${REFDATABASE}.sorted.txt
+mv otutable_notax_sorted.txt ${FILERAD}.sorted.txt
 
 rm $SINTAX.trimmed label_otu label_sintax label_uniques
 rm $SINTAX.sorted
