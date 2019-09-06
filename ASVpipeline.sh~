@@ -3,11 +3,10 @@
 set -e
 set -o pipefail
 
-#usearch=$(which usearch11_32bit)
-usearch=usearch11
+usearch=$(which usearch11_32bit)
 MAX_THREADS=${1:-$((`nproc`-2))}
 SEQPATH=/space/sequences/
-TAXDB=/space/databases/MiDAS3.3_20190906/output/ESVs_w_sintax.fa
+TAXDB=/space/databases/MiDAS4.0_20190524/output/ESVs_w_sintax.fa
 ASVDB=/space/databases/ASVdatabase/v2.0_20190514/ASVs.R1.fa
 prefilterDB=/space/databases/gg_13_8_otus97/97_otus.fasta
 SAMPLESEP="_"
