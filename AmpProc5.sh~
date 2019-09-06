@@ -82,7 +82,7 @@ Help_Function () {
     echo "  -t    Input file. Must be otu/zotu/asv table without taxonomy (e.g. otutable_notax.txt)."
     echo "  -r    Reference database number for taxonomy prediction."
     echo "              1  - MiDAS v2.1.3"
-    echo "              2  - MiDAS v3.2 (2019-06-02)"
+    echo "              2  - MiDAS v3.3 (2019-09-06)"
     echo "              3  - SILVA LTP v132"
     echo "              4  - RDP training set v16"
     echo "              5  - UNITE fungi ITS 1&2 v8.0 (2019-02-02)"
@@ -607,7 +607,7 @@ Refdatabase_Name_Function () {
         if [ $REFDATABASE == 2 ]
          then
          TAXFILE="midas3"
-         TAXVERS="v3.0 (2019-01-09)"
+         TAXVERS="v3.3 (2019-09-06)"
         fi
 
         if [ $REFDATABASE == 3 ]
