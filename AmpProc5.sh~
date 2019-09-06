@@ -554,9 +554,9 @@ fi
 
 if [ $REFDATABASE == 2 ]
     then
-    REFDATAPATH="/space/databases/midas/MiDAS3.2_20190602/ESVs_w_sintax.fa"
+    REFDATAPATH="/space/databases/midas/MiDAS3.3_20190906/output/ESVs_w_sintax.fa"
     #REFDATAPATH="/space/users/ksa/Documents/Work/ESV_pipeline_final/midas30_20190109/output/ESVs_w_sintax.fa"    
-    echo "using MiDAS 3.0 reference database."
+    echo "using MiDAS 3.3 reference database."
 fi
 
 if [ $REFDATABASE == 3 ]
