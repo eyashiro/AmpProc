@@ -115,7 +115,7 @@ awk -F "\t" '{ print $2 }' $SINTAX.sorted.tmp0 > $SINTAX.sorted.tmp
 #fi
 
 # Check presence of all taxonomy levels
-echo "111"
+
   # use domain or kingdom designation
   # count number of occurences of d__ domain, vs k__ kingdom, if grep -c finds nothing, and has exit status 1, then just echo zero.
 
