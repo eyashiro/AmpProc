@@ -572,13 +572,13 @@ fi
 
 if [ $REFDATABASE == 5 ]
     then
-    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/UNITE/utax_reference_dataset_fungi_02.02.2019.corrected.udb"
+    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/UNITE/utax_reference_dataset_fungi_02.02.2019.corrected.fasta"
     echo "using UNITE fungi reference database."
 fi
 
 if [ $REFDATABASE == 6 ]
     then
-    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/UNITE/utax_reference_dataset_all_02.02.2019.corrected2.udb"
+    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/UNITE/utax_reference_dataset_all_02.02.2019.corrected2.fasta"
     echo "using UNITE eukaryotes reference database."
 fi
 

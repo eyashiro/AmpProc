@@ -583,7 +583,7 @@ if [ $REFDATABASE == 6 ]
 fi
 
 # Run usearch
-    usearch11 -sintax $INFILE -db $REFDATAPATH -strand both -tabbedout sintax_out.txt -sintax_cutoff 0.8 -threads $NUMTHREADS -quiet
+    usearch11 -sintax $INFILE -db $REFDATAPATH -strand both -tabbedout sintax_out.txt -sintax_cutoff 0.8 -threads $NUMTHREADS -quiet 2>>ampproc-$STARTTIME.log
 
 
 }
