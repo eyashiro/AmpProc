@@ -82,7 +82,7 @@ Help_Function () {
     echo "  -t    Input file. Must be otu/zotu/asv table without taxonomy (e.g. otutable_notax.txt)."
     echo "  -r    Reference database number for taxonomy prediction."
     echo "              1  - MiDAS v2.1.3"
-    echo "              2  - MiDAS v3.3 (2019-09-06)"
+    echo "              2  - MiDAS v3.3 (2019-09-09)"
     echo "              3  - SILVA LTP v132"
     echo "              4  - RDP training set v16"
     echo "              5  - UNITE fungi ITS 1&2 v8.0 (2019-02-02)"
@@ -114,8 +114,8 @@ NUMTHREADS=5
 #########################################################
 
 # Define location of script
-#SCRIPTPATH="/space/users/ey/Documents/Scripts/git_work/AmpProc"
-SCRIPTPATH="/space/sharedbin/Workflows_EY"
+SCRIPTPATH="/space/users/ey/Documents/Scripts/git_work/AmpProc"
+#SCRIPTPATH="/space/sharedbin/Workflows_EY"
 
 # Define the location of the sequences folders
 SEQPATH="/space/sequences/"
@@ -548,38 +548,37 @@ echoPlus "Predicting taxonomy (Classifying the $ELEMENT) using SINTAX"
 # Determine reference database for taxonomy predictions
 if [ $REFDATABASE == 1 ]
     then
-    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/midas_database/MiDAS_S123_2.1.3.sintax.cleaned.20180103.udb"
+    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/midas_database/MiDAS_S123_2.1.3.sintax.cleaned.20180103.fasta"
     echo "using MiDAS v2 reference database."
 fi
 
 if [ $REFDATABASE == 2 ]
     then
-    REFDATAPATH="/space/databases/midas/MiDAS3.3_20190906/output/ESVs_w_sintax.fa"
-    #REFDATAPATH="/space/users/ksa/Documents/Work/ESV_pipeline_final/midas30_20190109/output/ESVs_w_sintax.fa"    
+    REFDATAPATH="/space/databases/midas/MiDAS3.3_20190909/output/ESVs_w_sintax.fa"
     echo "using MiDAS 3.3 reference database."
 fi
 
 if [ $REFDATABASE == 3 ]
     then
-    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/SILVA_LTP/LTPs132_SSU_unaligned.sintax.udb"
+    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/SILVA_LTP/LTPs132_SSU_unaligned.sintax.fasta"
     echo "using SILVA LTP reference database."
 fi
 
 if [ $REFDATABASE == 4 ]
     then
-    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/RDP_training_set/rdp_16s_v16s_sp_sintax.cleaned.20180103.udb"
+    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/RDP_training_set/rdp_16s_v16s_sp_sintax.cleaned.20180103.fa"
     echo "using RDP reference database."
 fi
 
 if [ $REFDATABASE == 5 ]
     then
-    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/UNITE/utax_reference_dataset_fungi_02.02.2019.corrected.udb"
+    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/UNITE/utax_reference_dataset_fungi_02.02.2019.corrected.fasta"
     echo "using UNITE fungi reference database."
 fi
 
 if [ $REFDATABASE == 6 ]
     then
-    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/UNITE/utax_reference_dataset_all_02.02.2019.corrected2.udb"
+    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/UNITE/utax_reference_dataset_all_02.02.2019.corrected2.fasta"
     echo "using UNITE eukaryotes reference database."
 fi
 
@@ -607,7 +606,7 @@ Refdatabase_Name_Function () {
         if [ $REFDATABASE == 2 ]
          then
          TAXFILE="midas3"
-         TAXVERS="v3.3 (2019-09-06)"
+         TAXVERS="v3.3 (2019-09-09)"
         fi
 
         if [ $REFDATABASE == 3 ]
