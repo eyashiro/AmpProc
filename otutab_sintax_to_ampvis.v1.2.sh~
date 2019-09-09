@@ -50,9 +50,9 @@ done
 ####################
 
 REMOVE_FUNCTION () {
-rm $SINTAX.trimmed label_otu label_sintax label_uniques
-rm $SINTAX.sorted
-rm $SINTAX.sorted.tmp*
+rm -f $SINTAX.trimmed label_otu label_sintax label_uniques
+rm -f $SINTAX.sorted
+rm -f $SINTAX.sorted.tmp*
 #rm otutable_notax_sorted.txt
 }
 
@@ -115,12 +115,14 @@ awk -F "\t" '{ print $2 }' $SINTAX.sorted.tmp0 > $SINTAX.sorted.tmp
 #fi
 
 # Check presence of all taxonomy levels
-
+echo "111"
   # use domain or kingdom designation
-  # count number of occurences of d__ domain, vs k__ kingdom
-KDNUM=`grep -c "d:" $SINTAX.sorted.tmp`
+  # count number of occurences of d__ domain, vs k__ kingdom, if grep -c finds nothing, and has exit status 1, then just echo zero.
+#KDNUM2=`grep -c "k:" $SINTAX.sorted.tmp || echo "0"`
+#echo "number of kingdoms is $KDNUM2"
+KDNUM=`grep "d:" $SINTAX.sorted.tmp || echo "0"`
 echo "number of domains is $KDNUM"
-
+#echo "222"
 if [ $KDNUM -lt 1 ]
   then
   awk -F ',' 'OFS="," { if ($1 !~ /k:/) {$1="k:,"$1; print $0} else {print $0} }' $SINTAX.sorted.tmp > $SINTAX.sorted.tmpa
