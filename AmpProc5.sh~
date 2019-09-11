@@ -1,13 +1,13 @@
 #!/bin/bash
 
-VERSIONNUMBER=5.1.0.beta1.0
+VERSIONNUMBER=5.1.0.beta2.0
 MODIFIEDDATE="6 September, 2019"
 
 ###################################################################################################
 #
 #  Amplicon DNA workflow
 #
-#  Version 5.1.0.beta1.0
+#  Version 5.1.0.beta2.0
 #
 #  This workflow script generates OTU tables from raw bacterial V13 and V4
 #  16S rRNA and fungal ITS 1 amplicon data.
@@ -496,7 +496,7 @@ bash $SCRIPTPATH/otutab_sintax_to_ampvis.v1.2.sh -i otutable_notax.txt -t $SINTA
 
 rm otutable_notax.txt
 #mv otutable_notax_sorted.txt otutable_notax.txt
-mv otutable_notax_$REFDATABASE.sorted.txt otutable_notax.txt
+mv otutable_notax.sorted.txt otutable_notax.txt
 mv otutable_notax_$REFDATABASE.txt otutable.txt
 
 }
@@ -583,7 +583,7 @@ if [ $REFDATABASE == 6 ]
 fi
 
 # Run usearch
-    usearch11 -sintax $INFILE -db $REFDATAPATH -strand both -tabbedout sintax_out.txt -sintax_cutoff 0.8 -threads $NUMTHREADS -quiet
+    usearch11 -sintax $INFILE -db $REFDATAPATH -strand both -tabbedout sintax_out.txt -sintax_cutoff 0.8 -threads $NUMTHREADS -quiet 2>>ampproc-$STARTTIME.log
 
 
 }
@@ -694,7 +694,7 @@ MaketreeProk_Function() {
     
     #fasttree
     INFILE2=`echo $INFILE | sed 's/.fa$//g'`
-    fasttreeMP -nt aligned_seqs_$ELEMENT/${INFILE2}_aligned.fasta > aligned_seqs_$ELEMENT/$INFILE.$ELEMENT.tre
+    fasttreeMP -nt aligned_seqs_$ELEMENT/${INFILE2}_aligned.fasta > aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre
     
     # Reset the OMP threads
     #export OMP_NUM_THREADS=""
@@ -725,6 +725,32 @@ MaketreeFung_Function() {
     echoPlus "    Output files of linkage tree tree are in aggr_tree_$ELEMENT/"
 }
 
+
+MaketreeWrapper_Function() {
+    # This function is a wrapper to decide whether to run the MaketreeFung_Function or the MaketreeProk_Function.
+
+    # INFILE=otus.fa
+    # ELEMENT=suffix for type of otu/zotu R1/R2
+
+    INFILE=$1
+    ELEMENT=$2
+    USER_PATH=`echo $PWD`
+
+   
+     if [[ $AMPREGION =~ ^(V4|V13)$ ]]
+        then
+        #Align reads and build prokaryotic tree
+        MaketreeProk_Function $INFILE $ELEMENT
+     fi
+
+     if [ $AMPREGION = "ITS" ]
+        then
+        # Build clustering tree for fungi / other eukaryotes
+        MaketreeFung_Function $INFILE $ELEMENT
+     fi
+
+}
+
 Betadiv_Function () {
 # Build phylogenetic tree, probably for use in calculating unifrac. Therefore, using fasttree.
 # As of December 2017, Current version installed on Dragon is FastTree v2.1.7.
@@ -744,6 +770,8 @@ OTUTABLE=$2
 ELEMENT=$3
 USER_PATH=`echo $PWD`
 
+INFILE2=`echo $INFILE | sed 's/.fa$//g'`
+
 echoPlus ""
 echoPlus "Building beta diversity matrices."
 
@@ -754,7 +782,7 @@ OTUTABLE2=`echo $OTUTABLE | sed 's/.txt$//g'`
 usearch11 -alpha_div $OTUTABLE -output $OTUTABLE2.number_reads_per_sample.txt -metrics reads -quiet
 
   # Check that at least one sample has at least 1000 reads total.
-SAMPLESIZE=`awk -F "\t" 'NR>1{ if ($2 > 1000) {print "OVER1000";exit} }' $OTUTABLE2.number_reads_per_sample.txt`
+SAMPLESIZE=`awk -F "\t" 'NR>1{ if ($2 > 1000) {print "OVER1000"; exit} }' $OTUTABLE2.number_reads_per_sample.txt`
   # Check how many samples have at least 1000 reads total.
 SAMPLENUM=`awk -F "\t" 'NR>1{ if ($2 > 1000) {print "OVER1000"} }' $OTUTABLE2.number_reads_per_sample.txt | wc -l`
 
@@ -775,8 +803,7 @@ fi
 
 if [[ $AMPREGION =~ ^(V4|V13)$ ]]
     then
-    # Align reads and build phylogenetic tree
-    MaketreeProk_Function $INFILE $ELEMENT
+    # Make sure that a tree has already been generated.
 
     echoPlus ""
     echoPlus "   Warning: The R package Ampvis uses the Generalized UniFrac instead of the original weighted and unweighted UniFrac equations implemented in QIIME version 1.x.x."
@@ -784,13 +811,14 @@ if [[ $AMPREGION =~ ^(V4|V13)$ ]]
     echoPlus "   Generating beta diversity matrices: Bray Curtis, original version of weighted & unweighted UniFrac from Fasttree tree"
 
     # Create betadiv folder
+echo "BETADIV!!!"
     mkdir beta_div_$ELEMENT
 
     # Convert classic otu table to biom format
     biom convert -i $OTUTABLE -o $OTUTABLE.biom --table-type="OTU table" --to-hdf5
 
     # Run Qiime 1.8.0 beta_diversity script for UniFrac
-    beta_diversity.py -i $OTUTABLE.biom -m weighted_unifrac,unweighted_unifrac -o beta_div_$ELEMENT/ -t aligned_seqs_$ELEMENT/$INFILE.$ELEMENT.tre
+    beta_diversity.py -i $OTUTABLE.biom -m weighted_unifrac,unweighted_unifrac -o beta_div_$ELEMENT/ -t aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre
     # Change file names of output matrices
     mv beta_div_$ELEMENT/weighted_unifrac_$OTUTABLE.txt beta_div_$ELEMENT/$ELEMENT.weighted_unifrac.txt
     mv beta_div_$ELEMENT/unweighted_unifrac_$OTUTABLE.txt beta_div_$ELEMENT/$ELEMENT.unweighted_unifrac.txt
@@ -804,7 +832,7 @@ if [[ $AMPREGION =~ ^(V4|V13)$ ]]
       biom convert -i $OTUTABLE2.norm1000.txt -o $OTUTABLE2.norm1000.biom --table-type="OTU table" --to-hdf5
 
       # Run Qiime script for UniFrac matrices
-      beta_diversity.py -i $OTUTABLE2.norm1000.biom -m weighted_unifrac,unweighted_unifrac -o beta_div_norm1000_$ELEMENT/ -t aligned_seqs_$ELEMENT/$INFILE.$ELEMENT.tre
+      beta_diversity.py -i $OTUTABLE2.norm1000.biom -m weighted_unifrac,unweighted_unifrac -o beta_div_norm1000_$ELEMENT/ -t aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre
       # Change file name of output matrices
       mv beta_div_norm1000_$ELEMENT/weighted_unifrac_$OTUTABLE2.norm1000.txt beta_div_norm1000_$ELEMENT/$ELEMENT.weighted_unifrac.txt
       mv beta_div_norm1000_$ELEMENT/unweighted_unifrac_$OTUTABLE2.norm1000.txt beta_div_norm1000_$ELEMENT/$ELEMENT.unweighted_unifrac.txt
@@ -830,15 +858,14 @@ if [ $AMPREGION = "ITS" ]
     then
 
     # Check that there is more than 2 OTUs in the OTU table
-    NUMOTUS=`grep -c ">" $INFILE`
+    NUMOTUS=`grep -c ">" $INFILE || true`
 
     if [ $NUMOTUS -le 1 ]
       then
       echoPlus ""
       echoPlus "   There is not enough $ELEMENT to generate beta diversity output. No matrices generated"
       else
-       # Build clustering tree for fungi
-       MaketreeFung_Function $INFILE $ELEMENT
+       # Make sure that a cluster tree has been generated.
 
        echoPlus ""
        echoPlus "   Generating beta diversity matrices: Bray Curtis, weighted & unweighted UniFrac from clustering tree"
@@ -934,6 +961,8 @@ echo "Process single-end reads (SR)and/or paired-end reads (PE)?      $SINGLEREA
 echo "Amplicon region?                                                $AMPREGION" >> ampproc_params-$STARTTIME.log
 echo "Reference database to use for taxonomy prediction?              $REFDATABASE ) $TAXFILE $TAXVERS" >> ampproc_params-$STARTTIME.log
 echo "Number of threads:                                              $NUMTHREADS" >> ampproc_params-$STARTTIME.log
+echo "Make a phylo/cluster tree:                                      $MAKETREE" >> ampproc_params-$STARTTIME.log
+echo "Generate beta diversity output:                                 $BETADIV" >> ampproc_params-$STARTTIME.log
 
 }
 
@@ -1105,7 +1134,8 @@ fi
 fi
 
 # Copy the README file
-cp /space/users/ey/Documents/Scripts/amplicon_workflow/README_amplicon.workflow_v$VERSIONNUMBER.txt .
+#cp /space/users/ey/Documents/Scripts/amplicon_workflow/README_amplicon.workflow_v$VERSIONNUMBER.txt .
+cp $SCRIPTPATH/README_amplicon.workflow_v$VERSIONNUMBER.txt .
 
 # Define ZOTUs = yes/no
 echoPlus ""
@@ -1162,7 +1192,7 @@ echo "$AMPREGION" >> ampproc-$STARTTIME.log
 echoPlus ""
 echoPlus "Which reference database do you want to use for taxonomy prediction?"
 echoPlus "        1  - MiDAS v2.1.3"
-echoPlus "        2  - MiDAS v3.0 (2019-01-09)"
+echoPlus "        2  - MiDAS v3.3 (2019-09-09)"
 echoPlus "        3  - SILVA LTP v132"
 echoPlus "        4  - RDP training set v16"
 echoPlus "        5  - UNITE fungi ITS 1&2 v8.0 (2019-02-02)"
@@ -1181,6 +1211,23 @@ echoPlus "Dragon (up to 70), Coco and Peanut (up to 10)"
 echoPlus "If unsure, then start the run with 5 threads"
 read NUMTHREADS
 echo "$NUMTHREADS" >> ampproc-$STARTTIME.log
+
+# Define tree building (yes/no)
+echoPlus ""
+echoPlus "Do you want to build a phylogenetic (prokaryotes) or cluster (eukaryotes) tree?"
+echoPlus "        yes - Build a tree"
+echoPlus "        no  - Don't build a tree"
+read MAKETREE
+echo "$MAKETREE" >> ampproc-$STARTTIME.log
+
+# Run diagnostics beta div function
+echoPlus ""
+echoPlus "Do you want to generate beta diversity matrices? (full and rarefied to 1000 reads per sample)"
+echoPlus "Note: the output can be directly used to generate ordination graphs or hierarchical dendrograms."
+echoPlus "        yes - Run betadiv"
+echoPlus "        no  - Skip betadiv"
+read BETADIV
+echo "$BETADIV" >> ampproc-$STARTTIME.log
 
 # Check that the question answers are script readable.
 # note: arg between quotes means it can be nothing without producing error.
@@ -1216,6 +1263,34 @@ if [[ "$REFDATABASE" -lt 1 ]] || [[ "$REFDATABASE" -gt 6 ]]
     echoWithDate "    Exiting script"
     echoPlus ""
     exit 1
+fi
+
+if [[ ! "$MAKETREE" =~ ^(yes|no)$ ]]
+    then
+    echoPlus ""
+    echoPlus "Tree making: $MAKETREE invalid argument."
+    echoPlus "Sorry I didn't understand what you wrote. Please also make sure that you have the correct upper/lower case letters."
+    echoPlus "You can also run the help function with the option -help or -h."
+    echoWithDate "    Exiting script"
+    echoPlus ""
+    exit 1
+fi
+
+if [[ ! "$BETADIV" =~ ^(yes|no)$ ]]
+    then
+    echoPlus ""
+    echoPlus "Betadiversity: $BETADIV invalid argument."
+    echoPlus "Sorry I didn't understand what you wrote. Please also make sure that you have the correct upper/lower case letters."
+    echoPlus "You can also run the help function with the option -help or -h."
+    echoWithDate "    Exiting script"
+    echoPlus ""
+    exit 1
+fi
+
+# Automatically turn on tree building if betadiversity is switched on.
+if [ $BETADIV = "yes" ]
+   then
+   MAKETREE="yes"
 fi
 
 # Extract Reference database name and version
@@ -1320,8 +1395,21 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
       Taxonomy_reports_Function sintax_out.otus.R1.txt otutable_notax.R1.txt otusR1
       Taxonomy_reports_Function sintax_out.otus.R2.txt otutable_notax.R2.txt otusR2
  
-    fi
-    
+       if [ $MAKETREE = "yes" ]
+           then
+           MaketreeWrapper_Function otus.R1.fa OTUsR1
+           MaketreeWrapper_Function otus.R2.fa OTUsR2
+       fi
+
+       if [ $BETADIV = "yes" ]
+          then
+	  Betadiv_Function otus.R1.fa otutable_notax.R1.txt OTUsR1
+          Betadiv_Function otus.R2.fa otutable_notax.R1.txt OTUsR2
+       fi
+
+    echoWithDate ""
+  fi  
+
     if [[ $ZOTUS =~ ^(zotu|both)$ ]]   # Run the zotu workflow
         then
         # Cluster zOTUs + taxonomy assignment
@@ -1367,6 +1455,22 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
         Taxonomy_reports_Function sintax_out.zotus.R1.txt zotutable_notax.R1.txt zotusR1
         Taxonomy_reports_Function sintax_out.zotus.R2.txt zotutable_notax.R2.txt zotusR2
 
+        # Align sequences and build trees
+        if [ $MAKETREE = "yes" ]
+           then
+           MaketreeWrapper_Function zotus.R1.fa ZOTUsR1
+           MaketreeWrapper_Function zotus.R2.fa ZOTUsR2
+        fi
+
+       # Generate beta diversity matrices
+       if [ $BETADIV = "yes" ]
+          then
+	  Betadiv_Function zotus.R1.fa zotutable_notax.R1.txt ZOTUsR1
+          Betadiv_Function zotus.R2.fa zotutable_notax.R2.txt ZOTUsR2
+       fi
+
+    echoWithDate ""
+
      fi  
 fi
 
@@ -1377,17 +1481,14 @@ if [ $SINGLEREADS = "SR" ]
     Cleanup_Function
     echoPlus ""
     echoWithDate "Single read data processing is done. Enjoy."
-    #date
     echoPlus ""
     exit 0
     
-    else
-    if [ $SINGLEREADS = "both" ]
+    elif [ $SINGLEREADS = "both" ]
       then
       echoPlus ""
       echoWithDate "Single read data processing is done."
-      #date
-    fi
+    
 fi
 
 
@@ -1472,8 +1573,17 @@ if [[ $ZOTUS =~ ^(otu|both)$ ]]
   Taxonomy_reports_Function sintax_out.otus.txt otutable_notax.txt otus
   echoWithDate ""
 
-  # Align sequences, build tree, and generate beta diversity matrices that can be fed into Ampvis or R base.
-  Betadiv_Function otus.fa otutable_notax.txt OTUS
+  # Align sequences, build tree
+  if [ $MAKETREE = "yes" ]
+      then
+      MaketreeWrapper_Function otus.fa OTUS
+  fi
+
+  # Generate beta diversity matrices that can be fed into Ampvis or R base.
+  if [ $BETADIV = "yes" ]
+      then
+      Betadiv_Function otus.fa otutable_notax.txt OTUS
+  fi
 
   #echo ""
   #echo "    Output files of alignment in aligned_seqs_OTUS/"
@@ -1515,8 +1625,19 @@ if [[ $ZOTUS =~ ^(zotu|both)$ ]]
     Taxonomy_reports_Function sintax_out.zotus.txt zotutable_notax.txt zotus
     echoWithDate ""
 
-    # Align sequences, build tree, and generate beta diversity matrices that can be fed into Ampvis or R base.
-    Betadiv_Function zotus.fa zotutable_notax.txt ZOTUS
+    # Align sequences, build tree
+    if [ $MAKETREE = "yes" ]
+       then
+       MaketreeWrapper_Function zotus.fa zotu
+       MaketreeWrapper_Function zotus.fa zotu
+    fi
+
+   # Generate beta diversity matrices that can be fed into Ampvis or R base.
+   if [ $BETADIV = "yes" ]
+       then
+       Betadiv_Function otus.fa otutable_notax.txt OTUS
+   fi
+
     echoWithDate ""
 fi
 
