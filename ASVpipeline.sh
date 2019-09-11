@@ -7,8 +7,8 @@ set -o pipefail
 usearch=usearch11
 MAX_THREADS=${1:-$((`nproc`-2))}
 SEQPATH=/space/sequences/
-TAXDB=/space/databases/MiDAS3.3_20190906/output/ESVs_w_sintax.fa
-ASVDB=/space/databases/ASVdatabase/v2.0_20190514/ASVs.R1.fa
+TAXDB=/space/databases/midas/MiDAS3.3_20190909/output/ESVs_w_sintax.fa
+ASVDB=/space/databases/midas/ASVdatabase/v2.0_20190514/ASVs.R1.fa
 prefilterDB=/space/databases/gg_13_8_otus97/97_otus.fasta
 SAMPLESEP="_"
 
