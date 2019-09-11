@@ -943,6 +943,10 @@ Run_Time_Params_Function () {
 # Write out the command and arguments into a log file.
 # => ammproc_params-'date-time'.log
 
+# $1 = Standard or APOSTIORI runs
+
+RUNOPTS=$1
+
 printf "File created: " > ampproc_params-$STARTTIME.log
 date >> ampproc_params-$STARTTIME.log
 echo "" >> ampproc_params-$STARTTIME.log
@@ -950,6 +954,12 @@ echo "" >> ampproc_params-$STARTTIME.log
 echo "AmpProc5 version: $VERSIONNUMBER" >> ampproc_params-$STARTTIME.log
 
 echo "" >> ampproc_params-$STARTTIME.log
+
+if [ $RUNOPTS = "APOSTIORI" ]
+   then
+   echo "A postiori run to append new taxonomy to existing community counts table." >> ampproc_params-$STARTTIME.log
+   echo "" >> ampproc_params-$STARTTIME.log
+fi
 
   # full command string
 printf "Full command: " >> ampproc_params-$STARTTIME.log
@@ -1043,7 +1053,7 @@ if [[ "$1" =~ ^(-help|-h)$ ]]
         Refdatabase_Name_Function
         
         # Write command parameters to log
-        Run_Time_Params_Function
+        Run_Time_Params_Function APOSTIORI
 
         # Run taxonomy prediction with specified reference database
         PREDTYPE=`echo $OTUINFILE | sed 's/\..*//g'`
