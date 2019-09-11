@@ -304,7 +304,7 @@ echoPlus "Retrieving sequenced files and removing PhiX contamination."
       find $SEQPATH -name $NAME$a*R1* 2>/dev/null -exec gzip -cd {} \; > rawdata/$NAME.R1.fq
       find $SEQPATH -name $NAME$a*R2* 2>/dev/null -exec gzip -cd {} \; > rawdata/$NAME.R2.fq
       # Filter phix
-      usearch10 -filter_phix rawdata/$NAME.R1.fq -reverse rawdata/$NAME.R2.fq -output phix_filtered/$NAME.R1.fq -output2 phix_filtered/$NAME.R2.fq -threads $NUMTHREADS -quiet
+      usearch11 -filter_phix rawdata/$NAME.R1.fq -reverse rawdata/$NAME.R2.fq -output phix_filtered/$NAME.R1.fq -output2 phix_filtered/$NAME.R2.fq -threads $NUMTHREADS -quiet
   done < samples_tmp.txt
 
 #rm -rf rawdata/
@@ -331,7 +331,7 @@ Merge_Function () {
 echoPlus ""
 echoPlus "Merging paired end reads"
 
-usearch10 -fastq_mergepairs phix_filtered/*.R1.fq -reverse phix_filtered/*.R2.fq -fastqout mergeout.fq -relabel @ -fastq_maxdiffs 15 -threads $NUMTHREADS -quiet
+usearch11 -fastq_mergepairs phix_filtered/*.R1.fq -reverse phix_filtered/*.R2.fq -fastqout mergeout.fq -relabel @ -fastq_maxdiffs 15 -threads $NUMTHREADS -quiet
 
 }
 
@@ -353,7 +353,7 @@ SEQLEN=$2
 echoPlus ""
 echoPlus "Quality filtering and removing consensus reads less than $SEQLEN bp"
 
-usearch10 -fastq_filter $INFILE -fastq_maxee 1.0 -fastaout QCout.fa -fastq_minlen $SEQLEN -quiet -threads $NUMTHREADS
+usearch11 -fastq_filter $INFILE -fastq_maxee 1.0 -fastaout QCout.fa -fastq_minlen $SEQLEN -quiet -threads $NUMTHREADS
 
 }
 
@@ -375,15 +375,15 @@ mkdir phix_filtered/tempdir
 while read SAMPLES
     do
     NAME=$SAMPLES
-    usearch10 -fastq_filter phix_filtered/$NAME.R1.fq -fastq_maxee 1.0 -fastaout phix_filtered/tempdir/$NAME.R1.QCout.fa -fastq_trunclen 200 -relabel @ -threads $NUMTHREADS -quiet
+    usearch11 -fastq_filter phix_filtered/$NAME.R1.fq -fastq_maxee 1.0 -fastaout phix_filtered/tempdir/$NAME.R1.QCout.fa -fastq_trunclen 200 -relabel @ -threads $NUMTHREADS -quiet
     #(-fastq_minlen 250 )
-    usearch10 -fastq_filter phix_filtered/$NAME.R2.fq -fastq_maxee 1.0 -fastaout phix_filtered/tempdir/$NAME.R2.QCout.fa -fastq_trunclen 200 -relabel @ -threads $NUMTHREADS -quiet
+    usearch11 -fastq_filter phix_filtered/$NAME.R2.fq -fastq_maxee 1.0 -fastaout phix_filtered/tempdir/$NAME.R2.QCout.fa -fastq_trunclen 200 -relabel @ -threads $NUMTHREADS -quiet
     cat phix_filtered/tempdir/$NAME.R1.QCout.fa >> all.singlereads.nophix.qc.R1.fa
     cat phix_filtered/tempdir/$NAME.R2.QCout.fa >> all.singlereads.nophix.qc.R2.fa
 
     # Create concatenated fastq file of nonfiltered reads, with the sample labels
-    usearch10 -fastx_relabel phix_filtered/$NAME.R1.fq -prefix $NAME. -fastqout phix_filtered/tempdir/$NAME.R1.relabeled.fq -quiet
-    usearch10 -fastx_relabel phix_filtered/$NAME.R2.fq -prefix $NAME. -fastqout phix_filtered/tempdir/$NAME.R2.relabeled.fq -quiet
+    usearch11 -fastx_relabel phix_filtered/$NAME.R1.fq -prefix $NAME. -fastqout phix_filtered/tempdir/$NAME.R1.relabeled.fq -quiet
+    usearch11 -fastx_relabel phix_filtered/$NAME.R2.fq -prefix $NAME. -fastqout phix_filtered/tempdir/$NAME.R2.relabeled.fq -quiet
     cat phix_filtered/tempdir/$NAME.R1.relabeled.fq >> all.singlereads.nophix.R1.fq
     cat phix_filtered/tempdir/$NAME.R2.relabeled.fq >> all.singlereads.nophix.R2.fq
     done < samples_tmp.txt
@@ -403,7 +403,7 @@ echoPlus "Dereplicating reads"
 # INFILE=all.merged.nophix.qc.fa and file variants.
 # output: DEREPout.fa, which is typically renamed as uniques.fa afterwards.
 INFILE=$1
-usearch10 -fastx_uniques $INFILE -sizeout -fastaout DEREPout.fa -relabel Uniq -quiet
+usearch11 -fastx_uniques $INFILE -sizeout -fastaout DEREPout.fa -relabel Uniq -quiet
 
 }
 
@@ -433,7 +433,7 @@ REF_DATABASE="/space/users/ey/Documents/Amplicon_databases/gg_13_8_otus97/97_otu
 
 #usearch10 -closed_ref $INFILE -db /space/users/ey/Documents/gg_13_8_otus97/97_otus.fasta -strand both -id 0.6 -mapout closed_mapped.txt
 #usearch10 -usearch_global $INFILE -db $REF_DATABASE -strand both -id 0.6 -maxaccepts 1 -maxrejects 256 -matched prefilt_out.tmp -threads $NUMTHREADS -quiet
-usearch10 -usearch_global $INFILE -db $REF_DATABASE -strand both -id 0.6 -maxaccepts 1 -maxrejects 8 -matched prefilt_out.fa -threads $NUMTHREADS
+usearch11 -usearch_global $INFILE -db $REF_DATABASE -strand both -id 0.6 -maxaccepts 1 -maxrejects 8 -matched prefilt_out.fa -threads $NUMTHREADS
 
 # relabel the unique, prefiltered reads so that the reads are in numerical order.
 #usearch10 -fastx_relabel prefilt_out.tmp -prefix Prefilt -fastaout prefilt_out.fa -keep_annots
@@ -456,7 +456,7 @@ echoPlus "Making 97% OTUs and filter chimeras"
 # INFILE=prefilt_out.fa or uniques.fa
 # output: otus.fa
 INFILE=$1
-usearch10 -cluster_otus $INFILE -otus otus.fa -relabel OTU -minsize 2 -quiet
+usearch11 -cluster_otus $INFILE -otus otus.fa -relabel OTU -minsize 2 -quiet
 
 }
 
@@ -470,7 +470,7 @@ echoPlus "Creating ZOTUs of dereplicated reads file using UNOISE3"
 # INFILE=prefilt_out.fa
 # output: zotus.fa
 INFILE=$1
-usearch10 -unoise3 $INFILE -zotus zotus.fa -quiet
+usearch11 -unoise3 $INFILE -zotus zotus.fa -quiet
 
 }
 
@@ -490,7 +490,7 @@ echoPlus "Making an OTU table"
 FASTAFILE=$1
 OTUSFILE=$2
 SINTAX=$3
-usearch10 -otutab $FASTAFILE -otus $OTUSFILE -otutabout otutable_notax.txt -id 0.97 -threads $NUMTHREADS -quiet -sample_delim .
+usearch11 -otutab $FASTAFILE -otus $OTUSFILE -otutabout otutable_notax.txt -id 0.97 -threads $NUMTHREADS -quiet -sample_delim .
 
 bash $SCRIPTPATH/otutab_sintax_to_ampvis.v1.2.sh -i otutable_notax.txt -t $SINTAX -r $REFDATABASE
 
@@ -811,7 +811,7 @@ if [[ $AMPREGION =~ ^(V4|V13)$ ]]
     echoPlus "   Generating beta diversity matrices: Bray Curtis, original version of weighted & unweighted UniFrac from Fasttree tree"
 
     # Create betadiv folder
-echo "BETADIV!!!"
+
     mkdir beta_div_$ELEMENT
 
     # Convert classic otu table to biom format
