@@ -1,12 +1,12 @@
 README
 
-Last modified: 26 March, 2019
+Last modified: 13 September, 2019
 
 Author: Erika Yashiro, Ph.D.
 
 Script name: AmpProc5
 
-Version: 5.1.0.beta1.0
+Version: 5.1.0.beta2.0
 
 
 
