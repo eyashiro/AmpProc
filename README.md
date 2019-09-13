@@ -125,7 +125,7 @@ Generating beta diversity matrices
 VERSION HISTORY
 
 AmpProc5 v5.1.0.beta1.0
-Released for user evaluation: XXXXX
+Released for user evaluation: 2 September 2019
 - Officially changed the script name to AmpProc5
 - Added the MiDAS 3 ASVs workflow as an option
 - Following is the update status of the reference databases
