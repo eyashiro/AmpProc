@@ -1053,7 +1053,7 @@ if [[ "$1" =~ ^(-help|-h)$ ]]
         Refdatabase_Name_Function
         
         # Write command parameters to log
-        Run_Time_Params_Function
+        Run_Time_Params_Function APOSTIORI
 
         # Run taxonomy prediction with specified reference database
         PREDTYPE=`echo $OTUINFILE | sed 's/\..*//g'`

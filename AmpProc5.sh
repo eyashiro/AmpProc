@@ -1145,7 +1145,7 @@ fi
 
 # Copy the README file
 #cp /space/users/ey/Documents/Scripts/amplicon_workflow/README_amplicon.workflow_v$VERSIONNUMBER.txt .
-cp $SCRIPTPATH/README_amplicon.workflow_v$VERSIONNUMBER.txt .
+cp $SCRIPTPATH/README.md .
 
 # Define ZOTUs = yes/no
 echoPlus ""
