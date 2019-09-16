@@ -526,7 +526,7 @@ bash $SCRIPTPATH/otutab_sintax_to_ampvis.v1.2.sh -i zotutable_notax.txt -t $SINT
 
 rm zotutable_notax.txt
 #mv otutable_notax_sorted.txt zotutable_notax.txt
-mv zotutable_notax_$REFDATABASE.sorted.txt zotutable_notax.txt
+mv zotutable_notax.sorted.txt zotutable_notax.txt
 mv zotutable_notax_$REFDATABASE.txt zotutable.txt
 #sed -i 's/Otu/Zotu/g' zotutable.txt
 #sed -i 's/Otu/Zotu/g' zotutable_notax.txt
@@ -1638,14 +1638,14 @@ if [[ $ZOTUS =~ ^(zotu|both)$ ]]
     # Align sequences, build tree
     if [ $MAKETREE = "yes" ]
        then
-       MaketreeWrapper_Function zotus.fa zotu
-       MaketreeWrapper_Function zotus.fa zotu
+       MaketreeWrapper_Function zotus.fa ZOTUS
+       MaketreeWrapper_Function zotus.fa ZOTUS
     fi
 
    # Generate beta diversity matrices that can be fed into Ampvis or R base.
    if [ $BETADIV = "yes" ]
        then
-       Betadiv_Function otus.fa otutable_notax.txt OTUS
+       Betadiv_Function zotus.fa zotutable_notax.txt ZOTUS
    fi
 
     echoWithDate ""
