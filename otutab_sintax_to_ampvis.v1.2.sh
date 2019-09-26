@@ -119,16 +119,18 @@ awk -F "\t" '{ print $2 }' $SINTAX.sorted.tmp0 > $SINTAX.sorted.tmp
   # use domain or kingdom designation
   # count number of occurences of d__ domain, vs k__ kingdom, if grep -c finds nothing, and has exit status 1, then just echo zero.
 
-KDNUM=`grep "d:" $SINTAX.sorted.tmp || echo "0"`
-
-if [ $KDNUM -lt 1 ]
-  then
-  awk -F ',' 'OFS="," { if ($1 !~ /k:/) {$1="k:,"$1; print $0} else {print $0} }' $SINTAX.sorted.tmp > $SINTAX.sorted.tmpa
-fi
+KDNUM=`grep -c "k:" $SINTAX.sorted.tmp || true`
+KDNUM2=`grep -c "d:" $SINTAX.sorted.tmp || true`
+#echo "KDNUM: $KDNUM;  KDNUM2: $KDNUM2"
 
 if [ $KDNUM -ge 1 ]
   then
-  awk -F ',' 'OFS="," { if ($1 !~ /d:/) {$1="d:,"$1; print $0} else {print $0} }' $SINTAX.sorted.tmp > $SINTAX.sorted.tmpa
+  awk -F ',' 'OFS="," { if ($1 !~ /k:/) {$1="k:,"$1; print $0} else {print $0} }' $SINTAX.sorted.tmp > $SINTAX.sorted.tmpa
+  else
+    if [ $KDNUM2 -ge 1 ]
+    then
+    awk -F ',' 'OFS="," { if ($1 !~ /d:/) {$1="d:,"$1; print $0} else {print $0} }' $SINTAX.sorted.tmp > $SINTAX.sorted.tmpa
+    fi
 fi
 
 awk -F ',' 'OFS="," { if ($2 !~ /p:/) {$2="p:,"$2; print $0} else {print $0} }' $SINTAX.sorted.tmpa > $SINTAX.sorted.tmpb
