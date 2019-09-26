@@ -140,7 +140,6 @@ Released for user evaluation:
    - Replaced otutab_norm (obsolete) with otutab_rare.
 - "usearch10 -cluster_agg" will remain default for generating the fungal cluster tree that is used to generate the unifrac matrices. Usearch11 no longer supports "-cluster_agg" but this is the recommended way to generate the tree prior to running unifrac for fungi.
 - Fixed the issue where some of the representative reads were being excluded from the phylogenetic tree.
-- The MiDAS ASV workflow now has the option to generate a phylogenetic tree and beta diversity output.
 
 AmpProc5 v5.1.0.beta1.0
 Released for user evaluation: 10 September 2019
