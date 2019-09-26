@@ -1414,7 +1414,7 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
        if [ $BETADIV = "yes" ]
           then
 	  Betadiv_Function otus.R1.fa otutable_notax.R1.txt OTUsR1
-          Betadiv_Function otus.R2.fa otutable_notax.R1.txt OTUsR2
+          Betadiv_Function otus.R2.fa otutable_notax.R2.txt OTUsR2
        fi
 
     echoWithDate ""

@@ -1645,7 +1645,7 @@ if [[ $ZOTUS =~ ^(zotu|both)$ ]]
    # Generate beta diversity matrices that can be fed into Ampvis or R base.
    if [ $BETADIV = "yes" ]
        then
-       Betadiv_Function otus.fa zotutable_notax.txt ZOTUS
+       Betadiv_Function zotus.fa zotutable_notax.txt ZOTUS
    fi
 
     echoWithDate ""
