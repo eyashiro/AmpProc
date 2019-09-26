@@ -681,8 +681,8 @@ MaketreeProk_Function() {
 
     echoPlus ""
     echoPlus "   Aligning the bacterial sequenced reads using PyNAST with QIIME v1 native parameters."
-    # Using PyNAST in Unifrac 1.8.0
-    align_seqs.py -i $USER_PATH/$INFILE -m pynast -t $REP_ALIGNED_PATH -o $USER_PATH/aligned_seqs_$ELEMENT/
+    # Using PyNAST in Unifrac 1.9.1
+    align_seqs.py -i $USER_PATH/$INFILE -m pynast -t $REP_ALIGNED_PATH -o $USER_PATH/aligned_seqs_$ELEMENT/ -p 0.30
 
     echoPlus ""
     echoPlus "   Generating FastTree maximum likelihood tree of the bacterial sequenced reads with QIIME native parameters"
@@ -730,7 +730,7 @@ MaketreeWrapper_Function() {
     # This function is a wrapper to decide whether to run the MaketreeFung_Function or the MaketreeProk_Function.
 
     # INFILE=otus.fa
-    # ELEMENT=suffix for type of otu/zotu R1/R2
+    # ELEMENT=suffix for type of otu/zotu/asv R1/R2
 
     INFILE=$1
     ELEMENT=$2
@@ -778,7 +778,7 @@ echoPlus "Building beta diversity matrices."
 # Calculate number of reads per sample
 echoPlus ""
 echoPlus "   Normalizing the OTU table to 1000"
-OTUTABLE2=`echo $OTUTABLE | sed 's/.txt$//g'`
+OTUTABLE2=`echo $OTUTABLE | sed -e 's/.txt$//g' -e 's/.tsv$//g'`
 usearch11 -alpha_div $OTUTABLE -output $OTUTABLE2.number_reads_per_sample.txt -metrics reads -quiet
 
   # Check that at least one sample has at least 1000 reads total.
@@ -931,6 +931,23 @@ mv ASVtable_notax_MIDAS.txt ASVtable_MIDAS.tsv
 rm ASVtable_notax.tsv
 mv ASVtable_notax.sorted.txt ASVtable_notax.tsv
 
+# Align sequences, build tree
+  if [ $MAKETREE = "yes" ]
+      then
+      # Arbitrarily set ampregion to v13 to adapt to tree-building function
+      AMPREGION=V13
+      # Run tree-building wrapper function
+      MaketreeWrapper_Function ASVs.R1.fa ASVS
+  fi
+
+# Generate beta diversity matrices that can be fed into Ampvis or R base.
+  if [ $BETADIV = "yes" ]
+      then
+      Betadiv_Function ASVs.R1.fa ASVtable_notax.tsv ASVS
+  fi
+
+echoWithDate ""
+
 echoWithDate "MiDAS workflow is done. Have a nice day!"
 
 exit 0
@@ -961,13 +978,19 @@ if [ $RUNOPTS = "APOSTIORI" ]
    echo "" >> ampproc_params-$STARTTIME.log
 fi
 
+if [ $RUNOPTS = "ASVPIPELINE" ]
+   then
+   echo "MiDAS ASV pipeline run by AmpProc." >> ampproc_params-$STARTTIME.log
+   echo "" >> ampproc_params-$STARTTIME.log
+fi
+
   # full command string
 printf "Full command: " >> ampproc_params-$STARTTIME.log
 echo "$0 $@" >> ampproc_params-$STARTTIME.log
 
 echo "What workflow do you want to run (MiDAS / Standard)?            $WORKFLOW" >> ampproc_params-$STARTTIME.log
 echo "Generate a ZOTU table using UNOISE3?                            $ZOTUS" >> ampproc_params-$STARTTIME.log
-echo "Process single-end reads (SR)and/or paired-end reads (PE)?      $SINGLEREADS" >> ampproc_params-$STARTTIME.log
+echo "Process single-end reads (SR) and/or paired-end reads (PE)?      $SINGLEREADS" >> ampproc_params-$STARTTIME.log
 echo "Amplicon region?                                                $AMPREGION" >> ampproc_params-$STARTTIME.log
 echo "Reference database to use for taxonomy prediction?              $REFDATABASE ) $TAXFILE $TAXVERS" >> ampproc_params-$STARTTIME.log
 echo "Number of threads:                                              $NUMTHREADS" >> ampproc_params-$STARTTIME.log
@@ -1114,6 +1137,10 @@ echoPlus ""
 echoPlus "This tool is for academic use only."
 echoPlus ""
 
+# Copy the README file
+#cp /space/users/ey/Documents/Scripts/amplicon_workflow/README_amplicon.workflow_v$VERSIONNUMBER.txt .
+cp $SCRIPTPATH/README.md .
+
 # Standard or MiDAS workflow
 echoPlus ""
 echoPlus "What workflow do you want to run?"
@@ -1132,8 +1159,69 @@ if [[ ! "$WORKFLOW" =~ ^(S|M)$ ]]
    exit 1
 fi
 
+# Run Midas workflow if selected
    if [ $WORKFLOW = "M" ]
      then
+
+     # Define tree building (yes/no)
+     echoPlus ""
+     echoPlus "Do you want to build a phylogenetic (prokaryotes) or cluster (eukaryotes) tree?"
+     echoPlus "        yes - Build a tree"
+     echoPlus "        no  - Don't build a tree"
+     read MAKETREE
+     echo "$MAKETREE" >> ampproc-$STARTTIME.log
+
+     # Run diagnostics beta div function
+     echoPlus ""
+     echoPlus "Do you want to generate beta diversity matrices? (full and rarefied to 1000 reads per sample)"
+     echoPlus "Note: the output can be directly used to generate ordination graphs or hierarchical dendrograms."
+     echoPlus "        yes - Run betadiv"
+     echoPlus "        no  - Skip betadiv"
+     read BETADIV
+     echo "$BETADIV" >> ampproc-$STARTTIME.log
+
+
+     if [[ ! "$MAKETREE" =~ ^(yes|no)$ ]]
+         then
+         echoPlus ""
+         echoPlus "Tree making: $MAKETREE invalid argument."
+         echoPlus "Sorry I didn't understand what you wrote. Please also make sure that you have the correct upper/lower case letters."
+         echoPlus "You can also run the help function with the option -help or -h."
+         echoWithDate "    Exiting script"
+         echoPlus ""
+         exit 1
+     fi
+
+     if [[ ! "$BETADIV" =~ ^(yes|no)$ ]]
+         then
+         echoPlus ""
+         echoPlus "Betadiversity: $BETADIV invalid argument."
+         echoPlus "Sorry I didn't understand what you wrote. Please also make sure that you have the correct upper/lower case letters."
+         echoPlus "You can also run the help function with the option -help or -h."
+         echoWithDate "    Exiting script"
+         echoPlus ""
+         exit 1
+     fi
+
+     # Automatically turn on tree building if betadiversity is switched on.
+     if [ $BETADIV = "yes" ]
+        then
+        MAKETREE="yes"
+     fi
+
+     # Automatically define reference database to latest midas file.
+     REFDATABASE=2
+
+     # Adjust number of threads to ASVpipeline settings.
+     NUMTHREADS=${1:-$((`nproc`-2))}
+
+     # Extract Reference database name and version
+     Refdatabase_Name_Function
+
+     # Write command parameters to log
+     Run_Time_Params_Function ASVPIPELINE
+
+     # Run ASV pipeline workflow
      WORKFLOW_MIDAS_Function
      else
      if [ $WORKFLOW = "S" ]
@@ -1143,9 +1231,6 @@ fi
      fi
 fi
 
-# Copy the README file
-#cp /space/users/ey/Documents/Scripts/amplicon_workflow/README_amplicon.workflow_v$VERSIONNUMBER.txt .
-cp $SCRIPTPATH/README.md .
 
 # Define ZOTUs = yes/no
 echoPlus ""
@@ -1414,7 +1499,7 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
        if [ $BETADIV = "yes" ]
           then
 	  Betadiv_Function otus.R1.fa otutable_notax.R1.txt OTUsR1
-          Betadiv_Function otus.R2.fa otutable_notax.R1.txt OTUsR2
+          Betadiv_Function otus.R2.fa otutable_notax.R2.txt OTUsR2
        fi
 
     echoWithDate ""
