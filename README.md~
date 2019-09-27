@@ -1,6 +1,6 @@
 README
 
-Last modified: 13 September, 2019
+Last modified: 27 September, 2019
 
 Author: Erika Yashiro, Ph.D.
 
@@ -14,11 +14,11 @@ Version: 5.1.0.beta2.0
 
 To run the help function, type either:
 
-AmpProc5 -h
+AmpProc5.1 -h
 
 OR
 
-AmpProc5 -help
+AmpProc5.1 -help
 
 ########################################
 
@@ -26,19 +26,21 @@ AmpProc5 -help
 
 For citing the tools used in the workflow:
 
--------------------------------------
-amplicon.workflow_v5.1.sh / AmpProc5 
--------------------------------------
+------------
+AmpProc5.1
+------------
 This is a custom script that processes raw reads. The script acts BOTH as a wrapper for other published software as well as a script that processes and reformats data for downstream applications.
 Author: Erika Yashiro, Ph.D.  (ey@bio.aau.dk)
+https://github.com/eyashiro/AmpProc
 
-----------
-USEARCH 10
-----------
-(version: usearch10.0.240_i86linux64)
+---------------
+USEARCH 10 & 11
+---------------
+version: usearch10.0.240_i86linux64 (used only in one step of Fungi/Eukaryote to generate cluster tree)
+version: usearch11.0.667_i86linux64 (used for all steps of AmpProc)
 
 USEARCH and UCLUST algorithms
-Edgar,RC (2010) Search and clustering orders of magnitude faster than BLAST, Bioinformatics 26(19), 2460-2461.
+Edgar, R.C. (2010) Search and clustering orders of magnitude faster than BLAST, Bioinformatics 26(19), 2460-2461.
 doi: 10.1093/bioinformatics/btq461
 
 SINTAX algorithm = Taxonomy assignment
@@ -57,7 +59,7 @@ Edgar, R.C. (2013) UPARSE: Highly accurate OTU sequences from microbial amplicon
 QIIME 1.9.1
 --------------------
 
-QIIME = used for running PYNAST sequence alignment tool used prior to tree-building for V13 and V4 amplicons
+QIIME = used for running PYNAST sequence alignment tool used prior to tree-building for prokaryote amplicons, and beta diversity analysis
 
 QIIME allows analysis of high-throughput community sequencing data
 J Gregory Caporaso, Justin Kuczynski, Jesse Stombaugh, Kyle Bittinger, Frederic D Bushman, Elizabeth K Costello, Noah Fierer, Antonio Gonzalez Pena, Julia K Goodrich, Jeffrey I Gordon, Gavin A Huttley, Scott T Kelley, Dan Knights, Jeremy E Koenig, Ruth E Ley, Catherine A Lozupone, Daniel McDonald, Brian D Muegge, Meg Pirrung, Jens Reeder, Joel R Sevinsky, Peter J Turnbaugh, William A Walters, Jeremy Widmann, Tanya Yatsunenko, Jesse Zaneveld and Rob Knight; Nature Methods, 2010; doi:10.1038/nmeth.f.303
@@ -129,6 +131,7 @@ Released for user evaluation:
 - Following is the update status of the reference databases
    - MiDAS 2.1.3 = unchanged
    - MiDAS 3.3 = newly implemented
+   - MiDAS 4.2 = newly implemented
    - SILVA LTP = upgraded to v132
    - RDP training set v16 = unchanged
    - UNITE fungi = updated to v8.0  (ITS 1 and 2)
@@ -140,6 +143,8 @@ Released for user evaluation:
    - Replaced otutab_norm (obsolete) with otutab_rare.
 - "usearch10 -cluster_agg" will remain default for generating the fungal cluster tree that is used to generate the unifrac matrices. Usearch11 no longer supports "-cluster_agg" but this is the recommended way to generate the tree prior to running unifrac for fungi.
 - Fixed the issue where some of the representative reads were being excluded from the phylogenetic tree.
+- The MiDAS ASV workflow now has the option to generate a phylogenetic tree and beta diversity output.
+- The MiDAS ASV workflow has a choice of using either MiDAS 3 or 4 as reference database.
 
 AmpProc5 v5.1.0.beta1.0
 Released for user evaluation: 10 September 2019
