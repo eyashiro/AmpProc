@@ -363,13 +363,13 @@ echoPlus "Retrieving sequenced files and removing PhiX contamination."
   while read SAMPLES
   do
       # Retrieve sequenced reads
-      a="_";
+      SAMPLEDELIM="_";
       NAME=$SAMPLES;
       #find /space/sequences/ -name $NAME*R1* 2>/dev/null -exec gzip -cd {} \;
       #find /space/sequences/ -name $NAME*R1* 2>/dev/null -exec cp {} samplegz/ \;
       #find /space/sequences/ -name $NAME* 2>/dev/null -exec cp {} samplegz/ \;
-      find $SEQPATH -name $NAME$a*R1* 2>/dev/null -exec gzip -cd {} \; > rawdata/$NAME.R1.fq
-      find $SEQPATH -name $NAME$a*R2* 2>/dev/null -exec gzip -cd {} \; > rawdata/$NAME.R2.fq
+      find $SEQPATH -name $NAME$SAMPLEDELIM*R1* 2>/dev/null -exec gzip -cd {} \; > rawdata/$NAME.R1.fq
+      find $SEQPATH -name $NAME$SAMPLEDELIM*R2* 2>/dev/null -exec gzip -cd {} \; > rawdata/$NAME.R2.fq
       # Filter phix
       usearch11 -filter_phix rawdata/$NAME.R1.fq -reverse rawdata/$NAME.R2.fq -output phix_filtered/$NAME.R1.fq -output2 phix_filtered/$NAME.R2.fq -threads $NUMTHREADS -quiet
   done < samples_tmp.txt

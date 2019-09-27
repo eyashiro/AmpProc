@@ -903,7 +903,7 @@ WORKFLOW_MIDAS_Function () {
 
 echoWithDate "Running MIDAS ASV workflow to generate raw table and taxonomy"
 
-echo "refdatapath: $REFDATAPATH"
+#echo "refdatapath: $REFDATAPATH"
 # Run Kasper's ASV script
 $SCRIPTPATH/ASVpipeline.sh $REFDATAPATH
 
