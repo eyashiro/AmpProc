@@ -1,7 +1,7 @@
 #!/bin/bash
 
 VERSIONNUMBER=5.1.0.beta2.0
-MODIFIEDDATE="6 September, 2019"
+MODIFIEDDATE="30 September, 2019"
 
 ###################################################################################################
 #
@@ -16,7 +16,7 @@ MODIFIEDDATE="6 September, 2019"
 #
 #  Author: Erika Yashiro, Ph.D.
 #
-#  Last modified:6 September, 2019
+#  Last modified: 30 September, 2019
 #
 ###################################################################################################
 
@@ -83,8 +83,8 @@ Help_Function () {
     echo "  -r    Reference database number for taxonomy prediction."
     echo "              3  - SILVA LTP v132"
     echo "              2  - MiDAS v2.1.3"
-    echo "              3  - MiDAS v3.3 (2019-09-19)"
-    echo "              4  - MiDAS v4.2 (2019-09-19)"
+    echo "              3  - MiDAS v3.4 (2019-09-30)"
+    echo "              4  - MiDAS v4.4 (2019-09-30)"
     echo "              5  - RDP training set v16"
     echo "              6  - UNITE fungi ITS 1&2 v8.0 (2019-02-02)"
     echo "              7  - UNITE eukaryotes ITS 1&2 v8.0 (2019-02-02)"
@@ -174,16 +174,16 @@ if [ $REFDATABASE == 3 ]
     then
     TAXFILE="midas3"
     TAXVERS="v3.3 (2019-09-19)"
-    REFDATAPATH="/space/databases/midas/MiDAS3.3_20190919/output/ESVs_w_sintax.fa"
-    REFNOTE="using MiDAS 3.3 reference database."
+    REFDATAPATH="/space/databases/midas/MiDAS3.4_20190930/output/ESVs_w_sintax.fa"
+    REFNOTE="using MiDAS 3.4 reference database."
 fi
 
 if [ $REFDATABASE == 4 ]
     then
     TAXFILE="midas4"
     TAXVERS="v4.2 (2019-09-19)"
-    REFDATAPATH="/space/databases/midas/MiDAS4.2_20190919/output/ESVs_w_sintax.fa"
-    REFNOTE="using MiDAS 4.2 reference database."
+    REFDATAPATH="/space/databases/midas/MiDAS4.4_20190930/output/ESVs_w_sintax.fa"
+    REFNOTE="using MiDAS 4.4 reference database."
 fi
         
 if [ $REFDATABASE == 5 ]
@@ -432,7 +432,7 @@ Fastqc_singlereads_Function () {
 # Remove reads less than 250bp
 
 echoPlus ""
-echoPlus "Quality filtering, truncating reads to 200bp, and removing reads less than 200bp."
+echoPlus "Quality filtering, truncating reads to 250bp, and removing reads less than 250bp."
 
 # make temporary directory
 mkdir phix_filtered/tempdir
@@ -442,9 +442,9 @@ mkdir phix_filtered/tempdir
 while read SAMPLES
     do
     NAME=$SAMPLES
-    usearch11 -fastq_filter phix_filtered/$NAME.R1.fq -fastq_maxee 1.0 -fastaout phix_filtered/tempdir/$NAME.R1.QCout.fa -fastq_trunclen 200 -relabel @ -threads $NUMTHREADS -quiet
+    usearch11 -fastq_filter phix_filtered/$NAME.R1.fq -fastq_maxee 1.0 -fastaout phix_filtered/tempdir/$NAME.R1.QCout.fa -fastq_trunclen 250 -relabel @ -threads $NUMTHREADS -quiet
     #(-fastq_minlen 250 )
-    usearch11 -fastq_filter phix_filtered/$NAME.R2.fq -fastq_maxee 1.0 -fastaout phix_filtered/tempdir/$NAME.R2.QCout.fa -fastq_trunclen 200 -relabel @ -threads $NUMTHREADS -quiet
+    usearch11 -fastq_filter phix_filtered/$NAME.R2.fq -fastq_maxee 1.0 -fastaout phix_filtered/tempdir/$NAME.R2.QCout.fa -fastq_trunclen 250 -relabel @ -threads $NUMTHREADS -quiet
     cat phix_filtered/tempdir/$NAME.R1.QCout.fa >> all.singlereads.nophix.qc.R1.fa
     cat phix_filtered/tempdir/$NAME.R2.QCout.fa >> all.singlereads.nophix.qc.R2.fa
 
