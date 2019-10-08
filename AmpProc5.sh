@@ -812,7 +812,7 @@ if [[ $AMPREGION =~ ^(V4|V13)$ ]]
     echoPlus ""
     echoPlus "   Warning: The R package Ampvis uses the Generalized UniFrac instead of the original weighted and unweighted UniFrac equations implemented in QIIME version 1.x.x."
     echoPlus ""
-    echoWithDate "   Generating beta diversity matrices: Bray Curtis, original version of weighted & unweighted UniFrac from Fasttree tree"
+    echoWithDate "   Generating beta diversity matrices: Bray Curtis, original version of weighted & unweighted UniFrac from Fasttree tree, Jaccard (abundance-based), and Jaccard binary (presence-absence)"
 
     # Create betadiv folder
 
@@ -821,14 +821,14 @@ if [[ $AMPREGION =~ ^(V4|V13)$ ]]
     # Convert classic otu table to biom format
     biom convert -i $OTUTABLE -o $OTUTABLE.biom --table-type="OTU table" --to-hdf5
 
-    # Run Qiime 1.8.0 beta_diversity script for UniFrac
+    # Run Qiime 1.9.1 beta_diversity script for UniFrac
     beta_diversity.py -i $OTUTABLE.biom -m weighted_unifrac,unweighted_unifrac -o beta_div_$ELEMENT/ -t aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre
     # Change file names of output matrices
     mv beta_div_$ELEMENT/weighted_unifrac_$OTUTABLE.txt beta_div_$ELEMENT/$ELEMENT.weighted_unifrac.txt
     mv beta_div_$ELEMENT/unweighted_unifrac_$OTUTABLE.txt beta_div_$ELEMENT/$ELEMENT.unweighted_unifrac.txt
 
     # Run Usearch for Bray Curtis
-    usearch11 -beta_div $OTUTABLE -metrics bray_curtis -filename_prefix beta_div_$ELEMENT/$ELEMENT. -quiet
+    usearch11 -beta_div $OTUTABLE -metrics bray_curtis,jaccard,jaccard_binary -filename_prefix beta_div_$ELEMENT/$ELEMENT. -quiet
     
    if [ "$SAMPLESIZE" = "OVER1000" ] && [ "$SAMPLENUM" -gt 1 ]
       then
@@ -842,7 +842,7 @@ if [[ $AMPREGION =~ ^(V4|V13)$ ]]
       mv beta_div_norm1000_$ELEMENT/unweighted_unifrac_$OTUTABLE2.norm1000.txt beta_div_norm1000_$ELEMENT/$ELEMENT.unweighted_unifrac.txt
 
       # Run Usearch for Bray Curtis matrix
-      usearch11 -beta_div $OTUTABLE2.norm1000.txt -metrics bray_curtis -filename_prefix beta_div_norm1000_$ELEMENT/$ELEMENT. -quiet
+      usearch11 -beta_div $OTUTABLE2.norm1000.txt -metrics bray_curtis,jaccard,jaccard_binary -filename_prefix beta_div_norm1000_$ELEMENT/$ELEMENT. -quiet
       else
       #echoPlus ""
       echoWithDate "   Note: Beta diversity matrices from normalized OTU table could not be generated."
@@ -872,17 +872,17 @@ if [ $AMPREGION = "ITS" ]
        # Make sure that a cluster tree has been generated.
 
        #echoPlus ""
-       echoWithDate "   Generating beta diversity matrices: Bray Curtis, weighted & unweighted UniFrac from clustering tree"
+       echoWithDate "   Generating beta diversity matrices: Bray Curtis, weighted & unweighted UniFrac from clustering tree, Jaccard (abundance-based), and Jaccard binary (presence-absence)"
 
        
        # Calculate beta diversity matrices
        mkdir beta_div_$ELEMENT
-       usearch11 -beta_div $OTUTABLE -metrics bray_curtis,unifrac,unifrac_binary -tree aggr_tree_$ELEMENT/$ELEMENT.cluster.tre -filename_prefix beta_div_$ELEMENT/$ELEMENT. -quiet
+       usearch11 -beta_div $OTUTABLE -metrics bray_curtis,unifrac,unifrac_binary,jaccard,jaccard_binary -tree aggr_tree_$ELEMENT/$ELEMENT.cluster.tre -filename_prefix beta_div_$ELEMENT/$ELEMENT. -quiet
     
       if [ $SAMPLESIZE = "OVER1000" ] && [ "$SAMPLENUM" -gt 1 ]
          then
          # Calculate beta diveristy matrices for normalized otu table of normalized otu table is large enough.
-         usearch11 -beta_div $OTUTABLE2.norm1000.txt -metrics bray_curtis,unifrac,unifrac_binary -tree aggr_tree_$ELEMENT/$ELEMENT.cluster.tre -filename_prefix beta_div_$ELEMENT/$ELEMENT.norm1000_ -quiet
+         usearch11 -beta_div $OTUTABLE2.norm1000.txt -metrics bray_curtis,unifrac,unifrac_binary,jaccard,jaccard_binary -tree aggr_tree_$ELEMENT/$ELEMENT.cluster.tre -filename_prefix beta_div_$ELEMENT/$ELEMENT.norm1000_ -quiet
          else
          #echoPlus ""
          echoWithDate "   Note: Beta diversity matrices from normalized OTU table could not be generated."
