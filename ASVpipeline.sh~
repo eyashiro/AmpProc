@@ -6,7 +6,8 @@ set -o pipefail
 #usearch=$(which usearch11_32bit)
 usearch=usearch11
 #MAX_THREADS=${1:-$((`nproc`-2))}
-MAX_THREADS=$((`nproc`-2))
+#MAX_THREADS=$((`nproc`-2))
+MAX_THREADS=$2
 SEQPATH=/space/sequences/
 #TAXDB=/space/databases/midas/MiDAS3.3_20190919/output/ESVs_w_sintax.fa
 TAXDB=$1

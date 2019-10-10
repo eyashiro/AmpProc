@@ -920,11 +920,13 @@ mv *_summary.txt taxonomy_summary/.
 
 WORKFLOW_MIDAS_Function () {
 
-echoWithDate "Running MIDAS ASV workflow to generate raw table and taxonomy"
+echoWithDate "Running MiDAS ASV workflow to generate raw table and taxonomy"
+echoWithDate "Please note that the MiDAS workflow is only for bacteria from wastewater sludge and digesters. For all other sample types and/or organism groups, you need to use the AmpProc standard workflow."
 
 #echo "refdatapath: $REFDATAPATH"
 # Run Kasper's ASV script
 $SCRIPTPATH/ASVpipeline.sh $REFDATAPATH $NUMTHREADS
+echoWitDate "ASVpipeline finished."
 
 # Append asv table to sintax taxonomy
 echoWithDate "Using AmpProc to generate ASV table for AmpVis"
