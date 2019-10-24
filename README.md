@@ -128,8 +128,12 @@ Generating beta diversity matrices
 
 VERSION HISTORY
 
+AmpProc5 v5.1.0.beta2.2
+Released for user evaluation: 24 October 2019
+- Updated the MiDAS reference database versions to 3.5, and 4.5
+
 AmpProc5 v5.1.0.beta2.1
-Released for user evaluation:
+Released for user evaluation: 10 October 2019
 - Changed the single reads truncate length to 250bp from 200bp in the standard workflow.
 - The MiDAS workflow number of threads is now adjustable by the user.
 - Added abundance-based and presence-absence-based Jaccard beta diversity metric in the Beta diversity workflow.

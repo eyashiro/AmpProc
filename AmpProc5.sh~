@@ -1,13 +1,13 @@
 #!/bin/bash
 
-VERSIONNUMBER=5.1.0.beta2.1
-MODIFIEDDATE="1st October, 2019"
+VERSIONNUMBER=5.1.0.beta2.2
+MODIFIEDDATE="23 October, 2019"
 
 ###################################################################################################
 #
 #  Amplicon DNA workflow
 #
-#  Version 5.1.0.beta2.1
+#  Version 5.1.0.beta2.2
 #
 #  This workflow script generates OTU tables from raw bacterial V13 and V4
 #  16S rRNA and fungal ITS 1 amplicon data.
@@ -16,7 +16,7 @@ MODIFIEDDATE="1st October, 2019"
 #
 #  Author: Erika Yashiro, Ph.D.
 #
-#  Last modified: 1st October, 2019
+#  Last modified: 23 October, 2019
 #
 ###################################################################################################
 
@@ -62,8 +62,10 @@ mkdir -p /tmp/$USER
 STARTTIME=$(date '+%Y%m%d-%H%M%S')
 
 # Define midas versions because they keep changing.
-MIDAS3VERS="MiDAS v3.4 (2019-09-30)"
-MIDAS4VERS="MiDAS v4.4 (2019-09-30)"
+MIDAS3VERS="MiDAS v3.5 (2019-10-22)"
+MIDAS4VERS="MiDAS v4.5 (2019-10-22)"
+MIDAS3VERSABBREV="3.5"
+MIDAS4VERSABBREV="4.5"
 
 
 #########################################################
@@ -181,8 +183,8 @@ if [ $REFDATABASE == 3 ]
     TAXFILE="midas3"
     #TAXVERS="v3.4 (2019-09-30)"
     TAXVERS="$MIDAS3VERS"
-    REFDATAPATH="/space/databases/midas/MiDAS3.4_20190930/output/ESVs_w_sintax.fa"
-    REFNOTE="using MiDAS 3.4 reference database."
+    REFDATAPATH="/space/databases/midas/MiDAS3.5_20191022/output/ESVs_w_sintax.fa"
+    REFNOTE="using MiDAS $MIDAS3VERSABBREV reference database."
 fi
 
 if [ $REFDATABASE == 4 ]
@@ -190,8 +192,8 @@ if [ $REFDATABASE == 4 ]
     TAXFILE="midas4"
     #TAXVERS="v4.4 (2019-09-30)"
     TAXVERS="$MIDAS4VERS"
-    REFDATAPATH="/space/databases/midas/MiDAS4.4_20190930/output/ESVs_w_sintax.fa"
-    REFNOTE="using MiDAS 4.4 reference database."
+    REFDATAPATH="/space/databases/midas/MiDAS4.5_20191022/output/ESVs_w_sintax.fa"
+    REFNOTE="using MiDAS $MIDAS4VERSABBREV reference database."
 fi
         
 if [ $REFDATABASE == 5 ]
@@ -925,8 +927,9 @@ echoWithDate "Please note that the MiDAS workflow is only for bacteria from wast
 
 #echo "refdatapath: $REFDATAPATH"
 # Run Kasper's ASV script
-$SCRIPTPATH/ASVpipeline.sh $REFDATAPATH $NUMTHREADS
-echoWitDate "ASVpipeline finished."
+bash $SCRIPTPATH/ASVpipeline.sh $REFDATAPATH $NUMTHREADS
+
+echoWithDate "ASVpipeline finished."
 
 # Append asv table to sintax taxonomy
 echoWithDate "Using AmpProc to generate ASV table for AmpVis"

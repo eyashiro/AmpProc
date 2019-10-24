@@ -113,3 +113,5 @@ rm -f all.singlereads.nophix.qc.R1.fa
 
 duration=$(printf '%02dh:%02dm:%02ds\n' $(($SECONDS/3600)) $(($SECONDS%3600/60)) $(($SECONDS%60)))
 echoWithDate "Done in: $duration"
+
+
