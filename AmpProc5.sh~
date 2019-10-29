@@ -1,7 +1,7 @@
 #!/bin/bash
 
-VERSIONNUMBER=5.1.0.beta2.2
-MODIFIEDDATE="23 October, 2019"
+VERSIONNUMBER=5.1.0.beta2.3
+MODIFIEDDATE="29 October, 2019"
 
 ###################################################################################################
 #
@@ -16,7 +16,7 @@ MODIFIEDDATE="23 October, 2019"
 #
 #  Author: Erika Yashiro, Ph.D.
 #
-#  Last modified: 23 October, 2019
+#  Last modified: 29 October, 2019
 #
 ###################################################################################################
 
@@ -1125,7 +1125,7 @@ fi
 
 # Define ZOTUS = yes/no
 # Define single read = yes/no/both (SINGLEREADS)
-# Define amplicon region = V13/V4/ITS (AMPREGION)
+# Define amplicon region = V13/V4/V35/ITS (AMPREGION)
 # Define reference database = 1/2/3/4/5/6/7 (REFDATABASE)
 
 
@@ -1322,6 +1322,7 @@ fi
 echoPlus ""
 echoPlus "Do you want to process single-end reads or paired-end reads?"
 echoPlus "Select to run single end reads if you want to control for species that have very long variable regions between the forward and reverse primers. These species can be rare in the community but will get filtered out if the paired end reads do not overlap."
+echoPlus "If you have paired-end amplicons that are too long to stitch together, you also need to use the single read option."
 echoPlus "        SR   - Process only single reads"
 echoPlus "        PE   - Process only paired-end reads"
 echoPlus "        both - process both single reads and paired-end reads"
@@ -1333,6 +1334,7 @@ echoPlus ""
 echoPlus "What genomic region does your PCR amplicons amplify?"
 echoPlus "        V13 - Bacterial 16S rRNA hypervariable regions 1 & 3"
 echoPlus "        V4  - Bacterial 16S rRNA hypervariable region 4"
+echoPlus "        V35 - Archaeal 16S rRNA hypervariable region 3 to 5"
 echoPlus "        ITS - Fungal ribosomal ITS 1 region"
 read AMPREGION
 echo "$AMPREGION" >> ampproc-$STARTTIME.log
@@ -1393,7 +1395,7 @@ if [[ ! "$SINGLEREADS" =~ ^(SR|both|PE)$ ]]
     exit 1
 fi
 
-if [[ ! "$AMPREGION" =~ ^(V13|V4|ITS)$ ]]
+if [[ ! "$AMPREGION" =~ ^(V13|V4|ITS|V35)$ ]]
     then
     echoPlus ""
     echoPlus "Amplicon region: $AMPREGION invalid argument."
@@ -1669,6 +1671,12 @@ if [ $AMPREGION = "ITS" ]
     then
     Fastqc_Function all.merged.nophix.fq 200
 fi
+
+if [ $AMPREGION = "V35" ]
+    then
+    Fastqc_Function all.merged.nophix.fq 400
+fi
+
 
 mv QCout.fa all.merged.nophix.qc.fa
 echoWithDate "    Output file of QC: all.merged.nophix.qc.fa"

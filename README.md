@@ -128,6 +128,10 @@ Generating beta diversity matrices
 
 VERSION HISTORY
 
+AmpProc5 v5.1.0.bet2.3
+Released for user evaluation: 29 October 2019
+- Added option to indicate the archaeal V3-5 hypervariable region amplicons. Note that these are probably too long to stitch together into consensus reads from paired-end reads, so they should be run in single-read mode.
+
 AmpProc5 v5.1.0.beta2.2
 Released for user evaluation: 24 October 2019
 - Updated the MiDAS reference database versions to 3.5, and 4.5
