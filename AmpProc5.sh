@@ -1,13 +1,13 @@
 #!/bin/bash
 
-VERSIONNUMBER=5.1.0.beta2.3
-MODIFIEDDATE="29 October, 2019"
+VERSIONNUMBER=5.1.0.beta2.4
+MODIFIEDDATE="7 November, 2019"
 
 ###################################################################################################
 #
 #  Amplicon DNA workflow
 #
-#  Version 5.1.0.beta2.2
+#  Version 5.1.0.beta2.4
 #
 #  This workflow script generates OTU tables from raw bacterial V13 and V4
 #  16S rRNA and fungal ITS 1 amplicon data.
@@ -16,7 +16,7 @@ MODIFIEDDATE="29 October, 2019"
 #
 #  Author: Erika Yashiro, Ph.D.
 #
-#  Last modified: 29 October, 2019
+#  Last modified: 7 November, 2019
 #
 ###################################################################################################
 
@@ -62,10 +62,10 @@ mkdir -p /tmp/$USER
 STARTTIME=$(date '+%Y%m%d-%H%M%S')
 
 # Define midas versions because they keep changing.
-MIDAS3VERS="MiDAS v3.5 (2019-10-22)"
-MIDAS4VERS="MiDAS v4.5 (2019-10-22)"
-MIDAS3VERSABBREV="3.5"
-MIDAS4VERSABBREV="4.5"
+MIDAS3VERS="MiDAS v3.6 (2019-10-30)"
+MIDAS4VERS="MiDAS v4.6 (2019-11-04)"
+MIDAS3VERSABBREV="3.6"
+MIDAS4VERSABBREV="4.6"
 
 
 #########################################################
@@ -96,7 +96,7 @@ Help_Function () {
     echo ""
     echo "To run the script's full pipeline: "
     echo "   1. Make sure that you create an empty directory, where you have just the file containing your sample ID names. Call your file: samples."
-    echo "   2. Type in the terminal:      AmpProc5"
+    echo "   2. Type in the terminal:      AmpProc5.1"
     echo ""   
     echo "   3. Be prepared to answer the questions asked by the script." 
     echo "      Answers are case-sensitive!"
@@ -120,7 +120,7 @@ Help_Function () {
     echo "              6  - UNITE fungi ITS 1&2 v8.0 (2019-02-02)"
     echo "              7  - UNITE eukaryotes ITS 1&2 v8.0 (2019-02-02)"
     echo ""
-    echo "To incorporate the new taxonomy output into an OTU table, run the script: otutab_sintax_to_ampvis.v1.2.sh (Run with -h for more information)"
+    echo "To only incorporate the new taxonomy output into an OTU table, run the script: otutab_sintax_to_ampvis.v1.2.sh (Run with -h for more information)"
     echo ""
     echo "To change the number of CPUs used by the USEARCH stages of the pipeline, adjust the number of threads when running the script."
     echo "The fasttree typically uses about 20 cores at its maximum run and this cannot be adjusted."
@@ -183,7 +183,7 @@ if [ $REFDATABASE == 3 ]
     TAXFILE="midas3"
     #TAXVERS="v3.4 (2019-09-30)"
     TAXVERS="$MIDAS3VERS"
-    REFDATAPATH="/space/databases/midas/MiDAS3.5_20191022/output/ESVs_w_sintax.fa"
+    REFDATAPATH="/space/databases/midas/MiDAS3.6_20191030/output/ESVs_w_sintax.fa"
     REFNOTE="using MiDAS $MIDAS3VERSABBREV reference database."
 fi
 
@@ -192,7 +192,7 @@ if [ $REFDATABASE == 4 ]
     TAXFILE="midas4"
     #TAXVERS="v4.4 (2019-09-30)"
     TAXVERS="$MIDAS4VERS"
-    REFDATAPATH="/space/databases/midas/MiDAS4.5_20191022/output/ESVs_w_sintax.fa"
+    REFDATAPATH="/space/databases/midas/MiDAS4.6_20191104/output/ESVs_w_sintax.fa"
     REFNOTE="using MiDAS $MIDAS4VERSABBREV reference database."
 fi
         
