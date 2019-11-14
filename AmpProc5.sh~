@@ -1,13 +1,13 @@
 #!/bin/bash
 
-VERSIONNUMBER=5.1.0.beta2.4
-MODIFIEDDATE="7 November, 2019"
+VERSIONNUMBER=5.1.0.beta2.5
+MODIFIEDDATE="14 November, 2019"
 
 ###################################################################################################
 #
 #  Amplicon DNA workflow
 #
-#  Version 5.1.0.beta2.4
+#  Version 5.1.0.beta2.5
 #
 #  This workflow script generates OTU tables from raw bacterial V13 and V4
 #  16S rRNA and fungal ITS 1 amplicon data.
@@ -112,7 +112,8 @@ Help_Function () {
     echo "  -i    Input file. Must be otus.fa or zotus.fa (or single read variants)."
     echo "  -t    Input file. Must be otu/zotu/asv table without taxonomy (e.g. otutable_notax.txt)."
     echo "  -r    Reference database number for taxonomy prediction."
-    echo "              3  - SILVA LTP v132"
+    echo "              0  - no taxonomy assignment"
+    echo "              1  - SILVA LTP v132"
     echo "              2  - MiDAS v2.1.3"
     echo "              3  - $MIDAS3VERS"
     echo "              4  - $MIDAS4VERS"
@@ -230,7 +231,8 @@ echoWithDate "Checking the presence of a \"samples\" file"
 if [ -f "samples" ]
     then
         # remove carriage returns, add newline at the end of file if it's not there, remove empty lines and white spaces.
-        cat samples | tr "\r" "\n" | sed -e '$a\' | sed -e '/^$/d' -e 's/ //g' > samples_tmp.txt
+        dos2unix -q samples
+        cat samples | sed -e '$a\' | sed -e '/^$/d' -e 's/ //g' > samples_tmp.txt
         echoWithDate "    Done"
     
     else
@@ -568,12 +570,18 @@ OTUSFILE=$2
 SINTAX=$3
 usearch11 -otutab $FASTAFILE -otus $OTUSFILE -otutabout otutable_notax.txt -id 0.97 -threads $NUMTHREADS -quiet -sample_delim .
 
+if [ $REFDATABASE -gt 0 ]
+   # REFDATABASE = 0 means no taxonomy to assign
+   then
+
 bash $SCRIPTPATH/otutab_sintax_to_ampvis.v1.2.sh -i otutable_notax.txt -t $SINTAX -r $REFDATABASE
 
 rm otutable_notax.txt
 #mv otutable_notax_sorted.txt otutable_notax.txt
 mv otutable_notax.sorted.txt otutable_notax.txt
 mv otutable_notax_$REFDATABASE.txt otutable.txt
+
+fi
 
 echoWithDate "    Done"
 
@@ -600,6 +608,10 @@ usearch11 -otutab $FASTAFILE -zotus $ZOTUSFILE -otutabout zotutable_notax.txt -i
 #sed -i 's/Otu/Zotu/g' zotutable_notax.txt
 rm zotus.tmp
 
+if [ $REFDATABASE -gt 0 ]
+   # REFDATABASE = 0 means no taxonomy to assign
+   then
+
 bash $SCRIPTPATH/otutab_sintax_to_ampvis.v1.2.sh -i zotutable_notax.txt -t $SINTAX -r $REFDATABASE
 
 rm zotutable_notax.txt
@@ -608,6 +620,7 @@ mv zotutable_notax.sorted.txt zotutable_notax.txt
 mv zotutable_notax_$REFDATABASE.txt zotutable.txt
 #sed -i 's/Otu/Zotu/g' zotutable.txt
 #sed -i 's/Otu/Zotu/g' zotutable_notax.txt
+fi
 
 echoWithDate "    Done"
 
@@ -908,15 +921,19 @@ rm -r phix_filtered
 rm samples_tmp.txt
 rm *.nophix.*
 rm -f prefilt_out.*
-rm sintax_out.*
+rm -f sintax_out.*
 rm -f *.biom
 rm -f uniques.*
 rm -f otus.R1.tmp
 rm -f otus.R2.tmp
 rm -f otus.tmp
 
-mkdir taxonomy_summary
-mv *_summary.txt taxonomy_summary/.
+if [ $REFDATABASE -gt 0 ]
+then
+   mkdir taxonomy_summary
+
+   mv *_summary.txt taxonomy_summary/.
+fi
 
 }
 
@@ -1342,6 +1359,7 @@ echo "$AMPREGION" >> ampproc-$STARTTIME.log
 # Define reference database for taxonomy prediction of OTUs (REFDATABASE)
 echoPlus ""
 echoPlus "Which reference database do you want to use for taxonomy prediction?"
+echoPlus "        0  - Do not assign taxonomy"
 echoPlus "        1  - SILVA LTP v132"
 echoPlus "        2  - MiDAS v2.1.3"
 echoPlus "        3  - $MIDAS3VERS"
@@ -1406,7 +1424,7 @@ if [[ ! "$AMPREGION" =~ ^(V13|V4|ITS|V35)$ ]]
     exit 1
 fi
 
-if [[ "$REFDATABASE" -lt 1 ]] || [[ "$REFDATABASE" -gt 7 ]]
+if [[ "$REFDATABASE" -lt 0 ]] || [[ "$REFDATABASE" -gt 7 ]]
     then
     echoPlus ""
     echoPlus "Reference database: $REFDATABASE invalid argument."
@@ -1526,27 +1544,42 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
          mv prefilt_out.fa otus.R2.fa
       fi
        echoWithDate "    Output files of OTU clustering: otus.R1.fa and otus.R2.fa"
-           
-       Predict_taxonomy_Function otus.R1.fa OTUsR1
-       mv sintax_out.txt sintax_out.otus.R1.txt
-       Predict_taxonomy_Function otus.R2.fa OTUsR2
-       mv sintax_out.txt sintax_out.otus.R2.txt
-       echoWithDate "    Output files of OTU taxonomy assignment: sintax_out.otus.R1.txt and sintax_out.otus.R2.txt"
+       
+       if [ $REFDATABASE -ge 1 ] 
+         then   
+         Predict_taxonomy_Function otus.R1.fa OTUsR1
+         mv sintax_out.txt sintax_out.otus.R1.txt
+         Predict_taxonomy_Function otus.R2.fa OTUsR2
+         mv sintax_out.txt sintax_out.otus.R2.txt
+         echoWithDate "    Output files of OTU taxonomy assignment: sintax_out.otus.R1.txt and sintax_out.otus.R2.txt"
+         else
+           echoWithDate "Taxonomy not assigned."
+       fi
 
       # Build OTU table
       Make_otutable_Function all.singlereads.nophix.R1.fq otus.R1.fa sintax_out.otus.R1.txt
-      mv otutable.txt otutable.R1.txt
+      if [ $REFDATABASE -ge 1 ] 
+        then
+        mv otutable.txt otutable.R1.txt
+      fi
       mv otutable_notax.txt otutable_notax.R1.txt
       Make_otutable_Function all.singlereads.nophix.R2.fq otus.R2.fa sintax_out.otus.R2.txt
-      mv otutable.txt otutable.R2.txt
+      if [ $REFDATABASE -ge 1 ] 
+        then
+        mv otutable.txt otutable.R2.txt
+      fi
       mv otutable_notax.txt otutable_notax.R2.txt
       echoWithDate "    Output file of OTU table: otutable_notax.R1.txt and otutable_notax.R1.txt"
-      echoWithDate "    Output file for final otu table: otutable.R1.txt and otutable.R2.txt"
 
-      # Taxonomy reports from SINTAX output
-      Taxonomy_reports_Function sintax_out.otus.R1.txt otutable_notax.R1.txt otusR1
-      Taxonomy_reports_Function sintax_out.otus.R2.txt otutable_notax.R2.txt otusR2
- 
+      if [ $REFDATABASE -ge 1 ] 
+        then
+        echoWithDate "    Output file for final otu table: otutable.R1.txt and otutable.R2.txt"
+      
+        # Taxonomy reports from SINTAX output
+        Taxonomy_reports_Function sintax_out.otus.R1.txt otutable_notax.R1.txt otusR1
+        Taxonomy_reports_Function sintax_out.otus.R2.txt otutable_notax.R2.txt otusR2
+      fi
+
        if [ $MAKETREE = "yes" ]
            then
            MaketreeWrapper_Function otus.R1.fa OTUsR1
@@ -1586,26 +1619,41 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
         rm zotus.R1.tmp zotus.R2.tmp
      fi
         echoWithDate "    Output ZOTU files: zotus.R1.fa and zotus.R2.fa"
-                
-        Predict_taxonomy_Function zotus.R1.fa ZOTUsR1
-        mv sintax_out.txt sintax_out.zotus.R1.txt
-        Predict_taxonomy_Function zotus.R2.fa ZOTUsR2
-        mv sintax_out.txt sintax_out.zotus.R2.txt
-        echoWithDate "    Output ZOTU taxonomy files: sintax_out.zotus.R1.txt and sintax_out.zotus.R2.txt"
+
+        if [ $REFDATABASE -ge 1 ]  
+          then               
+          Predict_taxonomy_Function zotus.R1.fa ZOTUsR1
+          mv sintax_out.txt sintax_out.zotus.R1.txt
+          Predict_taxonomy_Function zotus.R2.fa ZOTUsR2
+          mv sintax_out.txt sintax_out.zotus.R2.txt
+          echoWithDate "    Output ZOTU taxonomy files: sintax_out.zotus.R1.txt and sintax_out.zotus.R2.txt"
+          else
+            echoWithDate "No taxonomy assigned."
+        fi
 
         # Build zOTU table
         Make_zotutable_Function all.singlereads.nophix.R1.fq zotus.R1.fa sintax_out.zotus.R1.txt
-        mv zotutable.txt zotutable.R1.txt
+        if [ $REFDATABASE -ge 1 ] 
+          then
+          mv zotutable.txt zotutable.R1.txt
+        fi
         mv zotutable_notax.txt zotutable_notax.R1.txt
         Make_zotutable_Function all.singlereads.nophix.R2.fq zotus.R2.fa sintax_out.zotus.R2.txt
-        mv zotutable.txt zotutable.R2.txt
+        if [ $REFDATABASE -ge 1 ] 
+          then
+          mv zotutable.txt zotutable.R2.txt
+        fi
         mv zotutable_notax.txt zotutable_notax.R2.txt
     
         echoWithDate "    Output file of zOTU table: zotutable_notax.txt"
-        echoWithDate "    Output file for final zOTU table: zotutable.txt"
 
-        Taxonomy_reports_Function sintax_out.zotus.R1.txt zotutable_notax.R1.txt zotusR1
-        Taxonomy_reports_Function sintax_out.zotus.R2.txt zotutable_notax.R2.txt zotusR2
+        if [ $REFDATABASE -ge 1 ] 
+          then
+          echoWithDate "    Output file for final zOTU table: zotutable.txt"
+
+          Taxonomy_reports_Function sintax_out.zotus.R1.txt zotutable_notax.R1.txt zotusR1
+          Taxonomy_reports_Function sintax_out.zotus.R2.txt zotutable_notax.R2.txt zotusR2
+        fi
 
         # Align sequences and build trees
         if [ $MAKETREE = "yes" ]
@@ -1717,18 +1765,27 @@ if [[ $ZOTUS =~ ^(otu|both)$ ]]
   fi
   echoWithDate "    Output file of OTU clustering: otus.fa"
 
-  Predict_taxonomy_Function otus.fa OTUs
-  mv sintax_out.txt sintax_out.otus.txt
-  echoWithDate "    Output file of taxonomy: sintax_out.otus.txt"
-  
+  if [ $REFDATABASE -ge 1 ] 
+    then
+    Predict_taxonomy_Function otus.fa OTUs
+    mv sintax_out.txt sintax_out.otus.txt
+    echoWithDate "    Output file of taxonomy: sintax_out.otus.txt"
+    else
+      echoWithDate "No Taxonomy assigned."
+  fi
+
   # Build OTU table
   Make_otutable_Function all.merged.nophix.fq otus.fa sintax_out.otus.txt
   echoWithDate "    Output file of OTU table: otutable_notax.txt"
-  echoWithDate "    Output file for final otu table: otutable.txt"
 
-  # Taxonomy reports from SINTAX output
-  Taxonomy_reports_Function sintax_out.otus.txt otutable_notax.txt otus
-  echoWithDate ""
+  if [ $REFDATABASE -ge 1 ] 
+    then
+    echoWithDate "    Output file for final otu table: otutable.txt"
+
+    # Taxonomy reports from SINTAX output
+    Taxonomy_reports_Function sintax_out.otus.txt otutable_notax.txt otus
+    echoWithDate ""
+  fi
 
   # Align sequences, build tree
   if [ $MAKETREE = "yes" ]
@@ -1763,22 +1820,30 @@ if [[ $ZOTUS =~ ^(zotu|both)$ ]]
 
     echoWithDate "    Output zotu file: zotus.fa"
 
-    Predict_taxonomy_Function zotus.fa ZOTUs
-    mv sintax_out.txt sintax_out.zotus.txt
-    echoWithDate "    Output file of ZOTU taxonomy files: sintax_out.zotus.txt"
+    if [ $REFDATABASE -ge 1 ] 
+      then
+      Predict_taxonomy_Function zotus.fa ZOTUs
+      mv sintax_out.txt sintax_out.zotus.txt
+      echoWithDate "    Output file of ZOTU taxonomy files: sintax_out.zotus.txt"
+      else
+        echoWithDate "No taxonomy assigned."
+    fi
 
-    # Build zOTU table
+      # Build zOTU table
     Make_zotutable_Function all.merged.nophix.fq zotus.fa sintax_out.zotus.txt
     echoWithDate "    Output file of zOTU table: zotutable_notax.txt"
-    echoWithDate "    Output file for final zOTU table: zotutable.txt"
 
-    # Taxonomy reports from SINTAX output
-    Taxonomy_reports_Function sintax_out.zotus.txt zotutable_notax.txt zotus
+    if [ $REFDATABASE -ge 1 ] 
+      then
+      echoWithDate "    Output file for final zOTU table: zotutable.txt"
+
+      # Taxonomy reports from SINTAX output
+      Taxonomy_reports_Function sintax_out.zotus.txt zotutable_notax.txt zotus
+    fi
     
     # Align sequences, build tree
     if [ $MAKETREE = "yes" ]
        then
-       MaketreeWrapper_Function zotus.fa ZOTUS
        MaketreeWrapper_Function zotus.fa ZOTUS
     fi
 
