@@ -1,12 +1,12 @@
 README
 
-Last modified: 7 November, 2019
+Last modified: 14 November, 2019
 
 Author: Erika Yashiro, Ph.D.
 
 Script name: AmpProc5
 
-Version: 5.1.0.beta2.4
+Version: 5.1.0.beta2.5
 
 
 
@@ -127,6 +127,11 @@ Generating beta diversity matrices
 ########################################
 
 VERSION HISTORY
+
+AmpProc5 v5.1.0.beta2.5
+Released for user evaluation: 14 November 2019
+- Conversion of windows formated samples file to unix format is now more robust.
+- Can generate only zotu/otu tables without taxonomy as an option.
 
 AmpProc5 v5.1.0.beta2.4
 Released for user evaluation: 7 November 2019
