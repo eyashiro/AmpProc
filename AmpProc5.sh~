@@ -183,7 +183,7 @@ if [ $REFDATABASE == 3 ]
     TAXFILE="midas3"
     #TAXVERS="v3.4 (2019-09-30)"
     TAXVERS="$MIDAS3VERS"
-    REFDATAPATH="/space/databases/midas/MiDAS3.5_20191022/output/ESVs_w_sintax.fa"
+    REFDATAPATH="/space/databases/midas/MiDAS3.6_20191030/output/ESVs_w_sintax.fa"
     REFNOTE="using MiDAS $MIDAS3VERSABBREV reference database."
 fi
 
@@ -192,7 +192,7 @@ if [ $REFDATABASE == 4 ]
     TAXFILE="midas4"
     #TAXVERS="v4.4 (2019-09-30)"
     TAXVERS="$MIDAS4VERS"
-    REFDATAPATH="/space/databases/midas/MiDAS4.5_20191022/output/ESVs_w_sintax.fa"
+    REFDATAPATH="/space/databases/midas/MiDAS4.6_20191104/output/ESVs_w_sintax.fa"
     REFNOTE="using MiDAS $MIDAS4VERSABBREV reference database."
 fi
         

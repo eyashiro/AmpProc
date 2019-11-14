@@ -230,7 +230,8 @@ echoWithDate "Checking the presence of a \"samples\" file"
 if [ -f "samples" ]
     then
         # remove carriage returns, add newline at the end of file if it's not there, remove empty lines and white spaces.
-        cat samples | tr "\r" "\n" | sed -e '$a\' | sed -e '/^$/d' -e 's/ //g' > samples_tmp.txt
+        dos2unix samples
+        cat samples | sed -e '$a\' | sed -e '/^$/d' -e 's/ //g' > samples_tmp.txt
         echoWithDate "    Done"
     
     else
