@@ -103,10 +103,12 @@ Help_Function () {
     echo "       - Whether you want OTU and ZOTU tables"
     echo "       - Whether you want single-end and/or paired-end read processing"
     echo "       - Which ribosomal region you have"
-    echo "       - Which reference database to use for taxonomy prediction"
+    echo "       - Which reference database to use for taxonomy prediction (or none at all)"
+    echo "       - Whether to remove primer regions"
     echo "       - MiDAS samples also have a separate workflow"
     echo ""
-    echo "To obtain the README file, Run Step 2. and then type quit. The README file contains the description of all the output files from the workflow, citation of external tools used, and version history."
+    echo "To obtain the README file, Run Step 2. and then type quit. The README file contains the description of all the output files from the workflow, citation of external tools used, and version history. "
+    echo "The scripts are also on the web: http://www.github.com/eyashiro/AmpProc"
     echo ""
     echo "To rerun the taxonomy prediction a postiori using a different reference database, run the script with the following arguments."
     echo "  -i    Input file. Must be otus.fa or zotus.fa (or single read variants)."
@@ -462,6 +464,52 @@ echoWithDate "    Done"
 
 }
 
+
+Strip_primers_Function () {
+
+# Strip n bases from left and right side of paired-end merged reads.
+# $1 = input fasta file
+# $STRIPLEFT = number of bases to remove on 5' end.
+# $STRIPRIGHT = number of bases to remove on 3' end.
+
+echoWithDate "Strip primer regions, $STRIPLEFT bp from 5' end, $STRIPRIGHT bp from 3' end."
+
+# INFILE = input fasta after fastqc step. e.g. all.merged.nophix.qc.fa
+
+INFILE=`echo $1 | sed 's/.fa$//g'`
+
+# rename original file
+mv $INFILE.fa $INFILE.primers_not_removed.fa
+
+usearch11 -fastx_truncate $INFILE.primers_not_removed.fa -stripleft $STRIPLEFT -stripright $STRIPRIGHT -fastaout $INFILE.fa -quiet
+
+echoWithDate "    Done"
+
+}
+
+
+Strip_primers_singleread_Function () {
+
+# Strip n bases from left and right side of paired-end merged reads.
+# $1 = input fasta file
+# $2 = read R1 or R2
+# $STRIPLEFT = number of bases to remove on 5' end.
+
+
+echoWithDate "Strip primer regions, $STRIPLEFT bp from 5' end of read $2."
+
+# INFILE = input fasta after fastqc step. e.g. all.merged.nophix.qc.fa
+
+INFILE=`echo $1 | sed 's/.fa$//g'`
+
+# rename original file
+mv $INFILE.fa $INFILE.primers_not_removed.fa
+
+usearch11 -fastx_truncate $INFILE.primers_not_removed.fa -stripleft $STRIPLEFT -fastaout $INFILE.fa -quiet
+
+echoWithDate "    Done"
+
+}
 
 
 Dereplicate_Function () {
@@ -1018,6 +1066,8 @@ echo "$0 $@" >> ampproc_params-$STARTTIME.log
 echo "What workflow do you want to run (MiDAS / Standard)?            $WORKFLOW" >> ampproc_params-$STARTTIME.log
 echo "Generate a ZOTU table using UNOISE3?                            $ZOTUS" >> ampproc_params-$STARTTIME.log
 echo "Process single-end reads (SR) and/or paired-end reads (PE)?     $SINGLEREADS" >> ampproc_params-$STARTTIME.log
+echo "Remove primer region R1?                                        $STRIPLEFT bases" >> ampproc_params-$STARTTIME.log
+echo "Remove primer region R2?                                        $STRIPRIGHT bases" >> ampproc_params-$STARTTIME.log
 echo "Amplicon region?                                                $AMPREGION" >> ampproc_params-$STARTTIME.log
 echo "Reference database to use for taxonomy prediction?              $REFDATABASE ) $TAXFILE $TAXVERS" >> ampproc_params-$STARTTIME.log
 echo "Number of threads:                                              $NUMTHREADS" >> ampproc_params-$STARTTIME.log
@@ -1346,6 +1396,56 @@ echoPlus "        both - process both single reads and paired-end reads"
 read SINGLEREADS
 echo "$SINGLEREADS" >> ampproc-$STARTTIME.log
 
+# Check that the question answers are script readable.
+# note: arg between quotes means it can be nothing without producing error.
+
+if [[ ! "$SINGLEREADS" =~ ^(SR|both|PE)$ ]]
+    then
+    echoPlus ""
+    echoPlus "Single reads / SR+PE: $SINGLEREADS invalid argument."
+    echoPlus "Sorry I didn't understand what you wrote. Please also make sure that you have the correct upper/lower case letters."
+    echoPlus "You can also run the help function with the option -help or -h."
+    echoWithDate "    Exiting script"
+    echoPlus ""
+    exit 1
+fi
+
+
+# Define whether to remove primer region(s) (STRIPPRIMERS)(STRIPLEFT / STRIPRIGHT)
+echoPlus ""
+echoPlus "Do you want to remove the primer region(s)"
+echoPlus "If you're not sure about length to remove, then say no"
+echoPlus "         yes  - remove primer region"
+echoPlus "         no   - continue without removing any primer regions"
+read STRIPPRIMERS
+
+  # check that STRIPPRIMERS is valid
+if [[ ! "$STRIPPRIMERS" =~ ^(yes|no)$ ]]
+    then
+    echoPlus ""
+    echoPlus "Stripping primers argument: $STRIPPRIMERS invalid argument."
+    echoPlus "Sorry I didn't understand what you wrote. Please also make sure that you have the correct upper/lower case letters."
+    echoPlus "You can also run the help function with the option -help or -h."
+    echoWithDate "    Exiting script"
+    echoPlus ""
+    exit 1
+fi
+   # Define bases to remove if answer is yes
+if [ "$STRIPPRIMERS" = "yes" ]
+   then
+   echoPlus ""
+   echoPlus "How many bases to remove from 5' end of R1 reads? (e.g. 25 meaning 25 bases)"
+   read STRIPLEFT
+   echo "$STRIPLEFT" >> ampproc-$STARTTIME.log
+   echoPlus ""
+   echoPlus "How many bases to remove from 5' end of R2 reads?"
+   read STRIPRIGHT
+   echo "$STRIPRIGHT" >> ampproc-$STARTTIME.log
+   else
+     STRIPLEFT=0
+     STRIPRIGHT=0
+fi
+
 # Define amplicon region = V13/V4/ITS (AMPREGION)
 echoPlus ""
 echoPlus "What genomic region does your PCR amplicons amplify?"
@@ -1399,19 +1499,34 @@ echoPlus "        no  - Skip betadiv"
 read BETADIV
 echo "$BETADIV" >> ampproc-$STARTTIME.log
 
+
 # Check that the question answers are script readable.
 # note: arg between quotes means it can be nothing without producing error.
 
-if [[ ! "$SINGLEREADS" =~ ^(SR|both|PE)$ ]]
+if [[ "$STRIPLEFT" -lt 0 ]] || [[ "$STRIPLEFT" -gt 100 ]]
+
     then
     echoPlus ""
-    echoPlus "Single reads / SR+PE: $SINGLEREADS invalid argument."
-    echoPlus "Sorry I didn't understand what you wrote. Please also make sure that you have the correct upper/lower case letters."
+    echoPlus "5' nucleotide value: $STRIPLEFT invalid argument."
+    echoPlus "Sorry I didn't understand what you wrote. Please make sure that you indicate a numerical value up to 100 bases."
     echoPlus "You can also run the help function with the option -help or -h."
     echoWithDate "    Exiting script"
     echoPlus ""
     exit 1
 fi
+
+if [[ "$STRIPRIGHT" -lt 0 ]] || [[ "$STRIPRIGHT" -gt 100 ]]
+
+    then
+    echoPlus ""
+    echoPlus "3' nucleotide value: $STRIPLEFT invalid argument."
+    echoPlus "Sorry I didn't understand what you wrote. Please make sure that you indicate a numerical value up to 100 bases."
+    echoPlus "You can also run the help function with the option -help or -h."
+    echoWithDate "    Exiting script"
+    echoPlus ""
+    exit 1
+fi
+
 
 if [[ ! "$AMPREGION" =~ ^(V13|V4|ITS|V35)$ ]]
     then
@@ -1494,7 +1609,13 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
     echoWithDate "    Output files of QC:" 
     echoPlus "      all.singlereads.nophix.qc.R1.fa"
     echoPlus "      all.singlereads.nophix.qc.R2.fa"
-    #date
+ 
+    # Strip primer regions
+    if [ $STRIPPRIMERS = "yes" ]
+      then
+      Strip_primers_singleread_Function all.singlereads.nophix.qc.R1.fa R1
+      Strip_primers_singleread_Function all.singlereads.nophix.qc.R2.fa R2
+    fi
 
     # Dereplicate uniques
     Dereplicate_Function all.singlereads.nophix.qc.R1.fa
@@ -1502,7 +1623,7 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
     Dereplicate_Function all.singlereads.nophix.qc.R2.fa
     mv DEREPout.fa uniques.R2.fa
     echoWithDate "    Output files of derep: uniques.R1.fa and uniques.R2.fa"
-    #date
+    
   
 #############          
  #   # Prefilter to remove anomalous reads
@@ -1728,6 +1849,12 @@ fi
 
 mv QCout.fa all.merged.nophix.qc.fa
 echoWithDate "    Output file of QC: all.merged.nophix.qc.fa"
+
+# Strip primer regions
+if [ $STRIPPRIMERS = "yes" ]
+  then
+  Strip_primers_Function all.merged.nophix.qc.fa
+fi
 
 # Dereplicate to uniques
 Dereplicate_Function all.merged.nophix.qc.fa
