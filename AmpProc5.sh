@@ -483,6 +483,8 @@ mv $INFILE.fa $INFILE.primers_not_removed.fa
 
 usearch11 -fastx_truncate $INFILE.primers_not_removed.fa -stripleft $STRIPLEFT -stripright $STRIPRIGHT -fastaout $INFILE.fa -quiet
 
+rm $INFILE.primers_not_removed.fa
+
 echoWithDate "    Done"
 
 }
@@ -506,6 +508,8 @@ INFILE=`echo $1 | sed 's/.fa$//g'`
 mv $INFILE.fa $INFILE.primers_not_removed.fa
 
 usearch11 -fastx_truncate $INFILE.primers_not_removed.fa -stripleft $STRIPLEFT -fastaout $INFILE.fa -quiet
+
+rm $INFILE.primers_not_removed.fa
 
 echoWithDate "    Done"
 
