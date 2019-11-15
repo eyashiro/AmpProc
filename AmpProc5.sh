@@ -1,7 +1,7 @@
 #!/bin/bash
 
 VERSIONNUMBER=5.1.0.beta2.5
-MODIFIEDDATE="14 November, 2019"
+MODIFIEDDATE="15 November, 2019"
 
 ###################################################################################################
 #
@@ -16,7 +16,7 @@ MODIFIEDDATE="14 November, 2019"
 #
 #  Author: Erika Yashiro, Ph.D.
 #
-#  Last modified: 7 November, 2019
+#  Last modified: 15 November, 2019
 #
 ###################################################################################################
 
