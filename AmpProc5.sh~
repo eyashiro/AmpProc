@@ -1,7 +1,7 @@
 #!/bin/bash
 
 VERSIONNUMBER=5.1.0.beta2.5
-MODIFIEDDATE="14 November, 2019"
+MODIFIEDDATE="18 November, 2019"
 
 ###################################################################################################
 #
@@ -16,7 +16,7 @@ MODIFIEDDATE="14 November, 2019"
 #
 #  Author: Erika Yashiro, Ph.D.
 #
-#  Last modified: 7 November, 2019
+#  Last modified: 18 November, 2019
 #
 ###################################################################################################
 
@@ -225,7 +225,7 @@ fi
 }
 
 
-Find_reads_phix_Function () {
+Check_working_dir_Function () {
 
 # Check that samples file exists, if yes, make sure carriage return is not used.
 echoWithDate "Checking the presence of a \"samples\" file"
@@ -233,8 +233,10 @@ echoWithDate "Checking the presence of a \"samples\" file"
 if [ -f "samples" ]
     then
         # remove carriage returns, add newline at the end of file if it's not there, remove empty lines and white spaces.
-        dos2unix -q samples
-        cat samples | sed -e '$a\' | sed -e '/^$/d' -e 's/ //g' > samples_tmp.txt
+        cp samples samples_tmp0.txt
+        dos2unix -q samples_tmp0.txt
+        cat samples_tmp0.txt | sed -e '$a\' | sed -e '/^$/d' -e 's/ //g' > samples_tmp.txt
+        rm samples_tmp0.txt
         echoWithDate "    Done"
     
     else
@@ -346,13 +348,16 @@ if [ -d "phix_filtered" ]
         fi
 fi
 
-echoWithDate "    Done"
-
-echoWithDate "Retrieving sequenced files and removing PhiX contamination."
-
 # Make new working directories
   mkdir -p rawdata
   mkdir -p phix_filtered
+
+echoWithDate "    Done"
+}
+
+Find_reads_phix_PE_Function () {
+
+echoWithDate "Retrieving sequenced files and removing PhiX contamination."
 
 # Find the samples from the samples file
 # copy sample sequence files to current directory,
@@ -379,6 +384,35 @@ echoWithDate "    Done"
     
 }
 
+Find_reads_phix_SR_Function () {
+
+echoWithDate "Retrieving sequenced files and removing PhiX contamination."
+
+# Find the samples from the samples file
+# copy sample sequence files to current directory,
+# Filter PhiX
+# Path to sequences folders: $SEQPATH = /space/sequences/
+
+# $1 = R1 or R2
+
+  while read SAMPLES
+  do
+      # Retrieve sequenced reads
+      SAMPLEDELIM="_";
+      NAME=$SAMPLES;
+      #find /space/sequences/ -name $NAME*R1* 2>/dev/null -exec gzip -cd {} \;
+      #find /space/sequences/ -name $NAME*R1* 2>/dev/null -exec cp {} samplegz/ \;
+      #find /space/sequences/ -name $NAME* 2>/dev/null -exec cp {} samplegz/ \;
+      find $SEQPATH -name $NAME$SAMPLEDELIM*$1* 2>/dev/null -exec gzip -cd {} \; > rawdata/$NAME.$1.fq
+      # Filter phix
+      usearch11 -filter_phix rawdata/$NAME.$1.fq -output phix_filtered/$NAME.$1.fq -threads $NUMTHREADS -quiet
+  done < samples_tmp.txt
+
+#rm -rf rawdata/
+
+echoWithDate "    Done"
+    
+}
 
 Merge_Function () {
 
@@ -434,32 +468,27 @@ Fastqc_singlereads_Function () {
 # Truncate reads to 250bp
 # Remove reads less than 250bp
 
+READORIENT=$1
+
 #echoPlus ""
 echoWithDate "Quality filtering, truncating reads to 250bp, and removing reads less than 250bp."
 
 # make temporary directory
-mkdir phix_filtered/tempdir
+mkdir -p phix_filtered/tempdir
 
 # QC
 # merge all sample fastq files
 while read SAMPLES
     do
     NAME=$SAMPLES
-    usearch11 -fastq_filter phix_filtered/$NAME.R1.fq -fastq_maxee 1.0 -fastaout phix_filtered/tempdir/$NAME.R1.QCout.fa -fastq_trunclen 250 -relabel @ -threads $NUMTHREADS -quiet
-    #(-fastq_minlen 250 )
-    usearch11 -fastq_filter phix_filtered/$NAME.R2.fq -fastq_maxee 1.0 -fastaout phix_filtered/tempdir/$NAME.R2.QCout.fa -fastq_trunclen 250 -relabel @ -threads $NUMTHREADS -quiet
-    cat phix_filtered/tempdir/$NAME.R1.QCout.fa >> all.singlereads.nophix.qc.R1.fa
-    cat phix_filtered/tempdir/$NAME.R2.QCout.fa >> all.singlereads.nophix.qc.R2.fa
+    usearch11 -fastq_filter phix_filtered/$NAME.$READORIENT.fq -fastq_maxee 1.0 -fastaout phix_filtered/tempdir/$NAME.$READORIENT.QCout.fa -fastq_trunclen 250 -relabel @ -threads $NUMTHREADS -quiet
+    cat phix_filtered/tempdir/$NAME.$READORIENT.QCout.fa >> all.singlereads.nophix.qc.$READORIENT.fa
 
     # Create concatenated fastq file of nonfiltered reads, with the sample labels
-    usearch11 -fastx_relabel phix_filtered/$NAME.R1.fq -prefix $NAME. -fastqout phix_filtered/tempdir/$NAME.R1.relabeled.fq -quiet
-    usearch11 -fastx_relabel phix_filtered/$NAME.R2.fq -prefix $NAME. -fastqout phix_filtered/tempdir/$NAME.R2.relabeled.fq -quiet
-    cat phix_filtered/tempdir/$NAME.R1.relabeled.fq >> all.singlereads.nophix.R1.fq
-    cat phix_filtered/tempdir/$NAME.R2.relabeled.fq >> all.singlereads.nophix.R2.fq
+    usearch11 -fastx_relabel phix_filtered/$NAME.$READORIENT.fq -prefix $NAME. -fastqout phix_filtered/tempdir/$NAME.$READORIENT.relabeled.fq -quiet
+    cat phix_filtered/tempdir/$NAME.$READORIENT.relabeled.fq >> all.singlereads.nophix.$READORIENT.fq
     done < samples_tmp.txt
     
-#rm -r phix_filtered/tempdir
-
 echoWithDate "    Done"
 
 }
@@ -483,6 +512,8 @@ mv $INFILE.fa $INFILE.primers_not_removed.fa
 
 usearch11 -fastx_truncate $INFILE.primers_not_removed.fa -stripleft $STRIPLEFT -stripright $STRIPRIGHT -fastaout $INFILE.fa -quiet
 
+rm $INFILE.primers_not_removed.fa
+
 echoWithDate "    Done"
 
 }
@@ -490,13 +521,13 @@ echoWithDate "    Done"
 
 Strip_primers_singleread_Function () {
 
-# Strip n bases from left and right side of paired-end merged reads.
+# Strip n bases from 5' end of single reads.
 # $1 = input fasta file
 # $2 = read R1 or R2
-# $STRIPLEFT = number of bases to remove on 5' end.
+# $3 = number of bases to remove on 5' end.
 
 
-echoWithDate "Strip primer regions, $STRIPLEFT bp from 5' end of read $2."
+echoWithDate "Strip primer regions, $3 bp from 5' end of read $2."
 
 # INFILE = input fasta after fastqc step. e.g. all.merged.nophix.qc.fa
 
@@ -505,7 +536,9 @@ INFILE=`echo $1 | sed 's/.fa$//g'`
 # rename original file
 mv $INFILE.fa $INFILE.primers_not_removed.fa
 
-usearch11 -fastx_truncate $INFILE.primers_not_removed.fa -stripleft $STRIPLEFT -fastaout $INFILE.fa -quiet
+usearch11 -fastx_truncate $INFILE.primers_not_removed.fa -stripleft $3 -fastaout $INFILE.fa -quiet
+
+rm $INFILE.primers_not_removed.fa
 
 echoWithDate "    Done"
 
@@ -1385,13 +1418,15 @@ if [[ ! "$ZOTUS" =~ ^(otu|zotu|both|quit)$ ]]
 fi
 
 
-# Define single read process = SR/PE/both (SINGLEREADS)
+# Define single read process = SR/PE/both/R1/R2 (SINGLEREADS)
 echoPlus ""
 echoPlus "Do you want to process single-end reads or paired-end reads?"
 echoPlus "Select to run single end reads if you want to control for species that have very long variable regions between the forward and reverse primers. These species can be rare in the community but will get filtered out if the paired end reads do not overlap."
 echoPlus "If you have paired-end amplicons that are too long to stitch together, you also need to use the single read option."
-echoPlus "        SR   - Process only single reads"
 echoPlus "        PE   - Process only paired-end reads"
+echoPlus "        SR   - Process single reads R1 and R2"
+echoPlus "        R1   - Process single reads R1"
+echoPlus "        R2   - Process single reads R2"
 echoPlus "        both - process both single reads and paired-end reads"
 read SINGLEREADS
 echo "$SINGLEREADS" >> ampproc-$STARTTIME.log
@@ -1399,7 +1434,7 @@ echo "$SINGLEREADS" >> ampproc-$STARTTIME.log
 # Check that the question answers are script readable.
 # note: arg between quotes means it can be nothing without producing error.
 
-if [[ ! "$SINGLEREADS" =~ ^(SR|both|PE)$ ]]
+if [[ ! "$SINGLEREADS" =~ ^(SR|both|PE|R1|R2)$ ]]
     then
     echoPlus ""
     echoPlus "Single reads / SR+PE: $SINGLEREADS invalid argument."
@@ -1589,128 +1624,96 @@ Run_Time_Params_Function
 # DATA PROCESSING
 #########################################################
 
+# Check to make sure that working directory is order.
+# Check that the samples file is correctly formatted.
+Check_working_dir_Function
 
-# Finding your samples and copying them to the current directory
-# Filter potential phiX contamination
-echoPlus ""
-echoWithDate "Finding your samples and copying them to the current directory, and filtering potential phiX contamination"
-Find_reads_phix_Function
-echoWithDate "     Output raw sequences in phix_filtered/"
 
 
 ################
 # SINGLE READS
 ################
-  
-if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
-    then
+
+SingleRead_workflow_Function () {
+
+# $1 = R1 / R2
+READORIENT=$1
+
     # Quality filtering
-    Fastqc_singlereads_Function
+    Fastqc_singlereads_Function $READORIENT
     echoWithDate "    Output files of QC:" 
-    echoPlus "      all.singlereads.nophix.qc.R1.fa"
-    echoPlus "      all.singlereads.nophix.qc.R2.fa"
+    echoPlus "      all.singlereads.nophix.qc.$READORIENT.fa"
  
     # Strip primer regions
     if [ $STRIPPRIMERS = "yes" ]
       then
-      Strip_primers_singleread_Function all.singlereads.nophix.qc.R1.fa R1
-      Strip_primers_singleread_Function all.singlereads.nophix.qc.R2.fa R2
+      if [ $READORIENT = "R1" ] && [ $STRIPLEFT -gt 0 ]
+         then
+         Strip_primers_singleread_Function all.singlereads.nophix.qc.R1.fa $READORIENT $STRIPLEFT
+         elif [ $READORIENT = "R2" ] && [ $STRIPRIGHT -gt 0 ]
+            then 
+            Strip_primers_singleread_Function all.singlereads.nophix.qc.R2.fa $READORIENT $STRIPRIGHT
+         
+      fi
     fi
 
     # Dereplicate uniques
-    Dereplicate_Function all.singlereads.nophix.qc.R1.fa
-    mv DEREPout.fa uniques.R1.fa
-    Dereplicate_Function all.singlereads.nophix.qc.R2.fa
-    mv DEREPout.fa uniques.R2.fa
-    echoWithDate "    Output files of derep: uniques.R1.fa and uniques.R2.fa"
+    Dereplicate_Function all.singlereads.nophix.qc.$READORIENT.fa
+    mv DEREPout.fa uniques.$READORIENT.fa
+    echoWithDate "    Output files of derep: uniques.$READORIENT.fa"
     
-  
-#############          
- #   # Prefilter to remove anomalous reads
- #   # Prefiltering at 60% ID not implemented for ITS.
- #   if [ $AMPREGION = "ITS" ]
- #       then
- #           mv uniques.R1.fa prefilt_out.R1.fa
- #           mv uniques.R2.fa prefilt_out.R2.fa
- #       else
- #           # Prefilter bacteria to remove anomalous reads
- #           Prefilter_60pc_Function uniques.R1.fa
- #           mv prefilt_out.fa prefilt_out.R1.fa
- #           Prefilter_60pc_Function uniques.R2.fa
- #           mv prefilt_out.fa prefilt_out.R2.fa
- #           echo "    Output files of prefiltering: prefilt_out.R1.fa and prefilt_out.R2.fa"
- #   fi
- #############
-    
+ 
     if [[ $ZOTUS =~ ^(otu|both)$ ]]
        then       
        # Cluster OTUs + taxonomy assignment
-    #   Cluster_otus_Function prefilt_out.R1.fa
-       Cluster_otus_Function uniques.R1.fa
-       mv otus.fa otus.R1.tmp
-   #    Cluster_otus_Function prefilt_out.R2.fa
-       Cluster_otus_Function uniques.R2.fa
-       mv otus.fa otus.R2.tmp
+       Cluster_otus_Function uniques.$READORIENT.fa
+       mv otus.fa otus.$READORIENT.tmp
 
       # Prefilter to remove anomalous reads
       # Prefiltering at 60% ID not implemented for ITS.
       if [ $AMPREGION = "ITS" ]
        then
-         mv otus.R1.tmp otus.R1.fa
-         mv otus.R2.tmp otus.R2.fa
+         mv otus.$READORIENT.tmp otus.$READORIENT.fa
        else
-         Prefilter_60pc_Function otus.R1.tmp
-         mv prefilt_out.fa otus.R1.fa
-         Prefilter_60pc_Function otus.R2.tmp
-         mv prefilt_out.fa otus.R2.fa
+         Prefilter_60pc_Function otus.$READORIENT.tmp
+         mv prefilt_out.fa otus.$READORIENT.fa
       fi
-       echoWithDate "    Output files of OTU clustering: otus.R1.fa and otus.R2.fa"
+       echoWithDate "    Output files of OTU clustering: otus.$READORIENT.fa"
        
        if [ $REFDATABASE -ge 1 ] 
          then   
-         Predict_taxonomy_Function otus.R1.fa OTUsR1
-         mv sintax_out.txt sintax_out.otus.R1.txt
-         Predict_taxonomy_Function otus.R2.fa OTUsR2
-         mv sintax_out.txt sintax_out.otus.R2.txt
-         echoWithDate "    Output files of OTU taxonomy assignment: sintax_out.otus.R1.txt and sintax_out.otus.R2.txt"
+         Predict_taxonomy_Function otus.$READORIENT.fa OTUs$READORIENT
+         mv sintax_out.txt sintax_out.otus.$READORIENT.txt
+         echoWithDate "    Output files of OTU taxonomy assignment: sintax_out.otus.$READORIENT.txt"
          else
            echoWithDate "Taxonomy not assigned."
        fi
 
       # Build OTU table
-      Make_otutable_Function all.singlereads.nophix.R1.fq otus.R1.fa sintax_out.otus.R1.txt
+      Make_otutable_Function all.singlereads.nophix.$READORIENT.fq otus.$READORIENT.fa sintax_out.otus.$READORIENT.txt
       if [ $REFDATABASE -ge 1 ] 
         then
-        mv otutable.txt otutable.R1.txt
+        mv otutable.txt otutable.$READORIENT.txt
       fi
-      mv otutable_notax.txt otutable_notax.R1.txt
-      Make_otutable_Function all.singlereads.nophix.R2.fq otus.R2.fa sintax_out.otus.R2.txt
-      if [ $REFDATABASE -ge 1 ] 
-        then
-        mv otutable.txt otutable.R2.txt
-      fi
-      mv otutable_notax.txt otutable_notax.R2.txt
-      echoWithDate "    Output file of OTU table: otutable_notax.R1.txt and otutable_notax.R1.txt"
+      mv otutable_notax.txt otutable_notax.$READORIENT.txt
+      echoWithDate "    Output file of OTU table: otutable_notax.$READORIENT.txt"
 
       if [ $REFDATABASE -ge 1 ] 
         then
-        echoWithDate "    Output file for final otu table: otutable.R1.txt and otutable.R2.txt"
+        echoWithDate "    Output file for final otu table: otutable.$READORIENT.txt"
       
         # Taxonomy reports from SINTAX output
-        Taxonomy_reports_Function sintax_out.otus.R1.txt otutable_notax.R1.txt otusR1
-        Taxonomy_reports_Function sintax_out.otus.R2.txt otutable_notax.R2.txt otusR2
+        Taxonomy_reports_Function sintax_out.otus.$READORIENT.txt otutable_notax.$READORIENT.txt otus$READORIENT
       fi
 
        if [ $MAKETREE = "yes" ]
            then
-           MaketreeWrapper_Function otus.R1.fa OTUsR1
-           MaketreeWrapper_Function otus.R2.fa OTUsR2
+           MaketreeWrapper_Function otus.$READORIENT.fa OTUs$READORIENT
        fi
 
        if [ $BETADIV = "yes" ]
           then
-	  Betadiv_Function otus.R1.fa otutable_notax.R1.txt OTUsR1
-          Betadiv_Function otus.R2.fa otutable_notax.R2.txt OTUsR2
+	  Betadiv_Function otus.$READORIENT.fa otutable_notax.$READORIENT.txt OTUs$READORIENT
        fi
 
     echoWithDate ""
@@ -1719,83 +1722,91 @@ if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
     if [[ $ZOTUS =~ ^(zotu|both)$ ]]   # Run the zotu workflow
         then
         # Cluster zOTUs + taxonomy assignment
-#        Unoise3_Function prefilt_out.R1.fa
-        Unoise3_Function uniques.R1.fa
-        mv zotus.fa zotus.R1.tmp
-#        Unoise3_Function prefilt_out.R2.fa
-        Unoise3_Function uniques.R2.fa
-        mv zotus.fa zotus.R2.tmp
+        Unoise3_Function uniques.$READORIENT.fa
+        mv zotus.fa zotus.$READORIENT.tmp
 
      # Prefilter to remove anomalous reads
      # Prefiltering at 60% ID not implemented for ITS.
      if [ $AMPREGION = "ITS" ]
       then
-        mv zotus.R1.tmp zotus.R1.fa
-        mv zotus.R2.tmp zotus.R2.fa
+        mv zotus.$READORIENT.tmp zotus.$READORIENT.fa
       else
-        Prefilter_60pc_Function zotus.R1.tmp
-        mv prefilt_out.fa zotus.R1.fa
-        Prefilter_60pc_Function zotus.R2.tmp
-        mv prefilt_out.fa zotus.R2.fa
-        rm zotus.R1.tmp zotus.R2.tmp
+        Prefilter_60pc_Function zotus.$READORIENT.tmp
+        mv prefilt_out.fa zotus.$READORIENT.fa
+        rm zotus.$READORIENT.tmp
      fi
-        echoWithDate "    Output ZOTU files: zotus.R1.fa and zotus.R2.fa"
+        echoWithDate "    Output ZOTU files: zotus.$READORIENT.fa"
 
         if [ $REFDATABASE -ge 1 ]  
           then               
-          Predict_taxonomy_Function zotus.R1.fa ZOTUsR1
-          mv sintax_out.txt sintax_out.zotus.R1.txt
-          Predict_taxonomy_Function zotus.R2.fa ZOTUsR2
-          mv sintax_out.txt sintax_out.zotus.R2.txt
-          echoWithDate "    Output ZOTU taxonomy files: sintax_out.zotus.R1.txt and sintax_out.zotus.R2.txt"
+          Predict_taxonomy_Function zotus.$READORIENT.fa ZOTUs$READORIENT
+          mv sintax_out.txt sintax_out.zotus.$READORIENT.txt
+          echoWithDate "    Output ZOTU taxonomy files: sintax_out.zotus.$READORIENT.txt"
           else
             echoWithDate "No taxonomy assigned."
         fi
 
         # Build zOTU table
-        Make_zotutable_Function all.singlereads.nophix.R1.fq zotus.R1.fa sintax_out.zotus.R1.txt
+        Make_zotutable_Function all.singlereads.nophix.$READORIENT.fq zotus.$READORIENT.fa sintax_out.zotus.$READORIENT.txt
         if [ $REFDATABASE -ge 1 ] 
           then
-          mv zotutable.txt zotutable.R1.txt
+          mv zotutable.txt zotutable.$READORIENT.txt
         fi
-        mv zotutable_notax.txt zotutable_notax.R1.txt
-        Make_zotutable_Function all.singlereads.nophix.R2.fq zotus.R2.fa sintax_out.zotus.R2.txt
-        if [ $REFDATABASE -ge 1 ] 
-          then
-          mv zotutable.txt zotutable.R2.txt
-        fi
-        mv zotutable_notax.txt zotutable_notax.R2.txt
-    
-        echoWithDate "    Output file of zOTU table: zotutable_notax.txt"
+        mv zotutable_notax.txt zotutable_notax.$READORIENT.txt
+        echoWithDate "    Output file of zOTU table: zotutable_notax.$READORIENT.txt"
 
         if [ $REFDATABASE -ge 1 ] 
           then
           echoWithDate "    Output file for final zOTU table: zotutable.txt"
 
-          Taxonomy_reports_Function sintax_out.zotus.R1.txt zotutable_notax.R1.txt zotusR1
-          Taxonomy_reports_Function sintax_out.zotus.R2.txt zotutable_notax.R2.txt zotusR2
+          Taxonomy_reports_Function sintax_out.zotus.$READORIENT.txt zotutable_notax.$READORIENT.txt zotus$READORIENT
         fi
 
         # Align sequences and build trees
         if [ $MAKETREE = "yes" ]
            then
-           MaketreeWrapper_Function zotus.R1.fa ZOTUsR1
-           MaketreeWrapper_Function zotus.R2.fa ZOTUsR2
+           MaketreeWrapper_Function zotus.$READORIENT.fa ZOTUs$READORIENT
         fi
 
        # Generate beta diversity matrices
        if [ $BETADIV = "yes" ]
           then
-	  Betadiv_Function zotus.R1.fa zotutable_notax.R1.txt ZOTUsR1
-          Betadiv_Function zotus.R2.fa zotutable_notax.R2.txt ZOTUsR2
+	  Betadiv_Function zotus.$READORIENT.fa zotutable_notax.$READORIENT.txt ZOTUs$READORIENT
        fi
 
     echoWithDate ""
 
      fi  
+}
+
+# Run the Single read workflow functions in different configurations
+
+if [[ $SINGLEREADS =~ ^(SR|both)$ ]]
+    then
+    # Finding your samples and copying them to the current directory
+    # Filter potential phiX contamination
+    echoPlus ""
+    echoWithDate "Finding your samples and copying them to the current directory, and filtering potential phiX contamination"
+    Find_reads_phix_PE_Function
+    echoWithDate "     Output raw sequences in phix_filtered/"
+
+    SingleRead_workflow_Function R1
+    SingleRead_workflow_Function R2
 fi
 
-if [ $SINGLEREADS = "SR" ]
+if [[ $SINGLEREADS =~ ^(R1|R2)$ ]]
+    then
+    # Finding your samples and copying them to the current directory
+    # Filter potential phiX contamination
+    echoPlus ""
+    echoWithDate "Finding your samples and copying them to the current directory, and filtering potential phiX contamination"
+    Find_reads_phix_SR_Function $SINGLEREADS
+    echoWithDate "     Output raw sequences in phix_filtered/"
+
+    SingleRead_workflow_Function $SINGLEREADS
+fi
+
+if [[ $SINGLEREADS =~ ^(SR|R1|R2)$ ]]
     then
     echoPlus ""
     echoPlus "Removing temporary files and directories"
@@ -1819,6 +1830,16 @@ fi
 
 echoPlus ""
 echoWithDate "Starting workflow for paired-end read data."
+
+if [ $SINGLEREADS = "PE" ]
+   then
+    # Finding your samples and copying them to the current directory
+    # Filter potential phiX contamination
+    echoPlus ""
+    echoWithDate "Finding your samples and copying them to the current directory, and filtering potential phiX contamination"
+    Find_reads_phix_PE_Function
+    echoWithDate "     Output raw sequences in phix_filtered/"
+fi
 
 # Merge paired ends
 Merge_Function
