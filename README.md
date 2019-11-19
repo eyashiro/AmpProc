@@ -1,6 +1,6 @@
 README
 
-Last modified: 15 November, 2019
+Last modified: 19 November, 2019
 
 Author: Erika Yashiro, Ph.D.
 
@@ -132,7 +132,9 @@ AmpProc5 v5.1.0.beta2.5
 Released for user evaluation: 15 November 2019
 - Conversion of windows formated samples file to unix format is now more robust.
 - Can generate only zotu/otu tables without taxonomy as an option.
-- Allows trimming of primer regions based on number of bases to remove
+- Allows trimming of primer regions based on number of bases to remove.
+- Allows R1 and R2 only workflows in standard mode.
+- NOTE: Even if you choose only R1 or R2, if you want to remove a primer region, you will still be asked the primer length to remove for both sides. Just put 0 (zero) for the reads side that you are not processing. I will fix that in the next version.
 
 AmpProc5 v5.1.0.beta2.4
 Released for user evaluation: 7 November 2019
