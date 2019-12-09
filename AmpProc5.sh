@@ -1,13 +1,13 @@
 #!/bin/bash
 
-VERSIONNUMBER=5.1.0.beta2.5
-MODIFIEDDATE="19 November, 2019"
+VERSIONNUMBER=5.1.0.beta2.7
+MODIFIEDDATE="9 December, 2019"
 
 ###################################################################################################
 #
 #  Amplicon DNA workflow
 #
-#  Version 5.1.0.beta2.5
+#  Version 5.1.0.beta2.7
 #
 #  This workflow script generates OTU tables from raw bacterial V13 and V4
 #  16S rRNA and fungal ITS 1 amplicon data.
@@ -16,7 +16,7 @@ MODIFIEDDATE="19 November, 2019"
 #
 #  Author: Erika Yashiro, Ph.D.
 #
-#  Last modified: 19 November, 2019
+#  Last modified: 9 December, 2019
 #
 ###################################################################################################
 
@@ -49,11 +49,13 @@ NUMTHREADS=5
 #########################################################
 
 # Define location of script
-SCRIPTPATH="/space/users/ey/Documents/Scripts/git_work/AmpProc"
+#SCRIPTPATH="/space/users/ey/Documents/Scripts/git_work/AmpProc"
 #SCRIPTPATH="/space/sharedbin/Workflows_EY"
+SCRIPTPATH="/space/admin/ey/Scripts/git_work/AmpProc"
 
 # Define the location of the sequences folders
-SEQPATH="/space/sequences/"
+#SEQPATH="/space/sequences/"
+SEQPATH="/space/sequences/Illumina"
 
 # Make /tmp/$USER directory as needed
 mkdir -p /tmp/$USER
@@ -66,6 +68,11 @@ MIDAS3VERS="MiDAS v3.6 (2019-10-30)"
 MIDAS4VERS="MiDAS v4.6 (2019-11-04)"
 MIDAS3VERSABBREV="3.6"
 MIDAS4VERSABBREV="4.6"
+
+# Lmod modules
+FASTTREE=FastTree/2.1.10-foss-2018a
+QIIME1=QIIME/1.9.1-foss-2018a
+BIOM=biom-format/2.1.7-foss-2018a-Python-2.7.14
 
 
 #########################################################
@@ -168,8 +175,8 @@ Refdatabase_Name_Function () {
 if [ $REFDATABASE == 1 ]
     then
     TAXFILE="silva"
-    TAXVERS="LPT v128"
-    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/SILVA_LTP/LTPs132_SSU_unaligned.sintax.fasta"
+    TAXVERS="LPT v132"
+    REFDATAPATH="/space/databases/SILVA/LTPs132_SSU_unaligned.sintax.fasta"
     REFNOTE="using SILVA LTP reference database."
 fi
 
@@ -177,7 +184,7 @@ if [ $REFDATABASE == 2 ]
     then
     TAXFILE="midas2"
     TAXVERS="v2.1.3"
-    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/midas_database/MiDAS_S123_2.1.3.sintax.cleaned.20180103.fasta"
+    REFDATAPATH="/space/databases/midas/MiDAS_S123_2.1.3.sintax.cleaned.20180103.fasta"
     REFNOTE="using MiDAS v2 reference database."
 fi
         
@@ -203,7 +210,7 @@ if [ $REFDATABASE == 5 ]
     then
     TAXFILE="rdp"
     TAXVERS="training set v16"
-    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/RDP_training_set/rdp_16s_v16s_sp_sintax.cleaned.20180103.fa"
+    REFDATAPATH="/space/databases/RDP_training_set/rdp_16s_v16s_sp_sintax.cleaned.20180103.fa"
     REFNOTE="using RDP reference database."
 fi
         
@@ -211,7 +218,7 @@ if [ $REFDATABASE == 6 ]
     then
     TAXFILE="uniteFUN"
     TAXVERS="v8.0 (2019-02-02)"
-    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/UNITE/utax_reference_dataset_fungi_02.02.2019.corrected.fasta"
+    REFDATAPATH="/space/databases/UNITE/utax_reference_dataset_fungi_02.02.2019.corrected.fasta"
     REFNOTE="using UNITE fungi reference database."
 fi
 
@@ -219,7 +226,7 @@ if [ $REFDATABASE == 7 ]
     then
     TAXFILE="uniteEUK"
     TAXVERS="v8.0 (2019-02-02)"
-    REFDATAPATH="/space/users/ey/Documents/Amplicon_databases/UNITE/utax_reference_dataset_all_02.02.2019.corrected2.fasta"
+    REFDATAPATH="/space/databases/UNITE/utax_reference_dataset_all_02.02.2019.corrected2.fasta"
     REFNOTE="using UNITE eukaryotes reference database."
 fi
 }
@@ -774,13 +781,15 @@ MaketreeProk_Function() {
 
     INFILE=$1
     ELEMENT=$2
-    REP_ALIGNED_PATH="/space/users/ey/Documents/Amplicon_databases/core_set_aligned.fasta.imputed"
+    REP_ALIGNED_PATH="/space/databases/greengenes/core_set_aligned.fasta.imputed"
     USER_PATH=`echo $PWD`
 
     #echoPlus ""
     echoWithDate "Aligning the bacterial sequenced reads using PyNAST with QIIME v1 native parameters."
     # Using PyNAST in Unifrac 1.9.1
+    module load $QIIME1
     align_seqs.py -i $USER_PATH/$INFILE -m pynast -t $REP_ALIGNED_PATH -o $USER_PATH/aligned_seqs_$ELEMENT/ -p 0.40
+    module purge
 
     #echoPlus ""
     echoWithDate "Generating FastTree maximum likelihood tree of the bacterial sequenced reads with QIIME native parameters"
@@ -792,7 +801,9 @@ MaketreeProk_Function() {
     
     #fasttree
     INFILE2=`echo $INFILE | sed 's/.fa$//g'`
+    module load $FASTTREE
     fasttreeMP -nt aligned_seqs_$ELEMENT/${INFILE2}_aligned.fasta > aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre
+    module purge
     
     # Reset the OMP threads
     #export OMP_NUM_THREADS=""
@@ -915,13 +926,17 @@ if [[ $AMPREGION =~ ^(V4|V13)$ ]]
     mkdir beta_div_$ELEMENT
 
     # Convert classic otu table to biom format
+    module load $BIOM
     biom convert -i $OTUTABLE -o $OTUTABLE.biom --table-type="OTU table" --to-hdf5
+    module purge
 
     # Run Qiime 1.9.1 beta_diversity script for UniFrac
+    module load QIIME1
     beta_diversity.py -i $OTUTABLE.biom -m weighted_unifrac,unweighted_unifrac -o beta_div_$ELEMENT/ -t aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre
     # Change file names of output matrices
     mv beta_div_$ELEMENT/weighted_unifrac_$OTUTABLE.txt beta_div_$ELEMENT/$ELEMENT.weighted_unifrac.txt
     mv beta_div_$ELEMENT/unweighted_unifrac_$OTUTABLE.txt beta_div_$ELEMENT/$ELEMENT.unweighted_unifrac.txt
+    module purge
 
     # Run Usearch for Bray Curtis
     usearch11 -beta_div $OTUTABLE -metrics bray_curtis,jaccard,jaccard_binary -filename_prefix beta_div_$ELEMENT/$ELEMENT. -quiet
@@ -929,13 +944,17 @@ if [[ $AMPREGION =~ ^(V4|V13)$ ]]
    if [ "$SAMPLESIZE" = "OVER1000" ] && [ "$SAMPLENUM" -gt 1 ]
       then
       # Convert normalized otu table to biom format
+      module load $BIOM
       biom convert -i $OTUTABLE2.norm1000.txt -o $OTUTABLE2.norm1000.biom --table-type="OTU table" --to-hdf5
+      module purge
 
       # Run Qiime script for UniFrac matrices
+      module load QIIME1
       beta_diversity.py -i $OTUTABLE2.norm1000.biom -m weighted_unifrac,unweighted_unifrac -o beta_div_norm1000_$ELEMENT/ -t aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre
       # Change file name of output matrices
       mv beta_div_norm1000_$ELEMENT/weighted_unifrac_$OTUTABLE2.norm1000.txt beta_div_norm1000_$ELEMENT/$ELEMENT.weighted_unifrac.txt
       mv beta_div_norm1000_$ELEMENT/unweighted_unifrac_$OTUTABLE2.norm1000.txt beta_div_norm1000_$ELEMENT/$ELEMENT.unweighted_unifrac.txt
+     module purge
 
       # Run Usearch for Bray Curtis matrix
       usearch11 -beta_div $OTUTABLE2.norm1000.txt -metrics bray_curtis,jaccard,jaccard_binary -filename_prefix beta_div_norm1000_$ELEMENT/$ELEMENT. -quiet

@@ -1,12 +1,12 @@
 README
 
-Last modified: 19 November, 2019
+Last modified: 9 December, 2019
 
 Author: Erika Yashiro, Ph.D.
 
 Script name: AmpProc5
 
-Version: 5.1.0.beta2.5
+Version: 5.1.0.beta2.7
 
 
 
@@ -127,6 +127,14 @@ Generating beta diversity matrices
 ########################################
 
 VERSION HISTORY
+
+AmpProc5 v5.1.0.beta2.7
+Released for user evaluation: 
+- module releases of Qiime1, Biom, and Fasttree are now used.
+- All reference databases have been reconnected to AmpProc.
+
+AmpProc5 v5.1.0.beta2.6
+- After server crash, only ASV midas workflow is currently fully functional. The other reference databases need to be hooked up.
 
 AmpProc5 v5.1.0.beta2.5
 Released for user evaluation: 15 November 2019

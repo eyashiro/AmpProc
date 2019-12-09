@@ -8,11 +8,11 @@ usearch=usearch11
 #MAX_THREADS=${1:-$((`nproc`-2))}
 #MAX_THREADS=$((`nproc`-2))
 MAX_THREADS=$2
-SEQPATH=/space/sequences/
+SEQPATH=/space/sequences/Illumina/
 #TAXDB=/space/databases/midas/MiDAS3.3_20190919/output/ESVs_w_sintax.fa
 TAXDB=$1
 ASVDB=/space/databases/midas/ASVDB_250bp/ASVsV13_250bp_v2.0_20190514/ASVs.R1.fa
-prefilterDB=/space/databases/green_gene/gg_13_8_otus/rep_set/97_otus.fasta
+prefilterDB=/space/databases/greengenes/gg_13_8_otus/rep_set/97_otus.fasta
 SAMPLESEP="_"
 
 rm -rf rawdata/
