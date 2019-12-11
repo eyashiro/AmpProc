@@ -72,7 +72,7 @@ MIDAS4VERSABBREV="4.6"
 # Lmod modules
 FASTTREE=FastTree/2.1.10-foss-2018a
 QIIME1=QIIME/1.9.1-foss-2018a
-BIOM=biom-format/2.1.7-foss-2018a-Python-2.7.14
+BIOM=biom-format/2.1.7-foss-2018a-Python-3.6.4
 
 
 #########################################################
@@ -589,7 +589,7 @@ echo ""
 # INFILE=uniques.fa or otus.fa
 # output: prefilt_out.fa
 INFILE=$1
-REF_DATABASE="/space/users/ey/Documents/Amplicon_databases/gg_13_8_otus97/97_otus.fasta"
+REF_DATABASE="/space/databases/greengenes/gg_13_8_otus/rep_set/97_otus.fasta"
 
 #usearch10 -closed_ref $INFILE -db /space/users/ey/Documents/gg_13_8_otus97/97_otus.fasta -strand both -id 0.6 -mapout closed_mapped.txt
 #usearch10 -usearch_global $INFILE -db $REF_DATABASE -strand both -id 0.6 -maxaccepts 1 -maxrejects 256 -matched prefilt_out.tmp -threads $NUMTHREADS -quiet
@@ -931,7 +931,7 @@ if [[ $AMPREGION =~ ^(V4|V13)$ ]]
     module purge
 
     # Run Qiime 1.9.1 beta_diversity script for UniFrac
-    module load QIIME1
+    module load $QIIME1
     beta_diversity.py -i $OTUTABLE.biom -m weighted_unifrac,unweighted_unifrac -o beta_div_$ELEMENT/ -t aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre
     # Change file names of output matrices
     mv beta_div_$ELEMENT/weighted_unifrac_$OTUTABLE.txt beta_div_$ELEMENT/$ELEMENT.weighted_unifrac.txt
@@ -949,7 +949,7 @@ if [[ $AMPREGION =~ ^(V4|V13)$ ]]
       module purge
 
       # Run Qiime script for UniFrac matrices
-      module load QIIME1
+      module load $QIIME1
       beta_diversity.py -i $OTUTABLE2.norm1000.biom -m weighted_unifrac,unweighted_unifrac -o beta_div_norm1000_$ELEMENT/ -t aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre
       # Change file name of output matrices
       mv beta_div_norm1000_$ELEMENT/weighted_unifrac_$OTUTABLE2.norm1000.txt beta_div_norm1000_$ELEMENT/$ELEMENT.weighted_unifrac.txt
