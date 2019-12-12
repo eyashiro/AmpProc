@@ -51,7 +51,7 @@ NUMTHREADS=5
 # Define location of script
 #SCRIPTPATH="/space/users/ey/Documents/Scripts/git_work/AmpProc"
 #SCRIPTPATH="/space/sharedbin/Workflows_EY"
-SCRIPTPATH="/space/admin/ey/Scripts/git_work/AmpProc"
+SCRIPTPATH="/space/sharedbin_ubuntu_14_04/Non_module_software/AmpProc-v5.1.0.beta2.7"
 
 # Define the location of the sequences folders
 #SEQPATH="/space/sequences/"
