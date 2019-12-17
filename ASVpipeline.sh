@@ -26,7 +26,10 @@ echoWithDate() {
 
 echoWithDate "Running ASV pipeline (max threads: $MAX_THREADS)..."
 echoWithDate "Finding samples, filtering PhiX and bad reads, truncating to 250bp..."
-cat samples | tr "\r" "\n" | sed -e '$a\' | sed -e '/^$/d' -e 's/ //g' > samples_tmp.txt
+cp samples samples_tmp0.txt
+dos2unix -q samples_tmp0.txt
+cat samples_tmp0.txt | sed -e '$a\' | sed -e '/^$/d' -e 's/ //g' > samples_tmp.txt
+rm samples_tmp0.txt
 
 NSAMPLES=$(wc -w < samples_tmp.txt)
 while ((i++)); read SAMPLE
