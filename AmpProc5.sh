@@ -1,13 +1,13 @@
 #!/bin/bash
 
-VERSIONNUMBER=5.1.0.beta2.7
-MODIFIEDDATE="9 December, 2019"
+VERSIONNUMBER=5.1.0.beta2.8
+MODIFIEDDATE="6 February, 2020"
 
 ###################################################################################################
 #
 #  Amplicon DNA workflow
 #
-#  Version 5.1.0.beta2.7
+#  Version 5.1.0.beta2.8
 #
 #  This workflow script generates OTU tables from raw bacterial V13 and V4
 #  16S rRNA and fungal ITS 1 amplicon data.
@@ -16,7 +16,7 @@ MODIFIEDDATE="9 December, 2019"
 #
 #  Author: Erika Yashiro, Ph.D.
 #
-#  Last modified: 9 December, 2019
+#  Last modified: 6 February, 2020
 #
 ###################################################################################################
 
@@ -51,7 +51,7 @@ NUMTHREADS=5
 # Define location of script
 #SCRIPTPATH="/space/users/ey/Documents/Scripts/git_work/AmpProc"
 #SCRIPTPATH="/space/sharedbin/Workflows_EY"
-SCRIPTPATH="/space/sharedbin_ubuntu_14_04/Non_module_software/AmpProc-v5.1.0.beta2.7"
+SCRIPTPATH="/space/sharedbin_ubuntu_14_04/Non_module_software/AmpProc-v5.1.0.beta2.8"
 
 # Define the location of the sequences folders
 #SEQPATH="/space/sequences/"
@@ -123,12 +123,14 @@ Help_Function () {
     echo "  -r    Reference database number for taxonomy prediction."
     echo "              0  - no taxonomy assignment"
     echo "              1  - SILVA LTP v132"
-    echo "              2  - MiDAS v2.1.3"
-    echo "              3  - $MIDAS3VERS"
-    echo "              4  - $MIDAS4VERS"
-    echo "              5  - RDP training set v16"
-    echo "              6  - UNITE fungi ITS 1&2 v8.0 (2019-02-02)"
-    echo "              7  - UNITE eukaryotes ITS 1&2 v8.0 (2019-02-02)"
+    echo "              2  - SILVA qiime99% v132"
+    echo "              3  - SILVA qiime99% v138 (coming soon...)"
+    echo "              4  - MiDAS v2.1.3"
+    echo "              5  - $MIDAS3VERS"
+    echo "              6  - $MIDAS4VERS"
+    echo "              7  - RDP training set v16"
+    echo "              8  - UNITE fungi ITS 1&2 v8.0 (2019-02-02)"
+    echo "              9  - UNITE eukaryotes ITS 1&2 v8.0 (2019-02-02)"
     echo ""
     echo "To only incorporate the new taxonomy output into an OTU table, run the script: otutab_sintax_to_ampvis.v1.2.sh (Run with -h for more information)"
     echo ""
@@ -174,7 +176,7 @@ Refdatabase_Name_Function () {
 
 if [ $REFDATABASE == 1 ]
     then
-    TAXFILE="silva"
+    TAXFILE="silvaLTP132"
     TAXVERS="LPT v132"
     REFDATAPATH="/space/databases/SILVA/LTPs132_SSU_unaligned.sintax.fasta"
     REFNOTE="using SILVA LTP reference database."
@@ -182,13 +184,29 @@ fi
 
 if [ $REFDATABASE == 2 ]
     then
+    TAXFILE="silva99pc132"
+    TAXVERS="qiime-formatted SSUREF99% v132"
+    REFDATAPATH="/space/databases/SILVA/silva_132_qiime99_16S_sorted.sintax.fasta"
+    REFNOTE="using SILVA qiime99% v132 reference database."
+fi
+
+if [ $REFDATABASE == 3 ]
+    then
+    TAXFILE="silva99pc138"
+    TAXVERS="qiime-formatted SSUREF99% v138"
+    REFDATAPATH="/space/databases/SILVA/silva_138_qiime99_16S_sorted.sintax.fasta"
+    REFNOTE="using SILVA qiime99% v138 reference database."
+fi
+
+if [ $REFDATABASE == 4 ]
+    then
     TAXFILE="midas2"
     TAXVERS="v2.1.3"
     REFDATAPATH="/space/databases/midas/MiDAS_S123_2.1.3.sintax.cleaned.20180103.fasta"
     REFNOTE="using MiDAS v2 reference database."
 fi
         
-if [ $REFDATABASE == 3 ]
+if [ $REFDATABASE == 5 ]
     then
     TAXFILE="midas3"
     #TAXVERS="v3.4 (2019-09-30)"
@@ -197,7 +215,7 @@ if [ $REFDATABASE == 3 ]
     REFNOTE="using MiDAS $MIDAS3VERSABBREV reference database."
 fi
 
-if [ $REFDATABASE == 4 ]
+if [ $REFDATABASE == 6 ]
     then
     TAXFILE="midas4"
     #TAXVERS="v4.4 (2019-09-30)"
@@ -206,7 +224,7 @@ if [ $REFDATABASE == 4 ]
     REFNOTE="using MiDAS $MIDAS4VERSABBREV reference database."
 fi
         
-if [ $REFDATABASE == 5 ]
+if [ $REFDATABASE == 7 ]
     then
     TAXFILE="rdp"
     TAXVERS="training set v16"
@@ -214,7 +232,7 @@ if [ $REFDATABASE == 5 ]
     REFNOTE="using RDP reference database."
 fi
         
-if [ $REFDATABASE == 6 ]
+if [ $REFDATABASE == 8 ]
     then
     TAXFILE="uniteFUN"
     TAXVERS="v8.0 (2019-02-02)"
@@ -222,7 +240,7 @@ if [ $REFDATABASE == 6 ]
     REFNOTE="using UNITE fungi reference database."
 fi
 
-if [ $REFDATABASE == 7 ]
+if [ $REFDATABASE == 9 ]
     then
     TAXFILE="uniteEUK"
     TAXVERS="v8.0 (2019-02-02)"
@@ -597,7 +615,7 @@ usearch11 -usearch_global $INFILE -db $REF_DATABASE -strand both -id 0.6 -maxacc
 
 # relabel the unique, prefiltered reads so that the reads are in numerical order.
 #usearch10 -fastx_relabel prefilt_out.tmp -prefix Prefilt -fastaout prefilt_out.fa -keep_annots
-#usearch10 -sortbysize prefilt_out.tmp -fastaout prefilt_out.fa -quiet
+#usearch10 -sortbysize prefilt_out.tmp -fastaout pohrefilt_out.fa -quiet
 
 #rm prefilt_out.tmp
 
@@ -1121,7 +1139,7 @@ echo "Process single-end reads (SR) and/or paired-end reads (PE)?     $SINGLEREA
 echo "Remove primer region R1?                                        $STRIPLEFT bases" >> ampproc_params-$STARTTIME.log
 echo "Remove primer region R2?                                        $STRIPRIGHT bases" >> ampproc_params-$STARTTIME.log
 echo "Amplicon region?                                                $AMPREGION" >> ampproc_params-$STARTTIME.log
-echo "Reference database to use for taxonomy prediction?              $REFDATABASE ) $TAXFILE $TAXVERS" >> ampproc_params-$STARTTIME.log
+echo "Reference database to use for taxonomy prediction?              $REFDATABASE ) $TAXFILE, $TAXVERS" >> ampproc_params-$STARTTIME.log
 echo "Number of threads:                                              $NUMTHREADS" >> ampproc_params-$STARTTIME.log
 echo "Make a phylo/cluster tree:                                      $MAKETREE" >> ampproc_params-$STARTTIME.log
 echo "Generate beta diversity output:                                 $BETADIV" >> ampproc_params-$STARTTIME.log
@@ -1191,10 +1209,10 @@ if [[ "$1" =~ ^(-help|-h)$ ]]
             exit 1
         fi
         
-	if [ $TAX -lt 1 ] || [ $TAX -gt 7 ]
+	if [ $TAX -lt 1 ] || [ $TAX -gt 9 ]
             then
             echo ""
-            echo "Taxonomy needs to be selected (1,2,3,4,5,6 or 7). Check -help or -h for more information. Exiting script."
+            echo "Taxonomy needs to be selected (1,2,3,4,5,6 or 9). Check -help or -h for more information. Exiting script."
             echo ""
             exit 1
         fi
@@ -1373,9 +1391,9 @@ fi
      # Automatically define reference database.
      if [ $MIDASDATABASE -eq 1 ]
        then
-       REFDATABASE=3
+       REFDATABASE=5
        else
-       REFDATABASE=4
+       REFDATABASE=6
      fi
 
      # Adjust number of threads to ASVpipeline settings.
@@ -1515,12 +1533,14 @@ echoPlus ""
 echoPlus "Which reference database do you want to use for taxonomy prediction?"
 echoPlus "        0  - Do not assign taxonomy"
 echoPlus "        1  - SILVA LTP v132"
-echoPlus "        2  - MiDAS v2.1.3"
-echoPlus "        3  - $MIDAS3VERS"
-echoPlus "        4  - $MIDAS4VERS"
-echoPlus "        5  - RDP training set v16"
-echoPlus "        6  - UNITE fungi ITS 1&2 v8.0 (2019-02-02)"
-echoPlus "        7  - UNITE eukaryotes ITS 1&2 v8.0 (2019-02-02)"
+echoPlus "        2  - SILVA qiime99% v132"
+echoPlus "        3  - SILVA qiime99% v138 (coming soon...)"
+echoPlus "        4  - MiDAS v2.1.3"
+echoPlus "        5  - $MIDAS3VERS"
+echoPlus "        6  - $MIDAS4VERS"
+echoPlus "        7  - RDP training set v16"
+echoPlus "        8  - UNITE fungi ITS 1&2 v8.0 (2019-02-02)"
+echoPlus "        9  - UNITE eukaryotes ITS 1&2 v8.0 (2019-02-02)"
 echoPlus ""
 echoPlus "Note: MiDAS datasets are for waste water treatment systems."
 echoPlus "For general bacteria and archaea, use SILVA LTP"
@@ -1593,7 +1613,7 @@ if [[ ! "$AMPREGION" =~ ^(V13|V4|ITS|V35)$ ]]
     exit 1
 fi
 
-if [[ "$REFDATABASE" -lt 0 ]] || [[ "$REFDATABASE" -gt 7 ]]
+if [[ "$REFDATABASE" -lt 0 ]] || [[ "$REFDATABASE" -gt 9 ]]
     then
     echoPlus ""
     echoPlus "Reference database: $REFDATABASE invalid argument."

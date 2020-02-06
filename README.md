@@ -1,13 +1,21 @@
 README
 
-Last modified: 9 December, 2019
+Last modified: 6 February, 2020
 
 Author: Erika Yashiro, Ph.D.
 
 Script name: AmpProc5
 
-Version: 5.1.0.beta2.7
+Version: 5.1.0.beta2.8
 
+
+########################################
+
+Contents
+   - How to run the help function with usage instructions
+   - How to cite the tools used in the workflow
+   - General output file formats
+   - Version history
 
 
 ########################################
@@ -128,8 +136,14 @@ Generating beta diversity matrices
 
 VERSION HISTORY
 
+AmpProc5 v5.1.0.beta2.8
+Released for user evaluation:  6 February 2020
+- Added functionality for using the qiime-formatted Silva v132 full database that had been depleted to 99% sequence identity.
+- Added functionality for the same above database but for Silva v138, but the database is not yet ready to use. (feature coming soon)
+
+
 AmpProc5 v5.1.0.beta2.7
-Released for user evaluation: 
+Released for user evaluation:  9 December 2019
 - module releases of Qiime1, Biom, and Fasttree are now used.
 - All reference databases have been reconnected to AmpProc.
 
