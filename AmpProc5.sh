@@ -1,22 +1,22 @@
 #!/bin/bash
 
-VERSIONNUMBER=5.1.0.beta2.8
-MODIFIEDDATE="6 February, 2020"
+VERSIONNUMBER=5.1.0.beta2.9
+MODIFIEDDATE="15 April, 2020"
 
 ###################################################################################################
 #
 #  Amplicon DNA workflow
 #
-#  Version 5.1.0.beta2.8
+#  Version 5.1.0.beta2.9
 #
-#  This workflow script generates OTU tables from raw bacterial V13 and V4
+#  This workflow script generates frequency tables from raw bacterial 
 #  16S rRNA and fungal ITS 1 amplicon data.
 #
 #  It is currently only supported for internal use at Aalborg University.
 #
 #  Author: Erika Yashiro, Ph.D.
 #
-#  Last modified: 6 February, 2020
+#  Last modified: 15 April, 2020
 #
 ###################################################################################################
 
@@ -51,7 +51,7 @@ NUMTHREADS=5
 # Define location of script
 #SCRIPTPATH="/space/users/ey/Documents/Scripts/git_work/AmpProc"
 #SCRIPTPATH="/space/sharedbin/Workflows_EY"
-SCRIPTPATH="/space/sharedbin_ubuntu_14_04/Non_module_software/AmpProc-v5.1.0.beta2.8"
+SCRIPTPATH="/space/sharedbin_ubuntu_14_04/Non_module_software/AmpProc-v$VERSIONNUMBER"
 
 # Define the location of the sequences folders
 #SEQPATH="/space/sequences/"
@@ -122,9 +122,9 @@ Help_Function () {
     echo "  -t    Input file. Must be otu/zotu/asv table without taxonomy (e.g. otutable_notax.txt)."
     echo "  -r    Reference database number for taxonomy prediction."
     echo "              0  - no taxonomy assignment"
-    echo "              1  - SILVA LTP v132"
-    echo "              2  - SILVA qiime99% v132"
-    echo "              3  - SILVA qiime99% v138 (coming soon...)"
+    echo "              1  - SILVA LTP v132 16S"
+    echo "              2  - SILVA qiime99% v132 16S"
+    echo "              3  - SILVA qiime99% v138 16S and 18S"
     echo "              4  - MiDAS v2.1.3"
     echo "              5  - $MIDAS3VERS"
     echo "              6  - $MIDAS4VERS"
@@ -137,7 +137,7 @@ Help_Function () {
     echo "To change the number of CPUs used by the USEARCH stages of the pipeline, adjust the number of threads when running the script."
     echo "The fasttree typically uses about 20 cores at its maximum run and this cannot be adjusted."
     echo ""
-    echo "NOTE: The reference databases have been slightly reformatted in order to be compatible with the usearch10 algorithm."
+    echo "NOTE: The reference databases have been slightly reformatted in order to be compatible with the usearch algorithm. Refer to README for details"
     echo ""
     echo "Have a nice day!"
     echo ""
@@ -194,8 +194,8 @@ if [ $REFDATABASE == 3 ]
     then
     TAXFILE="silva99pc138"
     TAXVERS="qiime-formatted SSUREF99% v138"
-    REFDATAPATH="/space/databases/SILVA/silva_138_qiime99_16S_sorted.sintax.fasta"
-    REFNOTE="using SILVA qiime99% v138 reference database."
+    REFDATAPATH="/space/databases/SILVA/silva_138_qiime99_16S_18S_sorted.sintax.fasta"
+    REFNOTE="using SILVA qiime99% v138 16S & 18S reference database."
 fi
 
 if [ $REFDATABASE == 4 ]
