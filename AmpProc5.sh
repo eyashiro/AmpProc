@@ -50,12 +50,12 @@ NUMTHREADS=5
 
 # Define location of script
 #SCRIPTPATH="/space/users/ey/Documents/Scripts/git_work/AmpProc"
-#SCRIPTPATH="/space/sharedbin/Workflows_EY"
-SCRIPTPATH="/space/sharedbin_ubuntu_14_04/Non_module_software/AmpProc-v$VERSIONNUMBER"
+SCRIPTPATH="/space/admin/ey/Documents/p0001_amplicon_workflow_test/AmpProc_test"
+#SCRIPTPATH="/space/sharedbin_ubuntu_14_04/Non_module_software/AmpProc-v$VERSIONNUMBER"
 
 # Define the location of the sequences folders
-#SEQPATH="/space/sequences/"
-SEQPATH="/space/sequences/Illumina"
+SEQPATH="/space/sequences/"
+#SEQPATH="/space/sequences/Illumina"
 
 # Make /tmp/$USER directory as needed
 mkdir -p /tmp/$USER
@@ -249,6 +249,36 @@ if [ $REFDATABASE == 9 ]
 fi
 }
 
+Cleanup_Function () {
+
+# If $1 is present, then remove only files, do not do taxonomy step.
+REMOVEONLY="$1"
+if [ "$REMOVEONLY" ] # if string is non-zero
+  then REMOVEONLY="yes"
+  else REMOVEONLY="no"
+fi
+
+# Remove temporary files
+rm -rf rawdata
+rm -rf phix_filtered
+rm samples_tmp.txt
+rm -f *.nophix.*
+rm -f prefilt_out.*
+rm -f sintax_out.*
+rm -f *.biom
+rm -f uniques.*
+rm -f otus.R1.tmp
+rm -f otus.R2.tmp
+rm -f otus.tmp
+
+if [ $REFDATABASE -gt 0 ] && [ $REMOVEONLY = "no" ]
+then
+   mkdir taxonomy_summary
+
+   mv *_summary.txt taxonomy_summary/.
+fi
+
+}
 
 Check_working_dir_Function () {
 
@@ -380,6 +410,36 @@ fi
 echoWithDate "    Done"
 }
 
+Empty_samples_cleanup_Function () {
+
+# Use this function if Find_reads_phix_XX_Functions encounter a raw fastq
+# with zero reads
+
+   echoWithDate "ERROR: Sample $NAME is empty. Please remove $NAME from the samples file or check your spelling, and restart AmpProc."
+   echoPlus ""
+   #echoPlus "Do you want to clean up the working folder? (yes/no)"
+   #read CLEANFOLDER
+   CLEANFOLDER="yes"
+   echo "$CLEANFOLDER" >> ampproc-$STARTTIME.log
+   # If user says yes to cleanup, remove files/folders made so far
+   if [ $CLEANFOLDER = "yes" ]
+      then
+      echoWithDate "Cleaning up working directory..."
+      Cleanup_Function removeonly
+      echoWithDate "  The working directory is cleaned up. Exiting...."
+      echoPlus ""
+      exit 5
+      else
+         if [ $CLEANFOLDER = "no" ]
+         then
+         echoWithDate "Exiting without directory cleanup..."
+         echoPlus ""
+         exit 7
+         fi
+   fi
+
+}
+
 Find_reads_phix_PE_Function () {
 
 echoWithDate "Retrieving sequenced files and removing PhiX contamination."
@@ -388,19 +448,40 @@ echoWithDate "Retrieving sequenced files and removing PhiX contamination."
 # copy sample sequence files to current directory,
 # Filter PhiX
 # Path to sequences folders: $SEQPATH = /space/sequences/
+
+  # Remove empty-samples.txt if present
+  if [ -e "empty-samples.txt" ]
+      then
+      rm -f empty-samples.txt
+  fi
  
   while read SAMPLES
   do
       # Retrieve sequenced reads
       SAMPLEDELIM="_";
       NAME=$SAMPLES;
-      #find /space/sequences/ -name $NAME*R1* 2>/dev/null -exec gzip -cd {} \;
-      #find /space/sequences/ -name $NAME*R1* 2>/dev/null -exec cp {} samplegz/ \;
-      #find /space/sequences/ -name $NAME* 2>/dev/null -exec cp {} samplegz/ \;
       find $SEQPATH -name $NAME$SAMPLEDELIM*R1* 2>/dev/null -exec gzip -cd {} \; > rawdata/$NAME.R1.fq
       find $SEQPATH -name $NAME$SAMPLEDELIM*R2* 2>/dev/null -exec gzip -cd {} \; > rawdata/$NAME.R2.fq
-      # Filter phix
-      usearch11 -filter_phix rawdata/$NAME.R1.fq -reverse rawdata/$NAME.R2.fq -output phix_filtered/$NAME.R1.fq -output2 phix_filtered/$NAME.R2.fq -threads $NUMTHREADS -quiet
+      # Do only if fasta file is non-empty
+      if [ -s "rawdata/$NAME.R1.fq" ]
+        then
+        # Filter phix
+        usearch11 -filter_phix rawdata/$NAME.R1.fq -reverse rawdata/$NAME.R2.fq -output phix_filtered/$NAME.R1.fq -output2 phix_filtered/$NAME.R2.fq -threads $NUMTHREADS -quiet
+        # Check that phix filtered fastq file is still non-empty.
+        # Flag sample for removal if empty. Remove empty .fq files so that they don't get included during merge step.
+        if [ ! -s "phix_filtered/$NAME.R1.fq" ]
+          then
+          echoWithDate "WARNING: Sample $NAME is empty after removing PhiX contamination. $NAME will not be included in further processing. Empty sample name is flagged in the file empty-samples.txt"
+          echo "$NAME" >> empty-samples.txt
+          sed -i "/^$NAME$/d" samples_tmp.txt
+          rm -f phix_filtered/$NAME.R1.fq phix_filtered/$NAME.R2.fq
+        fi
+
+        else
+        # Run function to safely exit script if find zero reads raw fastq
+        Empty_samples_cleanup_Function
+       fi
+ 
   done < samples_tmp.txt
 
 #rm -rf rawdata/
@@ -425,12 +506,27 @@ echoWithDate "Retrieving sequenced files and removing PhiX contamination."
       # Retrieve sequenced reads
       SAMPLEDELIM="_";
       NAME=$SAMPLES;
-      #find /space/sequences/ -name $NAME*R1* 2>/dev/null -exec gzip -cd {} \;
-      #find /space/sequences/ -name $NAME*R1* 2>/dev/null -exec cp {} samplegz/ \;
-      #find /space/sequences/ -name $NAME* 2>/dev/null -exec cp {} samplegz/ \;
+
       find $SEQPATH -name $NAME$SAMPLEDELIM*$1* 2>/dev/null -exec gzip -cd {} \; > rawdata/$NAME.$1.fq
-      # Filter phix
-      usearch11 -filter_phix rawdata/$NAME.$1.fq -output phix_filtered/$NAME.$1.fq -threads $NUMTHREADS -quiet
+
+      # Do only if retrieved fastq file is non-empty
+      if [ -s "rawdata/$NAME.$1.fq" ]
+        then
+        # Filter phix
+        usearch11 -filter_phix rawdata/$NAME.$1.fq -output phix_filtered/$NAME.$1.fq -threads $NUMTHREADS -quiet
+        # Check that phix filtered fastq file is still non-empty.
+        # Flag sample for removal if empty.
+        if [ ! -s "phix_filtered/$NAME.$1.fq" ]
+          then
+          echoWithDate "WARNING: Sample $NAME is empty after removing PhiX contamination. $NAME will not be included in further processing."
+          echo "$NAME" >> empty-samples.txt
+          sed -i "/^$NAME$/d" samples_tmp.txt
+        fi
+        else
+        # Run function to safely exit script if find zero reads raw fastq
+        Empty_samples_cleanup_Function
+       fi
+
   done < samples_tmp.txt
 
 #rm -rf rawdata/
@@ -1031,29 +1127,6 @@ echoWithDate "    Done"
 
 }
 
-
-Cleanup_Function () {
-
-rm -r rawdata
-rm -r phix_filtered
-rm samples_tmp.txt
-rm *.nophix.*
-rm -f prefilt_out.*
-rm -f sintax_out.*
-rm -f *.biom
-rm -f uniques.*
-rm -f otus.R1.tmp
-rm -f otus.R2.tmp
-rm -f otus.tmp
-
-if [ $REFDATABASE -gt 0 ]
-then
-   mkdir taxonomy_summary
-
-   mv *_summary.txt taxonomy_summary/.
-fi
-
-}
 
 WORKFLOW_MIDAS_Function () {
 
