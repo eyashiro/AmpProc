@@ -420,7 +420,7 @@ Empty_samples_cleanup_Function () {
    #echoPlus "Do you want to clean up the working folder? (yes/no)"
    #read CLEANFOLDER
    CLEANFOLDER="yes"
-   echo "$CLEANFOLDER" >> ampproc-$STARTTIME.log
+   #echo "$CLEANFOLDER" >> ampproc-$STARTTIME.log
    # If user says yes to cleanup, remove files/folders made so far
    if [ $CLEANFOLDER = "yes" ]
       then
@@ -1135,7 +1135,7 @@ echoWithDate "Please note that the MiDAS workflow is only for bacteria from wast
 
 #echo "refdatapath: $REFDATAPATH"
 # Run Kasper's ASV script
-bash $SCRIPTPATH/ASVpipeline.sh $REFDATAPATH $NUMTHREADS
+bash $SCRIPTPATH/ASVpipeline.sh $REFDATAPATH $NUMTHREADS $STARTTIME
 
 echoWithDate "ASVpipeline finished."
 
