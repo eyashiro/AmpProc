@@ -1456,7 +1456,10 @@ fi
     # Define number of threads to use (NUMTHREADS)
     echoPlus ""
     echoPlus "How many CPUs do you want to use at maximum run?"
-    echoPlus "Dragon (up to 70), Coco and Peanut (up to 10)"
+    echoPlus "Recommended: Dragon (up to 70), Coco and Peanut (up to 10), Pikachu (up to 22)"
+    HOST=`hostname`
+    MAXTHREADS=$((`nproc`-2))
+    echoPlus "Your current server ($HOST) should be able to handle up to $MAXTHREADS threads."
     echoPlus "If unsure, then start the run with 5 threads"
     read NUMTHREADS
     echo "$NUMTHREADS" >> ampproc-$STARTTIME.log
@@ -1624,7 +1627,10 @@ echo "$REFDATABASE" >> ampproc-$STARTTIME.log
 # Define number of threads to use (NUMTHREADS)
 echoPlus ""
 echoPlus "How many CPUs do you want to use at maximum run?"
-echoPlus "Dragon (up to 70), Coco and Peanut (up to 10)"
+echoPlus "Recommended: Dragon (up to 70), Coco and Peanut (up to 10), Pikachu (up to 22)"
+HOST=`hostname`
+MAXTHREADS=$((`nproc`-2))
+echoPlus "Your current server ($HOST) should be able to handle up to $MAXTHREADS threads."
 echoPlus "If unsure, then start the run with 5 threads"
 read NUMTHREADS
 echo "$NUMTHREADS" >> ampproc-$STARTTIME.log
