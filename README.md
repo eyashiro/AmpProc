@@ -1,10 +1,10 @@
 # README
 
-Last modified: 16 April, 2020
+Last modified: 22 April, 2020
 
 Author: Erika Yashiro, Ph.D.
 
-Script name: AmpProc5
+Script name: AmpProc
 
 Version: 5.1.0.beta2.9
 
@@ -151,7 +151,7 @@ Generating beta diversity matrices
 
 # VERSION HISTORY
 
-AmpProc5 v5.1.0.beta2.9
+AmpProc5 v5.1.0.beta2.9  
 Released for user evaluation:  22 April 2020
 - Updated the Readme file in addition to the version history section.
 - Added functionality for using the qiime-formatted Silva v138 NR99 database. As with the v132, some minor formatting changes were done; refer to README section on reference databases. Note that the Silva v138 was a major overhaul work by the Silva group so the classified output could look a bit different if you compare with v132. Some changes I've noticed include: spelling change Enterobacteriales became Enterobacterales; Bacteroidetes became Bacteroidota; phylum Deltaproteobacteria became other phylum names like Bdellovibrionota and Desulfobacterota.
@@ -161,22 +161,20 @@ Released for user evaluation:  22 April 2020
 - The Q&A section will automatically identify the server you are logged into and make a recommendation on the maximum number of threads to assign to AmpProc. You should always stay at or under that maximum recommendation, depending on what other jobs are running on that server computer.
 - The MiDAS workflow in AmpProc now automatically outputs key steps into the logs file.
 
-
-AmpProc5 v5.1.0.beta2.8
+AmpProc5 v5.1.0.beta2.8  
 Released for user evaluation:  6 February 2020
 - Added functionality for using the qiime-formatted Silva v132 full database that had been depleted to 99% sequence identity.
 - Added functionality for the same above database but for Silva v138, but the database is not yet ready to use. (feature coming soon)
 
-
-AmpProc5 v5.1.0.beta2.7
+AmpProc5 v5.1.0.beta2.7  
 Released for user evaluation:  9 December 2019
 - module releases of Qiime1, Biom, and Fasttree are now used.
 - All reference databases have been reconnected to AmpProc.
 
-AmpProc5 v5.1.0.beta2.6
+AmpProc5 v5.1.0.beta2.6  
 - After server crash, only ASV midas workflow is currently fully functional. The other reference databases need to be hooked up.
 
-AmpProc5 v5.1.0.beta2.5
+AmpProc5 v5.1.0.beta2.5  
 Released for user evaluation: 15 November 2019
 - Conversion of windows formated samples file to unix format is now more robust.
 - Can generate only zotu/otu tables without taxonomy as an option.
@@ -184,25 +182,25 @@ Released for user evaluation: 15 November 2019
 - Allows R1 and R2 only workflows in standard mode.
 - NOTE: Even if you choose only R1 or R2, if you want to remove a primer region, you will still be asked the primer length to remove for both sides. Just put 0 (zero) for the reads side that you are not processing. I will fix that in the next version.
 
-AmpProc5 v5.1.0.beta2.4
+AmpProc5 v5.1.0.beta2.4  
 Released for user evaluation: 7 November 2019
 - Updated the MiDAS reference database versions to 3.6 and 4.6.
 
-AmpProc5 v5.1.0.bet2.3
+AmpProc5 v5.1.0.bet2.3  
 Released for user evaluation: 29 October 2019
 - Added option to indicate the archaeal V3-5 hypervariable region amplicons. Note that these are probably too long to stitch together into consensus reads from paired-end reads, so they should be run in single-read mode.
 
-AmpProc5 v5.1.0.beta2.2
+AmpProc5 v5.1.0.beta2.2  
 Released for user evaluation: 24 October 2019
 - Updated the MiDAS reference database versions to 3.5, and 4.5
 
-AmpProc5 v5.1.0.beta2.1
+AmpProc5 v5.1.0.beta2.1  
 Released for user evaluation: 10 October 2019
 - Changed the single reads truncate length to 250bp from 200bp in the standard workflow.
 - The MiDAS workflow number of threads is now adjustable by the user.
 - Added abundance-based and presence-absence-based Jaccard beta diversity metric in the Beta diversity workflow.
 
-AmpProc5 v5.1.0.beta2.0
+AmpProc5 v5.1.0.beta2.0  
 Released for user evaluation: 27 September 2019
 - Following is the update status of the reference databases
    - MiDAS 2.1.3 = unchanged
@@ -222,31 +220,29 @@ Released for user evaluation: 27 September 2019
 - The MiDAS ASV workflow now has the option to generate a phylogenetic tree and beta diversity output.
 - The MiDAS ASV workflow has a choice of using either MiDAS 3 or 4 as reference database.
 
-AmpProc5 v5.1.0.beta1.0
+AmpProc5 v5.1.0.beta1.0  
 Released for user evaluation: 10 September 2019
 - Officially changed the script name to AmpProc5
 - Added the MiDAS 3 ASVs workflow as an option
 
-amplicon.workflow_v5.0.3.beta1.0.sh
+amplicon.workflow_v5.0.3.beta1.0.sh  
 Released for user evaluation: 2 November 2018
 - Added user environment configuration check to make sure that proper temporary folders are present for the QIIME steps.
 - Added alias AmpProc5 as an executable command to run the script.
 - Changed default number of threads used to 5 (originally 15) to account for the smaller servers.
 - Polished the Help description
 
-
-amplicon.workflow_v5.0.2.beta1.1.sh
+amplicon.workflow_v5.0.2.beta1.1.sh  
 Released for user evaluation: 21 March 2018 
 - Fixed the biom convert command, added the format parameter so the command works on Qiime 1.9.0
 - Moved the prefilter step to after otu clustering, and lowered stringency, in order to speed up this step.
 
-amplicon.workflow_v5.0.1.sh
+amplicon.workflow_v5.0.1.sh  
 Released for user evaluation: 12 March 2018
 - Fixed a bug in the taxonomy formatting of the final otutable.txt and zotutable.txt, where missing taxonomy levels in the middle of a taxonomy string were not recognized.
 - Added version history information in the README file
 
-
-amplicon.workflow_v5.0.sh
+amplicon.workflow_v5.0.sh  
 Released for user evaluation: 7 February 2018
 Major upgrade since version 4.3
 
