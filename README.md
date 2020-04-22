@@ -1,26 +1,27 @@
-README
+# README
 
-Last modified: 6 February, 2020
+Last modified: 16 April, 2020
 
 Author: Erika Yashiro, Ph.D.
 
 Script name: AmpProc5
 
-Version: 5.1.0.beta2.8
+Version: 5.1.0.beta2.9
 
 
 ########################################
 
-Contents
+### Contents
    - How to run the help function with usage instructions
    - How to cite the tools used in the workflow
+   - Information on reference databases used for taxonomic classification
    - General output file formats
    - Version history
 
 
 ########################################
 
-To run the help function, type either:
+### To run the help function, type either:
 
 AmpProc5.1 -h
 
@@ -32,35 +33,35 @@ AmpProc5.1 -help
 
 
 
-For citing the tools used in the workflow:
+# For citing the tools used in the workflow:
 
 ------------
 AmpProc5.1
 ------------
-This is a custom script that processes raw reads. The script acts BOTH as a wrapper for other published software as well as a script that processes and reformats data for downstream applications.
-Author: Erika Yashiro, Ph.D.  (ey@bio.aau.dk)
+This is a custom script that processes raw reads. The script acts BOTH as a wrapper for other published software as well as a script that processes and reformats data for downstream applications.  
+Author: Erika Yashiro, Ph.D.  
 https://github.com/eyashiro/AmpProc
 
 ---------------
 USEARCH 10 & 11
 ---------------
-version: usearch10.0.240_i86linux64 (used only in one step of Fungi/Eukaryote to generate cluster tree)
+version: usearch10.0.240_i86linux64 (used only in one step of Fungi/Eukaryote to generate cluster tree)  
 version: usearch11.0.667_i86linux64 (used for all steps of AmpProc)
 
-USEARCH and UCLUST algorithms
-Edgar, R.C. (2010) Search and clustering orders of magnitude faster than BLAST, Bioinformatics 26(19), 2460-2461.
+USEARCH and UCLUST algorithms  
+Edgar, R.C. (2010) Search and clustering orders of magnitude faster than BLAST, Bioinformatics 26(19), 2460-2461.  
 doi: 10.1093/bioinformatics/btq461
 
-SINTAX algorithm = Taxonomy assignment
+SINTAX algorithm = Taxonomy assignment  
 Edgar, R.C. (2016), SINTAX, a simple non-Bayesian taxonomy classifier for 16S and ITS sequences, http://dx.doi.org/10.1101/074161.
 
-UNOISE algorithm = Those who use the unoise3 ZOTU clustering
+UNOISE algorithm = Those who use the unoise3 ZOTU clustering  
 Edgar, R.C. (2016), UNOISE2: Improved error-correction for Illumina 16S and ITS amplicon reads.http://dx.doi.org/10.1101/081257
 
-Expected error filtering and paired read merging = Paired-end read merging
+Expected error filtering and paired read merging = Paired-end read merging  
 Edgar, R.C. and Flyvbjerg, H (2014) Error filtering, pair assembly and error correction for next-generation sequencing reads  [doi: 10.1093/bioinformatics/btv401].
 
-UPARSE algorithm = OTU clustering
+UPARSE algorithm = OTU clustering  
 Edgar, R.C. (2013) UPARSE: Highly accurate OTU sequences from microbial amplicon reads, Nature Methods [Pubmed:23955772,  dx.doi.org/10.1038/nmeth.2604].
 
 --------------------
@@ -76,30 +77,43 @@ J Gregory Caporaso, Justin Kuczynski, Jesse Stombaugh, Kyle Bittinger, Frederic 
 Fasttree
 --------
 
-Fasttree 2.1 = Tree algorithm for V13 and V4, used for Unifrac Beta diversity matrices
+Fasttree 2.1 = Tree algorithm for V13 and V4, used for Unifrac Beta diversity matrices  
 Price, M.N., Dehal, P.S., and Arkin, A.P. (2009) FastTree: Computing Large Minimum-Evolution Trees with Profiles instead of a Distance Matrix. Molecular Biology and Evolution 26:1641-1650, doi:10.1093/molbev/msp077.
 
 
 ########################################
 
 
-GENERAL OUTPUT FILE FORMATS:
+# Information on reference databases used for taxonomic classification
 
-All OTU related files are indicated *otu*.
-All ZOTU related files are indicated *zotu* and *asv*.
-Single read equivalents are indicated *R1* and *R2*.
+The reference databases linked to AmpProc are updated as needed at each AmpProc version change.
 
-
-Output file of OTU clustering: otus.fa
+The databases have been slightly reformatted in order to be compatible with USEARCH's sintax function. Notably, you may notice that parentheses were replaced by double underscores, and commas by single underscore. Ambiguous taxon names were also removed (e.g. Ambiguous taxa, unknown, unidentified, uncultured, metagenome).
 
 
-OTU table formats
-    OTU table*: otutable_notax.txt
-    OTU table with taxonomy information: otutable.txt
+########################################
+
+
+# GENERAL OUTPUT FILE FORMATS:
+
+
+All OTU related files are indicated &ast;otu&ast;.  
+All ZOTU related files are indicated &ast;zotu&ast; and &ast;asv&ast;.  
+Single read equivalents are indicated &ast;R1&ast; and &ast;R2&ast;.  
+Bellow are indicated the output files using OTU as an example. Everything written also applies for zotus.  
+
+Output file of OTU clustering:
+ 
+    otus.fa
+
+
+OTU table formats 
+
+    OTU table: otutable_notax.txt  
+    OTU table with taxonomy information: otutable.txt  
     OTU table normalized to 1000 reads per sample: otutable_notax.norm1000.txt
 
-    * The otus.fa and zotus.fa are required for running 
-      the a postiori taxonomy assignment function. Single read variants are also accepted input.
+&ast; The otus.fa and otutable_notax.txt are required for running the a postiori taxonomy assignment function. (Same for their asv/zotu equivalents)
 
 
 Generating otus taxonomy summary
@@ -122,6 +136,7 @@ Sequence alignment and phylogenetic tree of OTUs
 
 
 Generating beta diversity matrices
+
     Output files in beta_div_OTUS/
 
     Weighted UniFrac matrix: *.weighted_unifrac.txt
@@ -134,7 +149,18 @@ Generating beta diversity matrices
 
 ########################################
 
-VERSION HISTORY
+# VERSION HISTORY
+
+AmpProc5 v5.1.0.beta2.9
+Released for user evaluation:  22 April 2020
+- Updated the Readme file in addition to the version history section.
+- Added functionality for using the qiime-formatted Silva v138 NR99 database. As with the v132, some minor formatting changes were done; refer to README section on reference databases. Note that the Silva v138 was a major overhaul work by the Silva group so the classified output could look a bit different if you compare with v132. Some changes I've noticed include: spelling change Enterobacteriales became Enterobacterales; Bacteroidetes became Bacteroidota; phylum Deltaproteobacteria became other phylum names like Bdellovibrionota and Desulfobacterota.
+- AmpProc can now classify 18S rRNA gene amplicons using the newest Silva v138 database.
+- Sample names in the samples input file that either do not exist in the sequences folder or have zero reads will cause AmpProc to abort so that the user can go and check their samples file. 
+- Samples that contain zero reads after filtering out PhiX contamination will be automatically be removed from further processing. You can find the list of excluded samples in the empty-samples.txt file.
+- The Q&A section will automatically identify the server you are logged into and make a recommendation on the maximum number of threads to assign to AmpProc. You should always stay at or under that maximum recommendation, depending on what other jobs are running on that server computer.
+- The MiDAS workflow in AmpProc now automatically outputs key steps into the logs file.
+
 
 AmpProc5 v5.1.0.beta2.8
 Released for user evaluation:  6 February 2020
