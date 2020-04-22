@@ -1,7 +1,7 @@
 #!/bin/bash
 
 VERSIONNUMBER=5.1.0.beta2.9
-MODIFIEDDATE="15 April, 2020"
+MODIFIEDDATE="22 April, 2020"
 
 ###################################################################################################
 #
@@ -16,7 +16,7 @@ MODIFIEDDATE="15 April, 2020"
 #
 #  Author: Erika Yashiro, Ph.D.
 #
-#  Last modified: 15 April, 2020
+#  Last modified: 22 April, 2020
 #
 ###################################################################################################
 
@@ -56,8 +56,8 @@ MAXTHREADS=$((`nproc`-2))
 
 # Define location of script
 #SCRIPTPATH="/space/users/ey/Documents/Scripts/git_work/AmpProc"
-SCRIPTPATH="/space/admin/ey/Documents/p0001_amplicon_workflow_test/AmpProc_test"
-#SCRIPTPATH="/space/sharedbin_ubuntu_14_04/Non_module_software/AmpProc-v$VERSIONNUMBER"
+#SCRIPTPATH="/space/admin/ey/Documents/p0001_amplicon_workflow_test/AmpProc_test"
+SCRIPTPATH="/space/sharedbin_ubuntu_14_04/Non_module_software/AmpProc-v$VERSIONNUMBER"
 
 # Define the location of the sequences folders
 SEQPATH="/space/sequences/"
@@ -1206,6 +1206,7 @@ if [ "$RUNOPTS" = "ASVPIPELINE" ]
    then
    echo "MiDAS ASV pipeline run by AmpProc." >> ampproc_params-$STARTTIME.log
    echo "" >> ampproc_params-$STARTTIME.log
+   # specify that midas workflow does not remove primers.
 fi
 
   # full command string
@@ -1485,6 +1486,9 @@ fi
      SINGLEREADS=R1
      AMPREGION=Undefined
      ZOTUS=ASVs
+       # no primers removed
+     STRIPLEFT=0
+     STRIPRIGHT=0
 
      # Extract Reference database name, version, and path
      Refdatabase_Name_Function
@@ -1614,9 +1618,9 @@ echo "$AMPREGION" >> ampproc-$STARTTIME.log
 echoPlus ""
 echoPlus "Which reference database do you want to use for taxonomy prediction?"
 echoPlus "        0  - Do not assign taxonomy"
-echoPlus "        1  - SILVA LTP v132"
-echoPlus "        2  - SILVA qiime99% v132"
-echoPlus "        3  - SILVA qiime99% v138 (coming soon...)"
+echoPlus "        1  - SILVA LTP v132 for 16S"
+echoPlus "        2  - SILVA qiime99% v132 for 16S"
+echoPlus "        3  - SILVA qiime99% v138 for 16S & 18S"
 echoPlus "        4  - MiDAS v2.1.3"
 echoPlus "        5  - $MIDAS3VERS"
 echoPlus "        6  - $MIDAS4VERS"
@@ -1625,7 +1629,7 @@ echoPlus "        8  - UNITE fungi ITS 1&2 v8.0 (2019-02-02)"
 echoPlus "        9  - UNITE eukaryotes ITS 1&2 v8.0 (2019-02-02)"
 echoPlus ""
 echoPlus "Note: MiDAS datasets are for waste water treatment systems."
-echoPlus "For general bacteria and archaea, use SILVA LTP"
+echoPlus "For general bacteria and archaea, use SILVA qiime99%"
 
 read REFDATABASE
 echo "$REFDATABASE" >> ampproc-$STARTTIME.log
