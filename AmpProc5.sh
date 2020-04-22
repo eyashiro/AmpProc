@@ -38,11 +38,17 @@ set -o pipefail
 #rm -f ampproc.log
 
 #########################################################
-# THREADS
+# THREADS & HOST
 #########################################################
 
 # Define the maximum number of threads (cpus) to use.
 NUMTHREADS=5
+
+# Server name
+HOST=`hostname`
+
+# Maximum recommended number of threads to use
+MAXTHREADS=$((`nproc`-2))
 
 #########################################################
 # OTHER PARAMS
@@ -1203,6 +1209,7 @@ if [ "$RUNOPTS" = "ASVPIPELINE" ]
 fi
 
   # full command string
+echo "Which server ran AmpProc:                                       $HOST" >> ampproc_params-$STARTTIME.log
 printf "Full command: " >> ampproc_params-$STARTTIME.log
 echo "$0 $@" >> ampproc_params-$STARTTIME.log
 
@@ -1454,12 +1461,11 @@ fi
     fi
 
     # Define number of threads to use (NUMTHREADS)
+    # MAXTHREADS is nproc-2
     echoPlus ""
-    echoPlus "How many CPUs do you want to use at maximum run?"
+    echoPlus "How many CPU threads do you want to use at maximum run?"
     echoPlus "Recommended: Dragon (up to 70), Coco and Peanut (up to 10), Pikachu (up to 22)"
-    HOST=`hostname`
-    MAXTHREADS=$((`nproc`-2))
-    echoPlus "Your current server ($HOST) should be able to handle up to $MAXTHREADS threads."
+    echoPlus "Your current server ($HOST) should be able to handle up to $MAXTHREADS threads if no other jobs are running."
     echoPlus "If unsure, then start the run with 5 threads"
     read NUMTHREADS
     echo "$NUMTHREADS" >> ampproc-$STARTTIME.log
@@ -1625,12 +1631,11 @@ read REFDATABASE
 echo "$REFDATABASE" >> ampproc-$STARTTIME.log
 
 # Define number of threads to use (NUMTHREADS)
+# MAXTHREADS is nproc-2
 echoPlus ""
-echoPlus "How many CPUs do you want to use at maximum run?"
+echoPlus "How many CPU threads do you want to use at maximum run?"
 echoPlus "Recommended: Dragon (up to 70), Coco and Peanut (up to 10), Pikachu (up to 22)"
-HOST=`hostname`
-MAXTHREADS=$((`nproc`-2))
-echoPlus "Your current server ($HOST) should be able to handle up to $MAXTHREADS threads."
+echoPlus "Your current server ($HOST) should be able to handle up to $MAXTHREADS threads if no other jobs are running."
 echoPlus "If unsure, then start the run with 5 threads"
 read NUMTHREADS
 echo "$NUMTHREADS" >> ampproc-$STARTTIME.log
