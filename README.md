@@ -151,6 +151,10 @@ Generating beta diversity matrices
 
 # VERSION HISTORY
 
+AmpProc5 v5.1.0.beta2.9.1  
+Released for user evaluation:  5 May 2020
+- Fixed bug so now V35 amplicons can have their phylo trees generated.
+
 AmpProc5 v5.1.0.beta2.9  
 Released for user evaluation:  22 April 2020
 - Updated the Readme file in addition to the version history section.

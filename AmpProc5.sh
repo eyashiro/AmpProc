@@ -1,13 +1,13 @@
 #!/bin/bash
 
-VERSIONNUMBER=5.1.0.beta2.9
-MODIFIEDDATE="22 April, 2020"
+VERSIONNUMBER=5.1.0.beta2.9.1
+MODIFIEDDATE="5 May, 2020"
 
 ###################################################################################################
 #
 #  Amplicon DNA workflow
 #
-#  Version 5.1.0.beta2.9
+#  Version 5.1.0.beta2.9.1
 #
 #  This workflow script generates frequency tables from raw bacterial 
 #  16S rRNA and fungal ITS 1 amplicon data.
@@ -16,7 +16,7 @@ MODIFIEDDATE="22 April, 2020"
 #
 #  Author: Erika Yashiro, Ph.D.
 #
-#  Last modified: 22 April, 2020
+#  Last modified: 5 May, 2020
 #
 ###################################################################################################
 
@@ -966,7 +966,7 @@ MaketreeWrapper_Function() {
     USER_PATH=`echo $PWD`
 
    
-     if [[ $AMPREGION =~ ^(V4|V13)$ ]]
+     if [[ $AMPREGION =~ ^(V4|V13|V35)$ ]]
         then
         #Align reads and build prokaryotic tree
         MaketreeProk_Function $INFILE $ELEMENT
@@ -1032,7 +1032,7 @@ if [ "$SAMPLESIZE" = "OVER1000" ]
   echoWithDate "   Using only non-normalized OTU table."
 fi
 
-if [[ $AMPREGION =~ ^(V4|V13)$ ]]
+if [[ $AMPREGION =~ ^(V4|V13|V35)$ ]]
     then
     # Make sure that a tree has already been generated.
 
