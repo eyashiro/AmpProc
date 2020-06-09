@@ -21,7 +21,7 @@ Version: 5.1.0.beta2.9.2
 
 ########################################
 
-### To run the help function, type either:
+### To run the help function with usage instructions, type either:
 
 AmpProc5.1 -h
 
