@@ -1,12 +1,12 @@
 # README
 
-Last modified: 5 May, 2020
+Last modified: 9 June, 2020
 
 Author: Erika Yashiro, Ph.D.
 
 Script name: AmpProc
 
-Version: 5.1.0.beta2.9.1
+Version: 5.1.0.beta2.9.2
 
 
 ########################################
@@ -41,6 +41,8 @@ AmpProc5.1
 This is a custom script that processes raw reads. The script acts BOTH as a wrapper for other published software as well as a script that processes and reformats data for downstream applications.  
 Author: Erika Yashiro, Ph.D.  
 https://github.com/eyashiro/AmpProc
+
+The MiDAS workflow (ASVpipeline.sh) is a collaboration with Kasper Skytte Andersen. The version in AmpProc was adapted from original version in https://github.com/KasperSkytte/ASV_pipeline
 
 ---------------
 USEARCH 10 & 11
