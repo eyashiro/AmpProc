@@ -1,4 +1,24 @@
 #!/bin/bash
+
+###################################################################################################
+#
+#  Amplicon DNA workflow for MiDAS
+#
+#  This workflow script runs the MiDAS workflow in AmpProc
+#  It generates frequency tables from raw bacterial 
+#  16S rRNA and fungal ITS 1 amplicon data.
+#  It is an adapted version from what is found in
+#  https://github.com/KasperSkytte/ASV_pipeline
+#
+#  It is currently only supported for internal use at Aalborg University.
+#
+#  Authors: Kasper Skytte Andersen & Erika Yashiro, Ph.D.
+#
+#  Last modified: 9 June, 2020
+#
+###################################################################################################
+
+
 # Set error check
 set -e
 set -o pipefail
