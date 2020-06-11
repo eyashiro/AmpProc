@@ -70,10 +70,10 @@ mkdir -p /tmp/$USER
 STARTTIME=$(date '+%Y%m%d-%H%M%S')
 
 # Define midas versions because they keep changing.
-MIDAS3VERS="MiDAS v3.6 (2019-10-30)"
-MIDAS4VERS="MiDAS v4.6 (2019-11-04)"
-MIDAS3VERSABBREV="3.6"
-MIDAS4VERSABBREV="4.6"
+MIDAS3VERS="MiDAS v3.7 (2020-06-04)"
+MIDAS4VERS="MiDAS v4.8 (2020-02-28)"
+MIDAS3VERSABBREV="3.7"
+MIDAS4VERSABBREV="4.8"
 
 # Lmod modules
 FASTTREE=FastTree/2.1.10-foss-2018a
@@ -217,7 +217,7 @@ if [ $REFDATABASE == 5 ]
     TAXFILE="midas3"
     #TAXVERS="v3.4 (2019-09-30)"
     TAXVERS="$MIDAS3VERS"
-    REFDATAPATH="/space/databases/midas/MiDAS3.6_20191030/output/ESVs_w_sintax.fa"
+    REFDATAPATH="/space/databases/midas/MiDAS3.7_20200604/output/ESVs_w_sintax.fa"
     REFNOTE="using MiDAS $MIDAS3VERSABBREV reference database."
 fi
 
@@ -226,7 +226,7 @@ if [ $REFDATABASE == 6 ]
     TAXFILE="midas4"
     #TAXVERS="v4.4 (2019-09-30)"
     TAXVERS="$MIDAS4VERS"
-    REFDATAPATH="/space/databases/midas/MiDAS4.6_20191104/output/ESVs_w_sintax.fa"
+    REFDATAPATH="/space/databases/midas/MiDAS4.8_20200228/output/ESVs_w_sintax.fa"
     REFNOTE="using MiDAS $MIDAS4VERSABBREV reference database."
 fi
         
