@@ -153,9 +153,14 @@ Generating beta diversity matrices
 
 # VERSION HISTORY
 
+AmpProc5 v5.1.0.beta2.11.0  
+Released for user evaluation:  XX June 2020
+- Added functionality for handling custom amplicons that are not in the current list of amplicons. The new amplicon setting "VAR" allows the users manually set the minimum length cutoff for the amplicon reads. Only paired-end sequenced reads are allowed with this setting. The amplicons using VAR will skip the prefiltering step (because there is not associated reference database), and use the same steps as for the ITS reads to build the maximum linkage cluster tree rather than the phylogenetic tree. The tree-building setting can be changed in a future version if users prefer the phylogenetic tree instead.
+
 AmpProc5 v5.1.0.beta2.10.0  
 Released for user evaluation:  12 June 2020
 - Updated the MiDAS reference databases to versions 3.7 and 4.8.
+- Fixed the typo error of the phylum taxonomy summary file
 
 AmpProc5 v5.1.0.beta2.9.1  
 Released for user evaluation:  5 May 2020
