@@ -1,12 +1,12 @@
 # README
 
-Last modified: 9 June, 2020
+Last modified: 12 June, 2020
 
 Author: Erika Yashiro, Ph.D.
 
 Script name: AmpProc
 
-Version: 5.1.0.beta2.9.2
+Version: 5.1.0.beta2.10.0
 
 
 ########################################
@@ -152,6 +152,10 @@ Generating beta diversity matrices
 ########################################
 
 # VERSION HISTORY
+
+AmpProc5 v5.1.0.beta2.10.0  
+Released for user evaluation:  12 June 2020
+- Updated the MiDAS reference databases to versions 3.7 and 4.8.
 
 AmpProc5 v5.1.0.beta2.9.1  
 Released for user evaluation:  5 May 2020
