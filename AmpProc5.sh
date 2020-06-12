@@ -876,7 +876,7 @@ sed -i 's/-\t$/-\td:__unknown__/g' $INFILE1
 
 usearch11 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank p -output $OUTFILE.phylum_summary.txt -quiet
 echoPlus ""
-echoPlus "    Output phlyum summary: $OUTFILE.phylum_summary.txt"
+echoPlus "    Output phlyum summary: $OUTFILE.sintax.phylum_summary.txt"
 
 usearch11 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank c -output $OUTFILE.sintax.class_summary.txt -quiet
 echoPlus "    Output class summary: $OUTFILE.sintax.class_summary.txt"
