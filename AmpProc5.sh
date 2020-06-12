@@ -950,6 +950,7 @@ MaketreeFung_Function() {
     
     echoPlus ""
     echoPlus "   Warning: Fungal ITS regions are too variable for proper phylogenetic tree. Therefore the maximum linkage tree will be used for generating phlyogeny-based beta diversity matrices."
+    echoPlus "   Warning: Currently the custom amplicons (setting \"VAR\") will also build maximum linkage cluster tree rather than the phylogenetic tree."
     echoPlus "    "
     echoWithDate "    Output files of linkage tree tree are in aggr_tree_$ELEMENT/"
 }
@@ -972,7 +973,7 @@ MaketreeWrapper_Function() {
         MaketreeProk_Function $INFILE $ELEMENT
      fi
 
-     if [ $AMPREGION = "ITS" ]
+     if [[ $AMPREGION =~ ^(ITS|VAR)$ ]]
         then
         # Build clustering tree for fungi / other eukaryotes
         MaketreeFung_Function $INFILE $ELEMENT
@@ -1093,7 +1094,7 @@ if [[ $AMPREGION =~ ^(V4|V13|V35)$ ]]
    fi
 fi
 
-if [ $AMPREGION = "ITS" ]
+if [[ $AMPREGION =~ ^(ITS|VAR)$ ]]
     then
 
     # Check that there is more than 2 OTUs in the OTU table
@@ -1220,6 +1221,13 @@ echo "Process single-end reads (SR) and/or paired-end reads (PE)?     $SINGLEREA
 echo "Remove primer region R1?                                        $STRIPLEFT bases" >> ampproc_params-$STARTTIME.log
 echo "Remove primer region R2?                                        $STRIPRIGHT bases" >> ampproc_params-$STARTTIME.log
 echo "Amplicon region?                                                $AMPREGION" >> ampproc_params-$STARTTIME.log
+
+if [ "$AMPREGION" = "VAR" ]
+   then
+echo "Name of custom amplicon region?                                 $VARNAME" >> ampproc_params-$STARTTIME.log
+echo "Custom amplicon minimum length?                                 $VARMINLEN bp" >> ampproc_params-$STARTTIME.log
+fi
+
 echo "Reference database to use for taxonomy prediction?              $REFDATABASE ) $TAXFILE, $TAXVERS" >> ampproc_params-$STARTTIME.log
 echo "Number of threads:                                              $NUMTHREADS" >> ampproc_params-$STARTTIME.log
 echo "Make a phylo/cluster tree:                                      $MAKETREE" >> ampproc_params-$STARTTIME.log
@@ -1604,15 +1612,52 @@ if [ "$STRIPPRIMERS" = "yes" ]
      STRIPRIGHT=0
 fi
 
-# Define amplicon region = V13/V4/ITS (AMPREGION)
+# Define amplicon region = V13/V4/ITS/V35/VAR (AMPREGION)
 echoPlus ""
 echoPlus "What genomic region does your PCR amplicons amplify?"
 echoPlus "        V13 - Bacterial 16S rRNA hypervariable regions 1 & 3"
 echoPlus "        V4  - Bacterial 16S rRNA hypervariable region 4"
 echoPlus "        V35 - Archaeal 16S rRNA hypervariable region 3 to 5"
 echoPlus "        ITS - Fungal ribosomal ITS 1 region"
+echoPlus "        VAR - Custom amplicons for vertebrate/invertebrate barcoding"
 read AMPREGION
 echo "$AMPREGION" >> ampproc-$STARTTIME.log
+
+# Extra questions on custom amplicon name and minimum cut-off read lengths (after paired-end merge)
+if [ "$AMPREGION" = "VAR" ]
+   then
+   # Exit AmpProc if user did not specify paired-end reads.
+   if [[ ! "$SINGLEREADS" =~ ^(PE)$ ]]
+      then
+      echoPlus ""
+      echoPlus "Currently the VAR option is only enabled for paired-end reads."
+      echoPlus "    Exiting script"
+      exit 1
+   fi
+
+   # Define the custom amplicon
+   echoPlus ""
+   echoPlus "What is the target region of your amplicon?"
+   echoPlus "(Only alphanumeric characters, hyphens, and underscores allowed)"
+   read VARNAME
+   echo "$VARNAME" >> ampproc-$STARTTIME.log
+
+   echoPlus ""
+   echoPlus "Specify the minimum length of the amplicon reads (including primers)."
+   echoPlus "E.g. If your amplicons length ranges at 70-183bp, then specify 69."
+   echoPlus "The minimum length must be at least 50bp."
+   read VARMINLEN
+   echo "$VARMINLEN" >> ampproc-$STARTTIME.log
+
+   if [[ "$VARMINLEN" -lt 50 ]]
+     then
+     echoPlus ""
+     echoPlus "Amplicon minimum length value: $VARMINLEN invalid argument."
+     echoPlus "Sorry I didn't understand what you wrote. Please make sure that you indicate a numerical value of at least 50 bp."
+     echoPlus "You can also run the help function with the option -help or -h."
+     echoWithDate "    Exiting script"
+   fi
+fi
 
 # Define reference database for taxonomy prediction of OTUs (REFDATABASE)
 echoPlus ""
@@ -1630,6 +1675,7 @@ echoPlus "        9  - UNITE eukaryotes ITS 1&2 v8.0 (2019-02-02)"
 echoPlus ""
 echoPlus "Note: MiDAS datasets are for waste water treatment systems."
 echoPlus "For general bacteria and archaea, use SILVA qiime99%"
+echoPlus "For amplicons not targetting 16S, 18S, or ITS, use 0 (=zero)."
 
 read REFDATABASE
 echo "$REFDATABASE" >> ampproc-$STARTTIME.log
@@ -1690,7 +1736,7 @@ if [[ "$STRIPRIGHT" -lt 0 ]] || [[ "$STRIPRIGHT" -gt 100 ]]
 fi
 
 
-if [[ ! "$AMPREGION" =~ ^(V13|V4|ITS|V35)$ ]]
+if [[ ! "$AMPREGION" =~ ^(V13|V4|ITS|V35|VAR)$ ]]
     then
     echoPlus ""
     echoPlus "Amplicon region: $AMPREGION invalid argument."
@@ -1994,6 +2040,11 @@ if [ $AMPREGION = "V35" ]
     Fastqc_Function all.merged.nophix.fq 400
 fi
 
+if [ $AMPREGION = "VAR" ]
+    then
+    # For invertebrate/vertebrate barcoding, short length reads.
+    Fastqc_Function all.merged.nophix.fq $VARMINLEN
+fi
 
 mv QCout.fa all.merged.nophix.qc.fa
 echoWithDate "    Output file of QC: all.merged.nophix.qc.fa"
@@ -2030,8 +2081,9 @@ if [[ $ZOTUS =~ ^(otu|both)$ ]]
   Cluster_otus_Function uniques.fa
   mv otus.fa otus.tmp
 
-  if [ $AMPREGION = "ITS" ]
+  if [[ $AMPREGION =~ ^(ITS|VAR)$ ]]
     then
+      echoWithDate "Skipping prefiltering step."
       mv otus.tmp otus.fa
     else
       # Prefilter to remove any other anomalous reads
@@ -2084,8 +2136,9 @@ if [[ $ZOTUS =~ ^(zotu|both)$ ]]
      Unoise3_Function uniques.fa
      mv zotus.fa zotus.tmp
 
-     if [ $AMPREGION = "ITS" ]
+     if [[ $AMPREGION =~ ^(ITS|VAR)$ ]]
        then
+         echoWithDate "Skipping prefiltering step."
          mv zotus.tmp zotus.fa
        else
          # Prefilter to remove any other anomalous reads
