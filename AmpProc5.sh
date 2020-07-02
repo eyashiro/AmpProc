@@ -1,13 +1,13 @@
 #!/bin/bash
 
-VERSIONNUMBER=5.1.0.beta2.10.0
-MODIFIEDDATE="12 June, 2020"
+VERSIONNUMBER=5.1.0.beta2.11.0
+MODIFIEDDATE="2 July, 2020"
 
 ###################################################################################################
 #
 #  Amplicon DNA workflow
 #
-#  Version 5.1.0.beta2.10.0
+#  Version 5.1.0.beta2.11.0
 #
 #  This workflow script generates frequency tables from raw bacterial 
 #  16S rRNA and fungal ITS 1 amplicon data.
@@ -16,7 +16,7 @@ MODIFIEDDATE="12 June, 2020"
 #
 #  Author: Erika Yashiro, Ph.D.
 #
-#  Last modified: 12 June, 2020
+#  Last modified: 2 July, 2020
 #
 ###################################################################################################
 
