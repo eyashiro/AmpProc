@@ -155,8 +155,13 @@ Generating beta diversity matrices
 
 # VERSION HISTORY
 
+AmpProc5 v5.1.0.beta2.11.1  
+Released for user evaluation:  3 July 2020
+- Bug fixes
+- Polished the help section and Readme description.
+
 AmpProc5 v5.1.0.beta2.11.0  
-Released for user evaluation:  2 July 2020
+Released for user testing:  2 July 2020
 - Added functionality for handling custom amplicons that are not in the current list of amplicons. The new amplicon setting "VAR" allows the users manually set the minimum length cutoff for the amplicon reads. Only paired-end sequenced reads are allowed with this setting. The amplicons using VAR will skip the prefiltering step (because there is not associated reference database), and use the same steps as for the ITS reads to build the maximum linkage cluster tree rather than the phylogenetic tree. The tree-building setting can be changed in a future version if users prefer the phylogenetic tree instead.
 
 AmpProc5 v5.1.0.beta2.10.0  
