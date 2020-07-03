@@ -1,12 +1,12 @@
 # README
 
-Last modified: 2 July, 2020
+Last modified: 3 July, 2020
 
 Author: Erika Yashiro, Ph.D.
 
 Script name: AmpProc
 
-Version: 5.1.0.beta2.11.0
+Version: 5.1.0.beta2.11.1
 
 
 ########################################
@@ -35,14 +35,16 @@ AmpProc5.1 -help
 
 # For citing the tools used in the workflow:
 
-------------
-AmpProc5.1
-------------
-This is a custom script that processes raw reads. The script acts BOTH as a wrapper for other published software as well as a script that processes and reformats data for downstream applications.  
+--------
+AmpProc
+--------
+This is a custom workflow that processes raw amplicon reads. AmpProc acts BOTH as a wrapper for other published software as well as a script that processes and reformats data for downstream applications.  
+AmpProc is mainly geared toward amplicon data sequenced on the Illumina sequencing platforms, but I can implement further QC features to handle other technologies if you ask me for them.  
+Currently, AmpProc handles mostly ribosomal operon amplicons, and other amplicon types are also now possible to process.  
 Author: Erika Yashiro, Ph.D.  
 https://github.com/eyashiro/AmpProc
 
-The MiDAS workflow (ASVpipeline.sh) is a collaboration with Kasper Skytte Andersen. The version in AmpProc was adapted from original version in https://github.com/KasperSkytte/ASV_pipeline
+The MiDAS workflow (ASVpipeline.sh) is a collaboration with Kasper Skytte Andersen. The version in AmpProc was adapted from the original version in https://github.com/KasperSkytte/ASV_pipeline
 
 ---------------
 USEARCH 10 & 11
