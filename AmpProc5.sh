@@ -1,13 +1,13 @@
 #!/bin/bash
 
-VERSIONNUMBER=5.1.0.beta2.11.0
-MODIFIEDDATE="2 July, 2020"
+VERSIONNUMBER=5.1.0.beta2.11.1
+MODIFIEDDATE="3 July, 2020"
 
 ###################################################################################################
 #
 #  Amplicon DNA workflow
 #
-#  Version 5.1.0.beta2.11.0
+#  Version 5.1.0.beta2.11.1
 #
 #  This workflow script generates frequency tables from raw bacterial 
 #  16S rRNA and fungal ITS 1 amplicon data.
@@ -16,7 +16,7 @@ MODIFIEDDATE="2 July, 2020"
 #
 #  Author: Erika Yashiro, Ph.D.
 #
-#  Last modified: 2 July, 2020
+#  Last modified: 3 July, 2020
 #
 ###################################################################################################
 
@@ -169,8 +169,8 @@ echoWithDate() {
 }
 
 echoPlus() {
-  echo $1
-  echo $1 >> ampproc-$STARTTIME.log
+  echo "$1"
+  echo "$1" >> ampproc-$STARTTIME.log
 }
 
 Refdatabase_Name_Function () {
@@ -1640,23 +1640,41 @@ if [ "$AMPREGION" = "VAR" ]
    echoPlus ""
    echoPlus "What is the target region of your amplicon?"
    echoPlus "(Only alphanumeric characters, hyphens, and underscores allowed)"
+   echoPlus "e.g. coi, mcrA, recA, nifH, pasta_arrabiata"
    read VARNAME
    echo "$VARNAME" >> ampproc-$STARTTIME.log
 
    echoPlus ""
    echoPlus "Specify the minimum length of the amplicon reads (including primers)."
-   echoPlus "E.g. If your amplicons length ranges at 70-183bp, then specify 69."
-   echoPlus "The minimum length must be at least 50bp."
+   echoPlus "E.g. If your amplicons length ranges at 70-183bp, then specify 70."
+   echoPlus "The minimum length should be at least 50bp."
    read VARMINLEN
    echo "$VARMINLEN" >> ampproc-$STARTTIME.log
+
+   if [[ "$VARMINLEN" -lt 20 ]]
+     then
+     echoPlus "Amplicon minimum length value: $VARMINLEN invalid argument."
+     echoPlus "Please make sure that you indicate a numerical value of at least 20 bp."
+     echoPlus "You can also run the help function with the option -help or -h."
+     echoWithDate "    Exiting script"
+     echoPlus ""
+     exit 2
+   fi
 
    if [[ "$VARMINLEN" -lt 50 ]]
      then
      echoPlus ""
-     echoPlus "Amplicon minimum length value: $VARMINLEN invalid argument."
-     echoPlus "Sorry I didn't understand what you wrote. Please make sure that you indicate a numerical value of at least 50 bp."
-     echoPlus "You can also run the help function with the option -help or -h."
-     echoWithDate "    Exiting script"
+     echoPlus "Amplicon minimum length value is <50bp.The short minimum cutoff is not recommended."
+     echoPlus "Proceed anyway? (yes/no)"
+     read VARMINQUESTION
+     if [ "$VARMINQUESTION" = "yes" ]
+       then
+       echoPlus "Continuing with workflow..."
+       else
+         echoWithDate "Exiting script"
+         echoPlus ""
+         exit 3
+     fi
    fi
 fi
 
