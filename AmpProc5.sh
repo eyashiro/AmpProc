@@ -1,7 +1,7 @@
 #!/bin/bash
 
-VERSIONNUMBER=5.1.0.beta2.11.1
-MODIFIEDDATE="3 July, 2020"
+VERSIONNUMBER=5.1.0.beta2.11.1-12S-test
+MODIFIEDDATE="11 March 2021"
 
 ###################################################################################################
 #
@@ -16,7 +16,7 @@ MODIFIEDDATE="3 July, 2020"
 #
 #  Author: Erika Yashiro, Ph.D.
 #
-#  Last modified: 3 July, 2020
+#  Last modified: 11 March 2021
 #
 ###################################################################################################
 
@@ -253,6 +253,14 @@ if [ $REFDATABASE == 9 ]
     TAXVERS="v8.0 (2019-02-02)"
     REFDATAPATH="/space/databases/UNITE/utax_reference_dataset_all_02.02.2019.corrected2.fasta"
     REFNOTE="using UNITE eukaryotes reference database."
+fi
+
+if [ $REFDATABASE == 10 ]
+    then
+    TAXFILE="12SMitohelper"
+    TAXVERS="mitofish 2021-03"
+    REFDATAPATH="/space/databases/12S/mitofish.12S.Mar2021.sintax.fasta"
+    REFNOTE="using Mitofish 12S eukaryotes reference database."
 fi
 }
 
@@ -1299,10 +1307,10 @@ if [[ "$1" =~ ^(-help|-h)$ ]]
             exit 1
         fi
         
-	if [ $TAX -lt 1 ] || [ $TAX -gt 9 ]
+	if [ $TAX -lt 1 ] || [ $TAX -gt 10 ]
             then
             echo ""
-            echo "Taxonomy needs to be selected (1,2,3,4,5,6 or 9). Check -help or -h for more information. Exiting script."
+            echo "Taxonomy needs to be selected (1-10). Check -help or -h for more information. Exiting script."
             echo ""
             exit 1
         fi
@@ -1620,7 +1628,7 @@ echoPlus "        V13 - Bacterial 16S rRNA hypervariable regions 1 & 3"
 echoPlus "        V4  - Bacterial 16S rRNA hypervariable region 4"
 echoPlus "        V35 - Archaeal 16S rRNA hypervariable region 3 to 5"
 echoPlus "        ITS - Fungal ribosomal ITS 1 region"
-echoPlus "        VAR - Custom amplicons for vertebrate/invertebrate barcoding"
+echoPlus "        VAR - Custom amplicons for vertebrate/invertebrate barcoding (e.g. 12S, COI)"
 read AMPREGION
 echo "$AMPREGION" >> ampproc-$STARTTIME.log
 
@@ -1640,7 +1648,7 @@ if [ "$AMPREGION" = "VAR" ]
    echoPlus ""
    echoPlus "What is the target region of your amplicon?"
    echoPlus "(Only alphanumeric characters, hyphens, and underscores allowed)"
-   echoPlus "e.g. coi, mcrA, recA, nifH, pasta_arrabiata"
+   echoPlus "e.g. coi, mcrA, recA, nifH, 12S, pasta_arrabiata"
    read VARNAME
    echo "$VARNAME" >> ampproc-$STARTTIME.log
 
@@ -1691,6 +1699,7 @@ echoPlus "        6  - $MIDAS4VERS"
 echoPlus "        7  - RDP training set v16"
 echoPlus "        8  - UNITE fungi ITS 1&2 v8.0 (2019-02-02)"
 echoPlus "        9  - UNITE eukaryotes ITS 1&2 v8.0 (2019-02-02)"
+echoPlus "        10 - 12S Mitofish (Mitohelper 2021-03)"
 echoPlus ""
 echoPlus "Note: MiDAS datasets are for waste water treatment systems."
 echoPlus "For general bacteria and archaea, use SILVA qiime99%"
