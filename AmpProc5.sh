@@ -1775,7 +1775,7 @@ if [[ ! "$AMPREGION" =~ ^(V13|V4|ITS|V35|VAR)$ ]]
     exit 1
 fi
 
-if [[ "$REFDATABASE" -lt 0 ]] || [[ "$REFDATABASE" -gt 9 ]]
+if [[ "$REFDATABASE" -lt 0 ]] || [[ "$REFDATABASE" -gt 10 ]]
     then
     echoPlus ""
     echoPlus "Reference database: $REFDATABASE invalid argument."
