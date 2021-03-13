@@ -138,6 +138,10 @@ Help_Function () {
     echo "              7  - RDP training set v16"
     echo "              8  - UNITE fungi ITS 1&2 v8.0 (2019-02-02)"
     echo "              9  - UNITE eukaryotes ITS 1&2 v8.0 (2019-02-02)"
+    echo "             10 - 12S Mitofish (Mitohelper 2021-03)"
+    echo "             11 - 12S MIDORI Unique metazoan vGB241 (2020-12)"
+    echo "             12 - 12S MIDORI Longest metazoan vGB241 (2020-12)"
+
     echo ""
     echo "To only incorporate the new taxonomy output into an OTU table, run the script: otutab_sintax_to_ampvis.v1.2.sh (Run with -h for more information)"
     echo ""
@@ -257,11 +261,30 @@ fi
 
 if [ $REFDATABASE == 10 ]
     then
-    TAXFILE="12SMitohelper"
-    TAXVERS="mitofish 2021-03"
+    TAXFILE="12sMitohelper"
+    TAXVERS="12S mitofish 2021-03"
     REFDATAPATH="/space/databases/12S/mitofish.12S.Mar2021.sintax.fasta"
     REFNOTE="using Mitofish 12S eukaryotes reference database."
 fi
+
+if [ $REFDATABASE == 11 ]
+    then
+    TAXFILE="12sMIDORIuniq"
+    TAXVERS="MIDORI Unique 12S GB241 (2020-12)"
+    REFDATAPATH="/space/databases/12S/"
+    REFNOTE="using MIDORI 12S Unique metazoan reference database."
+fi
+
+if [ $REFDATABASE == 12 ]
+   then
+   TAXFILE="12SMIDORIlong"
+   TAXVERS="MIDORI Longest 12S GB241 (2020-12)"
+   REFDATAPATH="/space/databases/12S/"
+   REFNOTE="using MIDORI 12S Longest metazoan reference database."
+fi
+
+REFDBLISTLENGTH=12
+
 }
 
 Cleanup_Function () {
@@ -883,7 +906,7 @@ echoWithDate "Generating $OUTFILE taxonomy summary"
 sed -i 's/+\t$/+\td:__unknown__/g' $INFILE1
 sed -i 's/-\t$/-\td:__unknown__/g' $INFILE1
 
-usearch11 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank p -output $OUTFILE.phylum_summary.txt -quiet
+usearch11 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank p -output $OUTFILE.sintax.phylum_summary.txt -quiet
 echoPlus ""
 echoPlus "    Output phlyum summary: $OUTFILE.sintax.phylum_summary.txt"
 
@@ -1307,10 +1330,10 @@ if [[ "$1" =~ ^(-help|-h)$ ]]
             exit 1
         fi
         
-	if [ $TAX -lt 1 ] || [ $TAX -gt 10 ]
+	if [ $TAX -lt 1 ] || [ $TAX -gt $REFDBLISTLENGTH ]
             then
             echo ""
-            echo "Taxonomy needs to be selected (1-10). Check -help or -h for more information. Exiting script."
+            echo "Taxonomy needs to be selected (1-$REFDBLISTLENGTH). Check -help or -h for more information. Exiting script."
             echo ""
             exit 1
         fi
@@ -1700,6 +1723,8 @@ echoPlus "        7  - RDP training set v16"
 echoPlus "        8  - UNITE fungi ITS 1&2 v8.0 (2019-02-02)"
 echoPlus "        9  - UNITE eukaryotes ITS 1&2 v8.0 (2019-02-02)"
 echoPlus "        10 - 12S Mitofish (Mitohelper 2021-03)"
+echoPlus "        11 - 12S MIDORI Unique metazoan vGB241 (2020-12)"
+echoPlus "        12 - 12S MIDORI Longest metazoan vGB241 (2020-12)"
 echoPlus ""
 echoPlus "Note: MiDAS datasets are for waste water treatment systems."
 echoPlus "For general bacteria and archaea, use SILVA qiime99%"
@@ -1775,7 +1800,7 @@ if [[ ! "$AMPREGION" =~ ^(V13|V4|ITS|V35|VAR)$ ]]
     exit 1
 fi
 
-if [[ "$REFDATABASE" -lt 0 ]] || [[ "$REFDATABASE" -gt 10 ]]
+if [[ "$REFDATABASE" -lt 0 ]] || [[ "$REFDATABASE" -gt $REFDBLISTLENGTH ]]
     then
     echoPlus ""
     echoPlus "Reference database: $REFDATABASE invalid argument."
