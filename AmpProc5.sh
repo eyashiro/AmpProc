@@ -1,13 +1,13 @@
 #!/bin/bash
 
-VERSIONNUMBER=5.1.0.beta2.11.1-12S-test
-MODIFIEDDATE="11 March 2021"
+VERSIONNUMBER=5.1.0.beta2.12.0
+MODIFIEDDATE="6 April 2021"
 
 ###################################################################################################
 #
 #  Amplicon DNA workflow
 #
-#  Version 5.1.0.beta2.11.1
+#  Version 5.1.0.beta2.12.0
 #
 #  This workflow script generates frequency tables from raw bacterial 
 #  16S rRNA and fungal ITS 1 amplicon data.
@@ -16,7 +16,7 @@ MODIFIEDDATE="11 March 2021"
 #
 #  Author: Erika Yashiro, Ph.D.
 #
-#  Last modified: 11 March 2021
+#  Last modified: 6 April 2021
 #
 ###################################################################################################
 
@@ -271,7 +271,7 @@ if [ $REFDATABASE == 11 ]
     then
     TAXFILE="12sMIDORIuniq"
     TAXVERS="MIDORI Unique 12S GB241 (2020-12)"
-    REFDATAPATH="/space/databases/12S/"
+    REFDATAPATH="/space/databases/12S/MIDORI_UNIQ_GB241_srRNA_SINTAX.fasta"
     REFNOTE="using MIDORI 12S Unique metazoan reference database."
 fi
 
@@ -279,7 +279,7 @@ if [ $REFDATABASE == 12 ]
    then
    TAXFILE="12SMIDORIlong"
    TAXVERS="MIDORI Longest 12S GB241 (2020-12)"
-   REFDATAPATH="/space/databases/12S/"
+   REFDATAPATH="/space/databases/12S/MIDORI_LONGEST_GB241_srRNA_SINTAX.fasta"
    REFNOTE="using MIDORI 12S Longest metazoan reference database."
 fi
 
