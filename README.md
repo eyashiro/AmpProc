@@ -1,12 +1,12 @@
 # README
 
-Last modified: 3 July, 2020
+Last modified: 6 April 2021
 
 Author: Erika Yashiro, Ph.D.
 
 Script name: AmpProc
 
-Version: 5.1.0.beta2.11.1
+Version: 5.1.0.beta2.12.0
 
 
 ########################################
@@ -154,6 +154,12 @@ Generating beta diversity matrices
 ########################################
 
 # VERSION HISTORY
+
+AmpProc5 v5.1.0.beta2.12.0  
+Released for user evaluation: 6 April 2021
+- Added the 12S mitochondrial gene reference databases:  
+   - Mitofish based on the curated version in Mitohelper (March 2021), reformatted to sintax format.  
+   - MIDORI UNIQ and LONG databases, based on the Genback v241, pre-formatted for sintax.  
 
 AmpProc5 v5.1.0.beta2.11.1  
 Released for user evaluation:  3 July 2020
