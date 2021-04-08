@@ -1,13 +1,13 @@
 #!/bin/bash
 
-VERSIONNUMBER=5.1.0.beta2.12.0
-MODIFIEDDATE="6 April 2021"
+VERSIONNUMBER=5.1.0.beta2.12.1
+MODIFIEDDATE="8 April 2021"
 
 ###################################################################################################
 #
 #  Amplicon DNA workflow
 #
-#  Version 5.1.0.beta2.12.0
+#  Version 5.1.0.beta2.12.1
 #
 #  This workflow script generates frequency tables from raw bacterial 
 #  16S rRNA and fungal ITS 1 amplicon data.
@@ -16,7 +16,7 @@ MODIFIEDDATE="6 April 2021"
 #
 #  Author: Erika Yashiro, Ph.D.
 #
-#  Last modified: 6 April 2021
+#  Last modified: 8 April 2021
 #
 ###################################################################################################
 
@@ -80,6 +80,8 @@ FASTTREE=FastTree/2.1.10-foss-2018a
 QIIME1=QIIME/1.9.1-foss-2018a
 BIOM=biom-format/2.1.7-foss-2018a-Python-3.6.4
 
+# Define number of reference databases available for standard workflow
+REFDBLISTLENGTH=12
 
 #########################################################
 # HELP
@@ -282,8 +284,6 @@ if [ $REFDATABASE == 12 ]
    REFDATAPATH="/space/databases/12S/MIDORI_LONGEST_GB241_srRNA_SINTAX.fasta"
    REFNOTE="using MIDORI 12S Longest metazoan reference database."
 fi
-
-REFDBLISTLENGTH=12
 
 }
 

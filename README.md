@@ -1,12 +1,12 @@
 # README
 
-Last modified: 6 April 2021
+Last modified: 8 April 2021
 
 Author: Erika Yashiro, Ph.D.
 
 Script name: AmpProc
 
-Version: 5.1.0.beta2.12.0
+Version: 5.1.0.beta2.12.1
 
 
 ########################################
@@ -154,6 +154,10 @@ Generating beta diversity matrices
 ########################################
 
 # VERSION HISTORY
+
+AmpProc5 v5.1.0.beta2.12.1  
+Released for user evaluation: 8 April 2021
+- Fixed bug, where the workflow crashes after the Q&A section of standard workflow.
 
 AmpProc5 v5.1.0.beta2.12.0  
 Released for user evaluation: 6 April 2021
