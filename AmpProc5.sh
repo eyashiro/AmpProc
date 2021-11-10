@@ -1,13 +1,13 @@
 #!/bin/bash
 
-VERSIONNUMBER=5.1.0.beta2.12.1
-MODIFIEDDATE="8 April 2021"
+VERSIONNUMBER=5.1.0.beta2.13
+MODIFIEDDATE="10 November 2021"
 
 ###################################################################################################
 #
 #  Amplicon DNA workflow
 #
-#  Version 5.1.0.beta2.12.1
+#  Version 5.1.0.beta2.13
 #
 #  This workflow script generates frequency tables from raw bacterial 
 #  16S rRNA and fungal ITS 1 amplicon data.
@@ -16,7 +16,7 @@ MODIFIEDDATE="8 April 2021"
 #
 #  Author: Erika Yashiro, Ph.D.
 #
-#  Last modified: 8 April 2021
+#  Last modified: 10 November 2021
 #
 ###################################################################################################
 
@@ -71,9 +71,9 @@ STARTTIME=$(date '+%Y%m%d-%H%M%S')
 
 # Define midas versions because they keep changing.
 MIDAS3VERS="MiDAS v3.7 (2020-06-04)"
-MIDAS4VERS="MiDAS v4.8 (2020-02-28)"
+MIDAS4VERS="v4.8.1 (2021-07-02)"
 MIDAS3VERSABBREV="3.7"
-MIDAS4VERSABBREV="4.8"
+MIDAS4VERSABBREV="4.8.1"
 
 # Lmod modules
 FASTTREE=FastTree/2.1.10-foss-2018a
@@ -205,10 +205,10 @@ fi
 
 if [ $REFDATABASE == 3 ]
     then
-    TAXFILE="silva99pc138"
-    TAXVERS="qiime-formatted SSUREF99% v138"
-    REFDATAPATH="/space/databases/SILVA/silva_138_qiime99_16S_18S_sorted.sintax.fasta"
-    REFNOTE="using SILVA qiime99% v138 16S & 18S reference database."
+    TAXFILE="silva99pc1381"
+    TAXVERS="SILVA SSUREFNR99% trunc v138.1"
+    REFDATAPATH="/space/databases/SILVA/SILVA_138.1_SSURef_NR99_tax_silva_trunc.sintax.fasta"
+    REFNOTE="using SILVA SSURef NR99 v138.1 16S & 18S reference database."
 fi
 
 if [ $REFDATABASE == 4 ]
@@ -222,7 +222,6 @@ fi
 if [ $REFDATABASE == 5 ]
     then
     TAXFILE="midas3"
-    #TAXVERS="v3.4 (2019-09-30)"
     TAXVERS="$MIDAS3VERS"
     REFDATAPATH="/space/databases/midas/MiDAS3.7_20200604/output/ESVs_w_sintax.fa"
     REFNOTE="using MiDAS $MIDAS3VERSABBREV reference database."
@@ -231,9 +230,8 @@ fi
 if [ $REFDATABASE == 6 ]
     then
     TAXFILE="midas4"
-    #TAXVERS="v4.4 (2019-09-30)"
     TAXVERS="$MIDAS4VERS"
-    REFDATAPATH="/space/databases/midas/MiDAS4.8_20200228/output/ESVs_w_sintax.fa"
+    REFDATAPATH="/space/databases/midas/MiDAS4.8.1_20210702/output/FLASVs_w_sintax.fa"
     REFNOTE="using MiDAS $MIDAS4VERSABBREV reference database."
 fi
         
@@ -248,16 +246,16 @@ fi
 if [ $REFDATABASE == 8 ]
     then
     TAXFILE="uniteFUN"
-    TAXVERS="v8.0 (2019-02-02)"
-    REFDATAPATH="/space/databases/UNITE/utax_reference_dataset_fungi_02.02.2019.corrected.fasta"
+    TAXVERS="v8.3 (2021-05-10)"
+    REFDATAPATH="/space/databases/UNITE/utax_reference_dataset_fungi_10.05.2021.v8.3.corrected.fasta"
     REFNOTE="using UNITE fungi reference database."
 fi
 
 if [ $REFDATABASE == 9 ]
     then
     TAXFILE="uniteEUK"
-    TAXVERS="v8.0 (2019-02-02)"
-    REFDATAPATH="/space/databases/UNITE/utax_reference_dataset_all_02.02.2019.corrected2.fasta"
+    TAXVERS="v8.3 (2021-05-10)"
+    REFDATAPATH="/space/databases/UNITE/utax_reference_dataset_all_10.05.2021.v8.3.corrected.fasta"
     REFNOTE="using UNITE eukaryotes reference database."
 fi
 
