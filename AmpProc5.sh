@@ -56,8 +56,8 @@ MAXTHREADS=$((`nproc`-2))
 
 # Define location of script
 #SCRIPTPATH="/space/users/ey/Documents/Scripts/git_work/AmpProc"
-#SCRIPTPATH="/space/admin/ey/Documents/p0001_amplicon_workflow_test/AmpProc_test"
-SCRIPTPATH="/space/sharedbin_ubuntu_14_04/Non_module_software/AmpProc-v$VERSIONNUMBER"
+SCRIPTPATH="/space/admin/ey/Documents/p0001_amplicon_workflow_test/AmpProc_test"
+#SCRIPTPATH="/space/sharedbin_ubuntu_14_04/Non_module_software/AmpProc-v$VERSIONNUMBER"
 
 # Define the location of the sequences folders
 SEQPATH="/space/sequences/"
@@ -133,13 +133,13 @@ Help_Function () {
     echo "              0  - no taxonomy assignment"
     echo "              1  - SILVA LTP v132 16S"
     echo "              2  - SILVA qiime99% v132 16S"
-    echo "              3  - SILVA qiime99% v138 16S and 18S"
+    echo "              3  - SILVA SSURef trunc 99% v138.1 16S and 18S"
     echo "              4  - MiDAS v2.1.3"
     echo "              5  - $MIDAS3VERS"
     echo "              6  - $MIDAS4VERS"
     echo "              7  - RDP training set v16"
-    echo "              8  - UNITE fungi ITS 1&2 v8.0 (2019-02-02)"
-    echo "              9  - UNITE eukaryotes ITS 1&2 v8.0 (2019-02-02)"
+    echo "              8  - UNITE fungi ITS 1&2 v8.3 (2021-05-10)"
+    echo "              9  - UNITE eukaryotes ITS 1&2 v8.3 (2021-05-10)"
     echo "             10 - 12S Mitofish (Mitohelper 2021-03)"
     echo "             11 - 12S MIDORI Unique metazoan vGB241 (2020-12)"
     echo "             12 - 12S MIDORI Longest metazoan vGB241 (2020-12)"
