@@ -14,7 +14,7 @@
 #
 #  Authors: Kasper Skytte Andersen & Erika Yashiro, Ph.D.
 #
-#  Last modified: 9 June, 2020
+#  Last modified: 10 November 2021
 #
 ###################################################################################################
 
@@ -32,11 +32,14 @@ SEQPATH=/space/sequences/
 #TAXDB=/space/databases/midas/MiDAS3.3_20190919/output/ESVs_w_sintax.fa
  # $1 = $REFDATAPATH from AmpProc
 TAXDB=$1
-ASVDB=/space/databases/midas/ASVDB_250bp/ASVsV13_250bp_v2.0_20190514/ASVs.R1.fa
+ASVDB=/space/databases/midas/ASVDB_250bp/ASVs_250bp_v3.0_20211110/ASVs.R1.fa
 prefilterDB=/space/databases/greengenes/gg_13_8_otus/rep_set/97_otus.fasta
 SAMPLESEP="_"
   # output to log with run starting time ID from AmpProc
 STARTTIME=$3
+
+# chunksize used for splitting data for GNU parallel otutab job
+CHUNKSIZE=5
 
 rm -rf rawdata/
 rm -rf phix_filtered/
@@ -64,6 +67,7 @@ rm -f ASVs_nohits.R1.fa
 rm -f ASVs_nohits_renamed.R1.fa
 rm -f all.singlereads.nophix.R1.fq
 rm -f all.singlereads.nophix.qc.R1.fa
+#rm -f tempdir
 }
 
 Empty_samples_cleanup_Function () {
@@ -181,7 +185,54 @@ if [ -s "$TAXDB" ]
 fi
 
 echoWithDate "Generating ASV table..."
-$usearch -otutab all.singlereads.nophix.R1.fq -zotus ASVs.R1.fa -otutabout ASVtable.tsv -threads $MAX_THREADS -sample_delim $SAMPLESEP
+# USEARCH11 -otutab does not scale linearly with the number of threads.
+# It is much faster to split into smaller chunks and run in parallel using
+# GNU parallel and then merge tables afterwards.
+#JOBS=$((( "${MAX_THREADS}" / "${CHUNKSIZE}" - 1)))
+JOBS=$((( ${MAX_THREADS} / ${CHUNKSIZE} - 1)))
+echo $JOBS
+if [ $JOBS -gt 1 ]
+#if [ $JOBS -ge 1 ]
+  then
+  echoWithDate "Splitting into $JOBS jobs using max $CHUNKSIZE threads each..."
+  # create a temporary directory for split job step
+  TEMPDIR="tempdir"
+  mkdir -p $TEMPDIR
+  SPLITFOLDER=${TEMPDIR}/split_asvtable
+  mkdir -p $SPLITFOLDER
+
+  # split all unfiltered reads
+  $usearch -fastx_split all.singlereads.nophix.R1.fq -splits $JOBS -outname "${SPLITFOLDER}/all.singlereads.nophix.R1_@" -quiet
+
+  # Run a usearch11 -otutab command for each file
+  find "$SPLITFOLDER" -type f -name '*all.singlereads.nophix.R1_*' | parallel $usearch -otutab {} -zotus ASVs.R1.fa -otutabout {}_asvtab.tsv -threads $CHUNKSIZE -sample_delim "_" -quiet
+
+  # Generate a comma-separated list of filenames to merge
+  ASVTABSLIST=""
+  while IFS= read -r -d '' ASVTAB
+    do
+    # exclude table if empty, ie only contains one line with '#OTU ID'
+    if [ "$(head -n 2 "$ASVTAB" | wc -l)" -lt 2 ]
+      then
+      continue
+    fi
+    if [ -z "$ASVTABSLIST" ]
+      then
+      ASVTABSLIST="$ASVTAB"
+      else
+      ASVTABSLIST="$ASVTABSLIST,$ASVTAB"
+    fi
+  done < <(find "$SPLITFOLDER" -type f -iname '*_asvtab.tsv' -print0)
+
+  # Merge the asvtables
+  $usearch -otutab_merge "$ASVTABSLIST" -output "ASVtable.tsv" -quiet
+
+  else
+  # Don't run in parallel if max_threads <= 2*chunksize
+  $usearch -otutab all.singlereads.nophix.R1.fq -zotus ASVs.R1.fa -otutabout ASVtable.tsv -threads "$MAX_THREADS" -sample_delim $SAMPLESEP
+fi
+
+#$usearch -otutab all.singlereads.nophix.R1.fq -zotus ASVs.R1.fa -otutabout ASVtable.tsv -threads $MAX_THREADS -sample_delim $SAMPLESEP
 #sort ASVtable
 head -n 1 ASVtable.tsv > tmp
 tail -n +2 ASVtable.tsv | sort -V >> tmp
