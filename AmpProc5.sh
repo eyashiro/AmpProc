@@ -1,7 +1,7 @@
 #!/bin/bash
 
 VERSIONNUMBER=5.1.0.beta2.13
-MODIFIEDDATE="10 November 2021"
+MODIFIEDDATE="19 November 2021"
 
 ###################################################################################################
 #
@@ -16,7 +16,7 @@ MODIFIEDDATE="10 November 2021"
 #
 #  Author: Erika Yashiro, Ph.D.
 #
-#  Last modified: 10 November 2021
+#  Last modified: 19 November 2021
 #
 ###################################################################################################
 
@@ -81,7 +81,7 @@ QIIME1=QIIME/1.9.1-foss-2018a
 BIOM=biom-format/2.1.7-foss-2018a-Python-3.6.4
 
 # Define number of reference databases available for standard workflow
-REFDBLISTLENGTH=12
+REFDBLISTLENGTH=14
 
 #########################################################
 # HELP
@@ -140,9 +140,11 @@ Help_Function () {
     echo "              7  - RDP training set v16"
     echo "              8  - UNITE fungi ITS 1&2 v8.3 (2021-05-10)"
     echo "              9  - UNITE eukaryotes ITS 1&2 v8.3 (2021-05-10)"
-    echo "             10 - 12S Mitofish (Mitohelper 2021-03)"
-    echo "             11 - 12S MIDORI Unique metazoan vGB241 (2020-12)"
-    echo "             12 - 12S MIDORI Longest metazoan vGB241 (2020-12)"
+    echo "             10  - 12S Mitofish (Mitohelper 2021-03)"
+    echo "             11  - 12S MIDORI Unique metazoan vGB241 (2020-12)"
+    echo "             12  - 12S MIDORI Longest metazoan vGB241 (2020-12)"
+    echo "             14  - Custom sintax-formatted reference database. AmpProc will ask you the path. "
+    echo "                   No spaces in the file/folder names!"
 
     echo ""
     echo "To only incorporate the new taxonomy output into an OTU table, run the script: otutab_sintax_to_ampvis.v1.2.sh (Run with -h for more information)"
@@ -283,6 +285,24 @@ if [ $REFDATABASE == 12 ]
    REFNOTE="using MIDORI 12S Longest metazoan reference database."
 fi
 
+if [ $REFDATABASE == 13 ]
+   then
+   echoWithDate "The value $REFDATABASE is not used at the moment."
+   echoWithDate "Exiting script..."
+   echoWithDate ""
+   exit
+fi
+
+if [ $REFDATABASE == 14 ]
+   then
+   TAXFILE="Custom"
+   TAXVERS="Custom reference database"
+   REFNOTE="using Custom reference database."
+   echoPlus ""
+   echoPlus "You can now tell me the full path to the reference database for taxonomy prediction."
+   echoPlus "Note that your file and folder names cannot contain spaces and other weird characters!!"
+   read REFDATAPATH
+fi
 }
 
 Cleanup_Function () {
@@ -1713,13 +1733,13 @@ echoPlus "Which reference database do you want to use for taxonomy prediction?"
 echoPlus "        0  - Do not assign taxonomy"
 echoPlus "        1  - SILVA LTP v132 for 16S"
 echoPlus "        2  - SILVA qiime99% v132 for 16S"
-echoPlus "        3  - SILVA qiime99% v138 for 16S & 18S"
+echoPlus "        3  - SILVA SSURef trunc 99% v138.1 16S and 18S"
 echoPlus "        4  - MiDAS v2.1.3"
 echoPlus "        5  - $MIDAS3VERS"
 echoPlus "        6  - $MIDAS4VERS"
 echoPlus "        7  - RDP training set v16"
-echoPlus "        8  - UNITE fungi ITS 1&2 v8.0 (2019-02-02)"
-echoPlus "        9  - UNITE eukaryotes ITS 1&2 v8.0 (2019-02-02)"
+echoPlus "        8  - UNITE fungi ITS 1&2 v8.3 (2021-05-10)"
+echoPlus "        9  - UNITE eukaryotes ITS 1&2 v8.3 (2021-05-10)"
 echoPlus "        10 - 12S Mitofish (Mitohelper 2021-03)"
 echoPlus "        11 - 12S MIDORI Unique metazoan vGB241 (2020-12)"
 echoPlus "        12 - 12S MIDORI Longest metazoan vGB241 (2020-12)"
@@ -1727,6 +1747,10 @@ echoPlus ""
 echoPlus "Note: MiDAS datasets are for waste water treatment systems."
 echoPlus "For general bacteria and archaea, use SILVA qiime99%"
 echoPlus "For amplicons not targetting 16S, 18S, or ITS, use 0 (=zero)."
+echoPlus ""
+echoPlus "If you have a custom sintax-formatted reference database, first rum AmpProc with "
+echoPlus "above settings, and then run AmpProc in a postiori mode where you can specify"
+echoPlus "the path to the new database."
 
 read REFDATABASE
 echo "$REFDATABASE" >> ampproc-$STARTTIME.log
@@ -1798,7 +1822,8 @@ if [[ ! "$AMPREGION" =~ ^(V13|V4|ITS|V35|VAR)$ ]]
     exit 1
 fi
 
-if [[ "$REFDATABASE" -lt 0 ]] || [[ "$REFDATABASE" -gt $REFDBLISTLENGTH ]]
+if [[ "$REFDATABASE" -lt 0 ]] || [[ "$REFDATABASE" -gt $((REFDBLISTLENGTH - 2)) ]]
+# Note: the REFDBLISTLENGTH-2 is because I didn't use num.13 and num.14 is currently for custom dbs only for a postiori taxonomy assignment.
     then
     echoPlus ""
     echoPlus "Reference database: $REFDATABASE invalid argument."
