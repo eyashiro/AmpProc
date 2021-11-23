@@ -155,6 +155,17 @@ Generating beta diversity matrices
 
 # VERSION HISTORY
 
+AmpProc5 v5.1.0.beta2.13  
+Released for user evaluation: 22 November 2021
+- Updated the following reference databases to the latest versions
+   - UNITE eukaryotes version 8.3
+   - UNITE fungi version 8.3
+   - SILVA version 138.1 SSURef NR99 for 16S and 18S rRNA gene
+   - MiDAS version 4.8.1 now contains both MiDAS3 (DK) and MiDAS4 (global) sequences. The MiDAS 3.4 is left in this version of AmpProc but will be removed in a future version.
+   - MiDAS asvpipeline step of the workflow now uses ASVs_250bp_v3.0_20211110 instead of v2.0 for reference-based ASV taxonomic assignments.
+- The MiDAS workflow has been speeded up at the otutab step by multithreading. Next version of AmpProc will embed this feature in the standard pipeline.
+- A postiori taxonomy assignment can now accept custom sintax-formatted reference databases. The user needs to ensure that the reference database file does not contain Microsoft windows characters. The current implementation cannot accept the path to the reference database in the command string, so a separate Q&A will pop up to ask for the path. Both full and relative paths are accepted. Sintax-formatted fasta files were tested but udb files will probably also work but hasn't been tested.
+
 AmpProc5 v5.1.0.beta2.12.1  
 Released for user evaluation: 8 April 2021
 - Fixed bug, where the workflow crashes after the Q&A section of standard workflow.

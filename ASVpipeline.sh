@@ -14,7 +14,7 @@
 #
 #  Authors: Kasper Skytte Andersen & Erika Yashiro, Ph.D.
 #
-#  Last modified: 10 November 2021
+#  Last modified: 22 November 2021
 #
 ###################################################################################################
 
@@ -40,6 +40,7 @@ STARTTIME=$3
 
 # chunksize used for splitting data for GNU parallel otutab job
 CHUNKSIZE=5
+#CHUNKSIZE=2
 
 rm -rf rawdata/
 rm -rf phix_filtered/
@@ -67,7 +68,7 @@ rm -f ASVs_nohits.R1.fa
 rm -f ASVs_nohits_renamed.R1.fa
 rm -f all.singlereads.nophix.R1.fq
 rm -f all.singlereads.nophix.qc.R1.fa
-#rm -f tempdir
+rm -rf tempdir
 }
 
 Empty_samples_cleanup_Function () {
@@ -190,9 +191,8 @@ echoWithDate "Generating ASV table..."
 # GNU parallel and then merge tables afterwards.
 #JOBS=$((( "${MAX_THREADS}" / "${CHUNKSIZE}" - 1)))
 JOBS=$((( ${MAX_THREADS} / ${CHUNKSIZE} - 1)))
-echo $JOBS
+#echo $JOBS
 if [ $JOBS -gt 1 ]
-#if [ $JOBS -ge 1 ]
   then
   echoWithDate "Splitting into $JOBS jobs using max $CHUNKSIZE threads each..."
   # create a temporary directory for split job step

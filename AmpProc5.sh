@@ -1,7 +1,7 @@
 #!/bin/bash
 
 VERSIONNUMBER=5.1.0.beta2.13
-MODIFIEDDATE="19 November 2021"
+MODIFIEDDATE="22 November 2021"
 
 ###################################################################################################
 #
@@ -16,7 +16,7 @@ MODIFIEDDATE="19 November 2021"
 #
 #  Author: Erika Yashiro, Ph.D.
 #
-#  Last modified: 19 November 2021
+#  Last modified: 22 November 2021
 #
 ###################################################################################################
 
@@ -56,8 +56,8 @@ MAXTHREADS=$((`nproc`-2))
 
 # Define location of script
 #SCRIPTPATH="/space/users/ey/Documents/Scripts/git_work/AmpProc"
-SCRIPTPATH="/space/admin/ey/Documents/p0001_amplicon_workflow_test/AmpProc_test"
-#SCRIPTPATH="/space/sharedbin_ubuntu_14_04/Non_module_software/AmpProc-v$VERSIONNUMBER"
+#SCRIPTPATH="/space/admin/ey/Documents/p0001_amplicon_workflow_test/AmpProc_test"
+SCRIPTPATH="/space/sharedbin_ubuntu_14_04/Non_module_software/AmpProc-v$VERSIONNUMBER"
 
 # Define the location of the sequences folders
 SEQPATH="/space/sequences/"
@@ -71,7 +71,7 @@ STARTTIME=$(date '+%Y%m%d-%H%M%S')
 
 # Define midas versions because they keep changing.
 MIDAS3VERS="MiDAS v3.7 (2020-06-04)"
-MIDAS4VERS="v4.8.1 (2021-07-02)"
+MIDAS4VERS="MiDAS v4.8.1 (2021-07-02)"
 MIDAS3VERSABBREV="3.7"
 MIDAS4VERSABBREV="4.8.1"
 
@@ -145,6 +145,7 @@ Help_Function () {
     echo "             12  - 12S MIDORI Longest metazoan vGB241 (2020-12)"
     echo "             14  - Custom sintax-formatted reference database. AmpProc will ask you the path. "
     echo "                   No spaces in the file/folder names!"
+    echo "                   Must not contain Windows characters. If unsure, run dos2unix."
 
     echo ""
     echo "To only incorporate the new taxonomy output into an OTU table, run the script: otutab_sintax_to_ampvis.v1.2.sh (Run with -h for more information)"
