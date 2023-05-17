@@ -51,17 +51,21 @@ HOST=`hostname`
 MAXTHREADS=$((`nproc`-2))
 
 #########################################################
-# OTHER PARAMS
+# PARAMS
 #########################################################
 
 # Define location of script
-#SCRIPTPATH="/space/users/ey/Documents/Scripts/git_work/AmpProc"
-#SCRIPTPATH="/space/admin/ey/Documents/p0001_amplicon_workflow_test/AmpProc_test"
 SCRIPTPATH="/space/sharedbin_ubuntu_14_04/Non_module_software/AmpProc-v$VERSIONNUMBER"
 
+# Import parameters file
+source ampproc_config.sh
+
+#########################################################
+# OTHER PARAMS
+#########################################################
+
 # Define the location of the sequences folders
-SEQPATH="/space/sequences/"
-#SEQPATH="/space/sequences/Illumina"
+#SEQPATH="/space/sequences/"
 
 # Make /tmp/$USER directory as needed
 mkdir -p /tmp/$USER
@@ -192,98 +196,98 @@ Refdatabase_Name_Function () {
 
 if [ $REFDATABASE == 1 ]
     then
-    TAXFILE="silvaLTP132"
-    TAXVERS="LPT v132"
-    REFDATAPATH="/space/databases/SILVA/LTPs132_SSU_unaligned.sintax.fasta"
-    REFNOTE="using SILVA LTP reference database."
+    TAXFILE=$TAXFILEsilvaLTP132
+    TAXVERS=$TAXVERSsilvaLTP132
+    REFDATAPATH=$REFDATAPATHsilvaLTP132
+    REFNOTE=$REFNOTEsilvaLTP132
 fi
 
 if [ $REFDATABASE == 2 ]
     then
-    TAXFILE="silva99pc132"
-    TAXVERS="qiime-formatted SSUREF99% v132"
-    REFDATAPATH="/space/databases/SILVA/silva_132_qiime99_16S_sorted.sintax.fasta"
-    REFNOTE="using SILVA qiime99% v132 reference database."
+    TAXFILE=$TAXFILEsilva99pc132
+    TAXVERS=$TAXVERSsilva99pc132
+    REFDATAPATH=$REFDATAPATHsilva99pc132
+    REFNOTE=$REFNOTEsilva99pc132
 fi
 
 if [ $REFDATABASE == 3 ]
     then
-    TAXFILE="silva99pc1381"
-    TAXVERS="SILVA SSUREFNR99% trunc v138.1"
-    REFDATAPATH="/space/databases/SILVA/SILVA_138.1_SSURef_NR99_tax_silva_trunc.sintax.fasta"
-    REFNOTE="using SILVA SSURef NR99 v138.1 16S & 18S reference database."
+    TAXFILE=$TAXFILEsilva99pc1381
+    TAXVERS=$TAXVERSsilva99pc1381
+    REFDATAPATH=$REFDATAPATHsilva99pc1381
+    REFNOTE=$REFNOTEsilva99pc1381
 fi
 
 if [ $REFDATABASE == 4 ]
     then
-    TAXFILE="midas2"
-    TAXVERS="v2.1.3"
-    REFDATAPATH="/space/databases/midas/MiDAS_S123_2.1.3.sintax.cleaned.20180103.fasta"
-    REFNOTE="using MiDAS v2 reference database."
+    TAXFILE=$TAXFILEmidas2
+    TAXVERS=$TAXVERSmidas2
+    REFDATAPATH=$REFDATAPATHmidas2
+    REFNOTE=$REFNOTEmidas2
 fi
         
 if [ $REFDATABASE == 5 ]
     then
-    TAXFILE="midas3"
-    TAXVERS="$MIDAS3VERS"
-    REFDATAPATH="/space/databases/midas/MiDAS3.7_20200604/output/ESVs_w_sintax.fa"
-    REFNOTE="using MiDAS $MIDAS3VERSABBREV reference database."
+    TAXFILE=$TAXFILEmidas3
+    TAXVERS=$TAXVERSmidas3
+    REFDATAPATH=$REFDATAPATHmidas3
+    REFNOTE=$REFNOTEmidas3
 fi
 
 if [ $REFDATABASE == 6 ]
     then
-    TAXFILE="midas4"
-    TAXVERS="$MIDAS4VERS"
-    REFDATAPATH="/space/databases/midas/MiDAS4.8.1_20210702/output/FLASVs_w_sintax.fa"
-    REFNOTE="using MiDAS $MIDAS4VERSABBREV reference database."
+    TAXFILE=$TAXFILEmidas4
+    TAXVERS=$TAXVERSmidas4
+    REFDATAPATH=$REFDATAPATHmidas4
+    REFNOTE=$REFNOTEmidas4
 fi
         
 if [ $REFDATABASE == 7 ]
     then
-    TAXFILE="rdp"
-    TAXVERS="training set v16"
-    REFDATAPATH="/space/databases/RDP_training_set/rdp_16s_v16s_sp_sintax.cleaned.20180103.fa"
-    REFNOTE="using RDP reference database."
+    TAXFILE=$TAXFILErdp
+    TAXVERS=$TAXVERSrdp
+    REFDATAPATH=$REFDATAPATHrdp
+    REFNOTE=$REFNOTErdp
 fi
         
 if [ $REFDATABASE == 8 ]
     then
-    TAXFILE="uniteFUN"
-    TAXVERS="v8.3 (2021-05-10)"
-    REFDATAPATH="/space/databases/UNITE/utax_reference_dataset_fungi_10.05.2021.v8.3.corrected.fasta"
-    REFNOTE="using UNITE fungi reference database."
+    TAXFILE=$TAXFILEuniteFUN
+    TAXVERS=$TAXVERSuniteFUN
+    REFDATAPATH=$REFDATAPATHuniteFUN
+    REFNOTE=$REFNOTEuniteFUN
 fi
 
 if [ $REFDATABASE == 9 ]
     then
-    TAXFILE="uniteEUK"
-    TAXVERS="v8.3 (2021-05-10)"
-    REFDATAPATH="/space/databases/UNITE/utax_reference_dataset_all_10.05.2021.v8.3.corrected.fasta"
-    REFNOTE="using UNITE eukaryotes reference database."
+    TAXFILE=$TAXFILEuniteEUK
+    TAXVERS=$TAXVERSuniteEUK
+    REFDATAPATH=$REFDATAPATHuniteEUK
+    REFNOTE=$REFNOTEuniteEUK
 fi
 
 if [ $REFDATABASE == 10 ]
     then
-    TAXFILE="12sMitohelper"
-    TAXVERS="12S mitofish 2021-03"
-    REFDATAPATH="/space/databases/12S/mitofish.12S.Mar2021.sintax.fasta"
-    REFNOTE="using Mitofish 12S eukaryotes reference database."
+    TAXFILE=$TAXFILE12sMitohelper
+    TAXVERS=$TAXVERS12sMitohelper
+    REFDATAPATH=$REFDATAPATH12sMitohelper
+    REFNOTE=$REFNOTE12sMitohelper
 fi
 
 if [ $REFDATABASE == 11 ]
     then
-    TAXFILE="12sMIDORIuniq"
-    TAXVERS="MIDORI Unique 12S GB241 (2020-12)"
-    REFDATAPATH="/space/databases/12S/MIDORI_UNIQ_GB241_srRNA_SINTAX.fasta"
-    REFNOTE="using MIDORI 12S Unique metazoan reference database."
+    TAXFILE=$TAXFILE12sMIDORIuniq
+    TAXVERS=$TAXVERS12sMIDORIuniq
+    REFDATAPATH=$REFDATAPATH12sMIDORIuniq
+    REFNOTE=$REFNOTE12sMIDORIuniq
 fi
 
 if [ $REFDATABASE == 12 ]
    then
-   TAXFILE="12SMIDORIlong"
-   TAXVERS="MIDORI Longest 12S GB241 (2020-12)"
-   REFDATAPATH="/space/databases/12S/MIDORI_LONGEST_GB241_srRNA_SINTAX.fasta"
-   REFNOTE="using MIDORI 12S Longest metazoan reference database."
+   TAXFILE=$TAXFILE12SMIDORIlong
+   TAXVERS=$TAXVERS12SMIDORIlong
+   REFDATAPATH=$REFDATAPATH12SMIDORIlong
+   REFNOTE=$REFNOTE12SMIDORIlong
 fi
 
 if [ $REFDATABASE == 13 ]
@@ -760,10 +764,8 @@ echo ""
 # INFILE=uniques.fa or otus.fa
 # output: prefilt_out.fa
 INFILE=$1
-REF_DATABASE="/space/databases/greengenes/gg_13_8_otus/rep_set/97_otus.fasta"
+REF_DATABASE=$GG97REF  # $GG97REF is imported from config file
 
-#usearch10 -closed_ref $INFILE -db /space/users/ey/Documents/gg_13_8_otus97/97_otus.fasta -strand both -id 0.6 -mapout closed_mapped.txt
-#usearch10 -usearch_global $INFILE -db $REF_DATABASE -strand both -id 0.6 -maxaccepts 1 -maxrejects 256 -matched prefilt_out.tmp -threads $NUMTHREADS -quiet
 usearch11 -usearch_global $INFILE -db $REF_DATABASE -strand both -id 0.6 -maxaccepts 1 -maxrejects 8 -matched prefilt_out.fa -threads $NUMTHREADS
 
 # relabel the unique, prefiltered reads so that the reads are in numerical order.
@@ -952,7 +954,7 @@ MaketreeProk_Function() {
 
     INFILE=$1
     ELEMENT=$2
-    REP_ALIGNED_PATH="/space/databases/greengenes/core_set_aligned.fasta.imputed"
+    #REP_ALIGNED_PATH="/space/databases/greengenes/core_set_aligned.fasta.imputed"
     USER_PATH=`echo $PWD`
 
     #echoPlus ""
