@@ -1017,7 +1017,11 @@ MaketreeFung_Function() {
     echoWithDate "Using USEARCH maximum linkage clustering to build OTU tree"
     mkdir aggr_tree_$ELEMENT
 
-    usearch10 -cluster_agg $INFILE -treeout aggr_tree_$ELEMENT/$ELEMENT.cluster.tre -id 0.80 -linkage max -quiet
+    #usearch10 -cluster_agg $INFILE -treeout aggr_tree_$ELEMENT/$ELEMENT.cluster.tre -id 0.80 -linkage max -quiet
+    # create distance matrix
+    usearch -calc_distmx $INFILE -distmxout aggr_tree_$ELEMENT/$ELEMENT.dist.txt
+    # build agglomerative clustering tree from distance matrix
+    usearch -cluster_aggd aggr_tree_$ELEMENT/$ELEMENT.dist.txt -treeout aggr_tree_$ELEMENT/$ELEMENT.cluster.tre -id 0.80 -linkage max -quiet
     
     echoPlus ""
     echoPlus "   Warning: Fungal ITS regions are too variable for proper phylogenetic tree. Therefore the maximum linkage tree will be used for generating phlyogeny-based beta diversity matrices."
