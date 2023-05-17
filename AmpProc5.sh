@@ -1060,7 +1060,6 @@ echoWithDate "    Done"
 
 Betadiv_Function () {
 # Build phylogenetic tree, probably for use in calculating unifrac. Therefore, using fasttree.
-# As of December 2017, Current version installed on Dragon is FastTree v2.1.7.
 # Need the otus.fa as INFILE,and and otutable_notax.txt as input files.
 # export OMP_NUM_THREADS=16
 #   This will make the fasttreeMP run only 16 threads instead of all CPUs on the server.
@@ -1123,37 +1122,37 @@ if [[ $AMPREGION =~ ^(V4|V13|V35)$ ]]
 
     # Convert classic otu table to biom format
     #module load $BIOM
-    biom convert -i $OTUTABLE -o $OTUTABLE.biom --table-type="OTU table" --to-hdf5
+    #biom convert -i $OTUTABLE -o $OTUTABLE.biom --table-type="OTU table" --to-hdf5
     #module purge
 
     # Run Qiime 1.9.1 beta_diversity script for UniFrac
     #module load $QIIME1
-    beta_diversity.py -i $OTUTABLE.biom -m weighted_unifrac,unweighted_unifrac -o beta_div_$ELEMENT/ -t aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre
+    #beta_diversity.py -i $OTUTABLE.biom -m weighted_unifrac,unweighted_unifrac -o beta_div_$ELEMENT/ -t aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre
     # Change file names of output matrices
-    mv beta_div_$ELEMENT/weighted_unifrac_$OTUTABLE.txt beta_div_$ELEMENT/$ELEMENT.weighted_unifrac.txt
-    mv beta_div_$ELEMENT/unweighted_unifrac_$OTUTABLE.txt beta_div_$ELEMENT/$ELEMENT.unweighted_unifrac.txt
+    #mv beta_div_$ELEMENT/weighted_unifrac_$OTUTABLE.txt beta_div_$ELEMENT/$ELEMENT.weighted_unifrac.txt
+    #mv beta_div_$ELEMENT/unweighted_unifrac_$OTUTABLE.txt beta_div_$ELEMENT/$ELEMENT.unweighted_unifrac.txt
     #module purge
 
-    # Run Usearch for Bray Curtis
-    $USEARCH -beta_div $OTUTABLE -metrics bray_curtis,jaccard,jaccard_binary -filename_prefix beta_div_$ELEMENT/$ELEMENT. -quiet
+    # Run Usearch for Bray Curtis, Jaccard, and weighted/unweighted UniFrac
+    $USEARCH -beta_div $OTUTABLE -metrics bray_curtis,unifrac,unifrac_binary,jaccard,jaccard_binary -tree aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre -filename_prefix beta_div_$ELEMENT/$ELEMENT. -quiet
     
    if [ "$SAMPLESIZE" = "OVER1000" ] && [ "$SAMPLENUM" -gt 1 ]
       then
       # Convert normalized otu table to biom format
       #module load $BIOM
-      biom convert -i $OTUTABLE2.norm1000.txt -o $OTUTABLE2.norm1000.biom --table-type="OTU table" --to-hdf5
+      #biom convert -i $OTUTABLE2.norm1000.txt -o $OTUTABLE2.norm1000.biom --table-type="OTU table" --to-hdf5
       #module purge
 
       # Run Qiime script for UniFrac matrices
       #module load $QIIME1
-      beta_diversity.py -i $OTUTABLE2.norm1000.biom -m weighted_unifrac,unweighted_unifrac -o beta_div_norm1000_$ELEMENT/ -t aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre
+      #beta_diversity.py -i $OTUTABLE2.norm1000.biom -m weighted_unifrac,unweighted_unifrac -o beta_div_norm1000_$ELEMENT/ -t aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre
       # Change file name of output matrices
-      mv beta_div_norm1000_$ELEMENT/weighted_unifrac_$OTUTABLE2.norm1000.txt beta_div_norm1000_$ELEMENT/$ELEMENT.weighted_unifrac.txt
-      mv beta_div_norm1000_$ELEMENT/unweighted_unifrac_$OTUTABLE2.norm1000.txt beta_div_norm1000_$ELEMENT/$ELEMENT.unweighted_unifrac.txt
+      #mv beta_div_norm1000_$ELEMENT/weighted_unifrac_$OTUTABLE2.norm1000.txt beta_div_norm1000_$ELEMENT/$ELEMENT.weighted_unifrac.txt
+      #mv beta_div_norm1000_$ELEMENT/unweighted_unifrac_$OTUTABLE2.norm1000.txt beta_div_norm1000_$ELEMENT/$ELEMENT.unweighted_unifrac.txt
       #module purge
 
-      # Run Usearch for Bray Curtis matrix
-      $USEARCH -beta_div $OTUTABLE2.norm1000.txt -metrics bray_curtis,jaccard,jaccard_binary -filename_prefix beta_div_norm1000_$ELEMENT/$ELEMENT. -quiet
+      # Run Usearch for Bray Curtis, Jaccard, and weighted/unweighted UniFrac matrix
+      $USEARCH -beta_div $OTUTABLE2.norm1000.txt -metrics bray_curtis,unifrac,unifrac_binary,jaccard,jaccard_binary -tree aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre -filename_prefix beta_div_norm1000_$ELEMENT/$ELEMENT. -quiet
       else
       #echoPlus ""
       echoWithDate "   Note: Beta diversity matrices from normalized OTU table could not be generated."
