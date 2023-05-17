@@ -92,7 +92,7 @@ REFDBLISTLENGTH=14
 #########################################################
 
 # Check if usearch exists
-if ! command -v usearch &> /dev/null
+if ! command -v $USEARCH &> /dev/null
  then
  echo "usearch command not found. Make sure that the command exists in your path. Exiting."
  exit
@@ -545,7 +545,7 @@ echoWithDate "Retrieving sequenced files and removing PhiX contamination."
       if [ -s "rawdata/$NAME.R1.fq" ]
         then
         # Filter phix
-        usearch11 -filter_phix rawdata/$NAME.R1.fq -reverse rawdata/$NAME.R2.fq -output phix_filtered/$NAME.R1.fq -output2 phix_filtered/$NAME.R2.fq -threads $NUMTHREADS -quiet
+        $USEARCH -filter_phix rawdata/$NAME.R1.fq -reverse rawdata/$NAME.R2.fq -output phix_filtered/$NAME.R1.fq -output2 phix_filtered/$NAME.R2.fq -threads $NUMTHREADS -quiet
         # Check that phix filtered fastq file is still non-empty.
         # Flag sample for removal if empty. Remove empty .fq files so that they don't get included during merge step.
         if [ ! -s "phix_filtered/$NAME.R1.fq" ]
@@ -592,7 +592,7 @@ echoWithDate "Retrieving sequenced files and removing PhiX contamination."
       if [ -s "rawdata/$NAME.$1.fq" ]
         then
         # Filter phix
-        usearch11 -filter_phix rawdata/$NAME.$1.fq -output phix_filtered/$NAME.$1.fq -threads $NUMTHREADS -quiet
+        $USEARCH -filter_phix rawdata/$NAME.$1.fq -output phix_filtered/$NAME.$1.fq -threads $NUMTHREADS -quiet
         # Check that phix filtered fastq file is still non-empty.
         # Flag sample for removal if empty.
         if [ ! -s "phix_filtered/$NAME.$1.fq" ]
@@ -631,7 +631,7 @@ Merge_Function () {
 #echoPlus ""
 echoWithDate "Merging paired end reads"
 
-usearch11 -fastq_mergepairs phix_filtered/*.R1.fq -reverse phix_filtered/*.R2.fq -fastqout mergeout.fq -relabel @ -fastq_maxdiffs 15 -threads $NUMTHREADS -quiet
+$USEARCH -fastq_mergepairs phix_filtered/*.R1.fq -reverse phix_filtered/*.R2.fq -fastqout mergeout.fq -relabel @ -fastq_maxdiffs 15 -threads $NUMTHREADS -quiet
 
 echoWithDate "    Done"
 
@@ -655,7 +655,7 @@ SEQLEN=$2
 #echoPlus ""
 echoWithDate "Quality filtering and removing consensus reads less than $SEQLEN bp"
 
-usearch11 -fastq_filter $INFILE -fastq_maxee 1.0 -fastaout QCout.fa -fastq_minlen $SEQLEN -quiet -threads $NUMTHREADS
+$USEARCH -fastq_filter $INFILE -fastq_maxee 1.0 -fastaout QCout.fa -fastq_minlen $SEQLEN -quiet -threads $NUMTHREADS
 
 echoWithDate "    Done"
 
@@ -681,11 +681,11 @@ mkdir -p phix_filtered/tempdir
 while read SAMPLES
     do
     NAME=$SAMPLES
-    usearch11 -fastq_filter phix_filtered/$NAME.$READORIENT.fq -fastq_maxee 1.0 -fastaout phix_filtered/tempdir/$NAME.$READORIENT.QCout.fa -fastq_trunclen 250 -relabel @ -threads $NUMTHREADS -quiet
+    $USEARCH -fastq_filter phix_filtered/$NAME.$READORIENT.fq -fastq_maxee 1.0 -fastaout phix_filtered/tempdir/$NAME.$READORIENT.QCout.fa -fastq_trunclen 250 -relabel @ -threads $NUMTHREADS -quiet
     cat phix_filtered/tempdir/$NAME.$READORIENT.QCout.fa >> all.singlereads.nophix.qc.$READORIENT.fa
 
     # Create concatenated fastq file of nonfiltered reads, with the sample labels
-    usearch11 -fastx_relabel phix_filtered/$NAME.$READORIENT.fq -prefix $NAME. -fastqout phix_filtered/tempdir/$NAME.$READORIENT.relabeled.fq -quiet
+    $USEARCH -fastx_relabel phix_filtered/$NAME.$READORIENT.fq -prefix $NAME. -fastqout phix_filtered/tempdir/$NAME.$READORIENT.relabeled.fq -quiet
     cat phix_filtered/tempdir/$NAME.$READORIENT.relabeled.fq >> all.singlereads.nophix.$READORIENT.fq
     done < samples_tmp.txt
     
@@ -710,7 +710,7 @@ INFILE=`echo $1 | sed 's/.fa$//g'`
 # rename original file
 mv $INFILE.fa $INFILE.primers_not_removed.fa
 
-usearch11 -fastx_truncate $INFILE.primers_not_removed.fa -stripleft $STRIPLEFT -stripright $STRIPRIGHT -fastaout $INFILE.fa -quiet
+$USEARCH -fastx_truncate $INFILE.primers_not_removed.fa -stripleft $STRIPLEFT -stripright $STRIPRIGHT -fastaout $INFILE.fa -quiet
 
 rm $INFILE.primers_not_removed.fa
 
@@ -736,7 +736,7 @@ INFILE=`echo $1 | sed 's/.fa$//g'`
 # rename original file
 mv $INFILE.fa $INFILE.primers_not_removed.fa
 
-usearch11 -fastx_truncate $INFILE.primers_not_removed.fa -stripleft $3 -fastaout $INFILE.fa -quiet
+$USEARCH -fastx_truncate $INFILE.primers_not_removed.fa -stripleft $3 -fastaout $INFILE.fa -quiet
 
 rm $INFILE.primers_not_removed.fa
 
@@ -754,7 +754,7 @@ echoWithDate "Dereplicating reads"
 # INFILE=all.merged.nophix.qc.fa and file variants.
 # output: DEREPout.fa, which is typically renamed as uniques.fa afterwards.
 INFILE=$1
-usearch11 -fastx_uniques $INFILE -sizeout -fastaout DEREPout.fa -relabel Uniq -quiet
+$USEARCH -fastx_uniques $INFILE -sizeout -fastaout DEREPout.fa -relabel Uniq -quiet
 
 echoWithDate "    Done"
 
@@ -784,7 +784,7 @@ echo ""
 INFILE=$1
 REF_DATABASE=$GG97REF  # $GG97REF is imported from config file
 
-usearch11 -usearch_global $INFILE -db $REF_DATABASE -strand both -id 0.6 -maxaccepts 1 -maxrejects 8 -matched prefilt_out.fa -threads $NUMTHREADS
+$USEARCH -usearch_global $INFILE -db $REF_DATABASE -strand both -id 0.6 -maxaccepts 1 -maxrejects 8 -matched prefilt_out.fa -threads $NUMTHREADS
 
 # relabel the unique, prefiltered reads so that the reads are in numerical order.
 #usearch10 -fastx_relabel prefilt_out.tmp -prefix Prefilt -fastaout prefilt_out.fa -keep_annots
@@ -809,7 +809,7 @@ echoWithDate "Making 97% OTUs and filter chimeras"
 # INFILE=prefilt_out.fa or uniques.fa
 # output: otus.fa
 INFILE=$1
-usearch11 -cluster_otus $INFILE -otus otus.fa -relabel OTU -minsize 2 -quiet
+$USEARCH -cluster_otus $INFILE -otus otus.fa -relabel OTU -minsize 2 -quiet
 
 echoWithDate "    Done"
 
@@ -825,7 +825,7 @@ echoWithDate "Creating ZOTUs of dereplicated reads file using UNOISE3"
 # INFILE=prefilt_out.fa
 # output: zotus.fa
 INFILE=$1
-usearch11 -unoise3 $INFILE -zotus zotus.fa -quiet
+$USEARCH -unoise3 $INFILE -zotus zotus.fa -quiet
 
 echoWithDate "    Done"
 
@@ -847,7 +847,7 @@ echoWithDate "Making an OTU table"
 FASTAFILE=$1
 OTUSFILE=$2
 SINTAX=$3
-usearch11 -otutab $FASTAFILE -otus $OTUSFILE -otutabout otutable_notax.txt -id 0.97 -threads $NUMTHREADS -quiet -sample_delim .
+$USEARCH -otutab $FASTAFILE -otus $OTUSFILE -otutabout otutable_notax.txt -id 0.97 -threads $NUMTHREADS -quiet -sample_delim .
 
 if [ $REFDATABASE -gt 0 ]
    # REFDATABASE = 0 means no taxonomy to assign
@@ -883,7 +883,7 @@ ZOTUSFILE=$2
 SINTAX=$3
 sed 's/Zotu/Otu/g' $ZOTUSFILE > zotus.tmp
 #usearch10 -otutab $FASTAFILE -otus zotus.tmp -otutabout zotutable_notax.txt -id 0.97 -threads $NUMTHREADS -quiet -sample_delim .
-usearch11 -otutab $FASTAFILE -zotus $ZOTUSFILE -otutabout zotutable_notax.txt -id 0.97 -threads $NUMTHREADS -quiet -sample_delim .
+$USEARCH -otutab $FASTAFILE -zotus $ZOTUSFILE -otutabout zotutable_notax.txt -id 0.97 -threads $NUMTHREADS -quiet -sample_delim .
 #sed -i 's/Otu/Zotu/g' zotutable_notax.txt
 rm zotus.tmp
 
@@ -921,7 +921,7 @@ echoWithDate "Predicting taxonomy (Classifying the $ELEMENT) using SINTAX"
 echoPlus "$REFNOTE"
 
 # Run usearch
-    usearch11 -sintax $INFILE -db $REFDATAPATH -strand both -tabbedout sintax_out.txt -sintax_cutoff 0.8 -threads $NUMTHREADS -quiet 2>>ampproc-$STARTTIME.log
+    $USEARCH -sintax $INFILE -db $REFDATAPATH -strand both -tabbedout sintax_out.txt -sintax_cutoff 0.8 -threads $NUMTHREADS -quiet 2>>ampproc-$STARTTIME.log
 
 echoWithDate "    Done"
 
@@ -945,20 +945,20 @@ echoWithDate "Generating $OUTFILE taxonomy summary"
 sed -i 's/+\t$/+\td:__unknown__/g' $INFILE1
 sed -i 's/-\t$/-\td:__unknown__/g' $INFILE1
 
-usearch11 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank p -output $OUTFILE.sintax.phylum_summary.txt -quiet
+$USEARCH -sintax_summary $INFILE1 -otutabin $INFILE2 -rank p -output $OUTFILE.sintax.phylum_summary.txt -quiet
 echoPlus ""
 echoPlus "    Output phlyum summary: $OUTFILE.sintax.phylum_summary.txt"
 
-usearch11 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank c -output $OUTFILE.sintax.class_summary.txt -quiet
+$USEARCH -sintax_summary $INFILE1 -otutabin $INFILE2 -rank c -output $OUTFILE.sintax.class_summary.txt -quiet
 echoPlus "    Output class summary: $OUTFILE.sintax.class_summary.txt"
 
-usearch11 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank o -output $OUTFILE.sintax.order_summary.txt -quiet
+$USEARCH -sintax_summary $INFILE1 -otutabin $INFILE2 -rank o -output $OUTFILE.sintax.order_summary.txt -quiet
 echoPlus "    Output order summary: $OUTFILE.sintax.order_summary.txt"
 
-usearch11 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank f -output $OUTFILE.sintax.family_summary.txt -quiet
+$USEARCH -sintax_summary $INFILE1 -otutabin $INFILE2 -rank f -output $OUTFILE.sintax.family_summary.txt -quiet
 echoPlus "    Output family summary: $OUTFILE.sintax.family_summary.txt"
 
-usearch11 -sintax_summary $INFILE1 -otutabin $INFILE2 -rank g -output $OUTFILE.sintax.genus_summary.txt -quiet
+$USEARCH -sintax_summary $INFILE1 -otutabin $INFILE2 -rank g -output $OUTFILE.sintax.genus_summary.txt -quiet
 echoPlus "    Output genus summary: $OUTFILE.sintax.genus_summary.txt"
 
 echoPlus ""
@@ -1019,9 +1019,9 @@ MaketreeFung_Function() {
 
     #usearch10 -cluster_agg $INFILE -treeout aggr_tree_$ELEMENT/$ELEMENT.cluster.tre -id 0.80 -linkage max -quiet
     # create distance matrix
-    usearch -calc_distmx $INFILE -distmxout aggr_tree_$ELEMENT/$ELEMENT.dist.txt
+    $USEARCH -calc_distmx $INFILE -distmxout aggr_tree_$ELEMENT/$ELEMENT.dist.txt
     # build agglomerative clustering tree from distance matrix
-    usearch -cluster_aggd aggr_tree_$ELEMENT/$ELEMENT.dist.txt -treeout aggr_tree_$ELEMENT/$ELEMENT.cluster.tre -id 0.80 -linkage max -quiet
+    $USEARCH -cluster_aggd aggr_tree_$ELEMENT/$ELEMENT.dist.txt -treeout aggr_tree_$ELEMENT/$ELEMENT.cluster.tre -id 0.80 -linkage max -quiet
     
     echoPlus ""
     echoPlus "   Warning: Fungal ITS regions are too variable for proper phylogenetic tree. Therefore the maximum linkage tree will be used for generating phlyogeny-based beta diversity matrices."
@@ -1086,7 +1086,7 @@ echoWithDate "Building beta diversity matrices."
 #echoPlus ""
 echoWithDate "    Normalizing the OTU table to 1000"
 OTUTABLE2=`echo $OTUTABLE | sed -e 's/.txt$//g' -e 's/.tsv$//g'`
-usearch11 -alpha_div $OTUTABLE -output $OTUTABLE2.number_reads_per_sample.txt -metrics reads -quiet
+$USEARCH -alpha_div $OTUTABLE -output $OTUTABLE2.number_reads_per_sample.txt -metrics reads -quiet
 
   # Check that at least one sample has at least 1000 reads total.
 SAMPLESIZE=`awk -F "\t" 'NR>1{ if ($2 > 1000) {print "OVER1000"; exit} }' $OTUTABLE2.number_reads_per_sample.txt`
@@ -1097,8 +1097,8 @@ SAMPLENUM=`awk -F "\t" 'NR>1{ if ($2 > 1000) {print "OVER1000"} }' $OTUTABLE2.nu
 if [ "$SAMPLESIZE" = "OVER1000" ]
   then
   # Normalize OTU table to 1000 reads per sample
-  usearch11 -otutab_trim $OTUTABLE -min_sample_size 1000 -output $OTUTABLE2.tmp -quiet
-  usearch11 -otutab_rare $OTUTABLE2.tmp -sample_size 1000 -output $OTUTABLE2.norm1000.txt -quiet
+  $USEARCH -otutab_trim $OTUTABLE -min_sample_size 1000 -output $OTUTABLE2.tmp -quiet
+  $USEARCH -otutab_rare $OTUTABLE2.tmp -sample_size 1000 -output $OTUTABLE2.norm1000.txt -quiet
   rm $OTUTABLE2.tmp
   #echoPlus ""
   echoWithDate "    Output of normalized OTU table: $OTUTABLE2.norm1000.txt"
@@ -1135,7 +1135,7 @@ if [[ $AMPREGION =~ ^(V4|V13|V35)$ ]]
     #module purge
 
     # Run Usearch for Bray Curtis
-    usearch11 -beta_div $OTUTABLE -metrics bray_curtis,jaccard,jaccard_binary -filename_prefix beta_div_$ELEMENT/$ELEMENT. -quiet
+    $USEARCH -beta_div $OTUTABLE -metrics bray_curtis,jaccard,jaccard_binary -filename_prefix beta_div_$ELEMENT/$ELEMENT. -quiet
     
    if [ "$SAMPLESIZE" = "OVER1000" ] && [ "$SAMPLENUM" -gt 1 ]
       then
@@ -1153,7 +1153,7 @@ if [[ $AMPREGION =~ ^(V4|V13|V35)$ ]]
       #module purge
 
       # Run Usearch for Bray Curtis matrix
-      usearch11 -beta_div $OTUTABLE2.norm1000.txt -metrics bray_curtis,jaccard,jaccard_binary -filename_prefix beta_div_norm1000_$ELEMENT/$ELEMENT. -quiet
+      $USEARCH -beta_div $OTUTABLE2.norm1000.txt -metrics bray_curtis,jaccard,jaccard_binary -filename_prefix beta_div_norm1000_$ELEMENT/$ELEMENT. -quiet
       else
       #echoPlus ""
       echoWithDate "   Note: Beta diversity matrices from normalized OTU table could not be generated."
@@ -1188,12 +1188,12 @@ if [[ $AMPREGION =~ ^(ITS|VAR)$ ]]
        
        # Calculate beta diversity matrices
        mkdir beta_div_$ELEMENT
-       usearch11 -beta_div $OTUTABLE -metrics bray_curtis,unifrac,unifrac_binary,jaccard,jaccard_binary -tree aggr_tree_$ELEMENT/$ELEMENT.cluster.tre -filename_prefix beta_div_$ELEMENT/$ELEMENT. -quiet
+       $USEARCH -beta_div $OTUTABLE -metrics bray_curtis,unifrac,unifrac_binary,jaccard,jaccard_binary -tree aggr_tree_$ELEMENT/$ELEMENT.cluster.tre -filename_prefix beta_div_$ELEMENT/$ELEMENT. -quiet
     
       if [ $SAMPLESIZE = "OVER1000" ] && [ "$SAMPLENUM" -gt 1 ]
          then
          # Calculate beta diveristy matrices for normalized otu table of normalized otu table is large enough.
-         usearch11 -beta_div $OTUTABLE2.norm1000.txt -metrics bray_curtis,unifrac,unifrac_binary,jaccard,jaccard_binary -tree aggr_tree_$ELEMENT/$ELEMENT.cluster.tre -filename_prefix beta_div_$ELEMENT/$ELEMENT.norm1000_ -quiet
+         $USEARCH -beta_div $OTUTABLE2.norm1000.txt -metrics bray_curtis,unifrac,unifrac_binary,jaccard,jaccard_binary -tree aggr_tree_$ELEMENT/$ELEMENT.cluster.tre -filename_prefix beta_div_$ELEMENT/$ELEMENT.norm1000_ -quiet
          else
          #echoPlus ""
          echoWithDate "   Note: Beta diversity matrices from normalized OTU table could not be generated."
