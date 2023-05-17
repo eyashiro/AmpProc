@@ -58,7 +58,7 @@ MAXTHREADS=$((`nproc`-2))
 SCRIPTPATH="/space/sharedbin_ubuntu_14_04/Non_module_software/AmpProc-v$VERSIONNUMBER"
 
 # Import parameters file
-source ampproc_config.sh
+source $SCRIPTPATH/ampproc_config.sh
 
 #########################################################
 # OTHER PARAMS
@@ -80,12 +80,30 @@ MIDAS3VERSABBREV="3.7"
 MIDAS4VERSABBREV="4.8.1"
 
 # Lmod modules
-FASTTREE=FastTree/2.1.10-foss-2018a
-QIIME1=QIIME/1.9.1-foss-2018a
-BIOM=biom-format/2.1.7-foss-2018a-Python-3.6.4
+#FASTTREE=FastTree/2.1.10-foss-2018a
+#QIIME1=QIIME/1.9.1-foss-2018a
+#BIOM=biom-format/2.1.7-foss-2018a-Python-3.6.4
 
 # Define number of reference databases available for standard workflow
 REFDBLISTLENGTH=14
+
+#########################################################
+# DEPENDENCIES EXISTENCE
+#########################################################
+
+# Check if usearch exists
+if ! command -v usearch &> /dev/null
+ then
+ echo "usearch command not found. Make sure that the command exists in your path. Exiting."
+ exit
+fi
+
+# Check if fasttreeMP exists
+if ! command -v fasttreeMP &> /dev/null
+ then
+ echo "FastTree command fasttreeMP not found. Make sure that the command exists in your path. Exiting."
+ exit
+fi
 
 #########################################################
 # HELP
@@ -960,9 +978,9 @@ MaketreeProk_Function() {
     #echoPlus ""
     echoWithDate "Aligning the bacterial sequenced reads using PyNAST with QIIME v1 native parameters."
     # Using PyNAST in Unifrac 1.9.1
-    module load $QIIME1
+    #module load $QIIME1
     align_seqs.py -i $USER_PATH/$INFILE -m pynast -t $REP_ALIGNED_PATH -o $USER_PATH/aligned_seqs_$ELEMENT/ -p 0.40
-    module purge
+    #module purge
 
     #echoPlus ""
     echoWithDate "Generating FastTree maximum likelihood tree of the bacterial sequenced reads with QIIME native parameters"
@@ -974,9 +992,9 @@ MaketreeProk_Function() {
     
     #fasttree
     INFILE2=`echo $INFILE | sed 's/.fa$//g'`
-    module load $FASTTREE
+    #module load $FASTTREE
     fasttreeMP -nt aligned_seqs_$ELEMENT/${INFILE2}_aligned.fasta > aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre
-    module purge
+    #module purge
     
     # Reset the OMP threads
     #export OMP_NUM_THREADS=""
@@ -1100,17 +1118,17 @@ if [[ $AMPREGION =~ ^(V4|V13|V35)$ ]]
     mkdir beta_div_$ELEMENT
 
     # Convert classic otu table to biom format
-    module load $BIOM
+    #module load $BIOM
     biom convert -i $OTUTABLE -o $OTUTABLE.biom --table-type="OTU table" --to-hdf5
-    module purge
+    #module purge
 
     # Run Qiime 1.9.1 beta_diversity script for UniFrac
-    module load $QIIME1
+    #module load $QIIME1
     beta_diversity.py -i $OTUTABLE.biom -m weighted_unifrac,unweighted_unifrac -o beta_div_$ELEMENT/ -t aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre
     # Change file names of output matrices
     mv beta_div_$ELEMENT/weighted_unifrac_$OTUTABLE.txt beta_div_$ELEMENT/$ELEMENT.weighted_unifrac.txt
     mv beta_div_$ELEMENT/unweighted_unifrac_$OTUTABLE.txt beta_div_$ELEMENT/$ELEMENT.unweighted_unifrac.txt
-    module purge
+    #module purge
 
     # Run Usearch for Bray Curtis
     usearch11 -beta_div $OTUTABLE -metrics bray_curtis,jaccard,jaccard_binary -filename_prefix beta_div_$ELEMENT/$ELEMENT. -quiet
@@ -1118,17 +1136,17 @@ if [[ $AMPREGION =~ ^(V4|V13|V35)$ ]]
    if [ "$SAMPLESIZE" = "OVER1000" ] && [ "$SAMPLENUM" -gt 1 ]
       then
       # Convert normalized otu table to biom format
-      module load $BIOM
+      #module load $BIOM
       biom convert -i $OTUTABLE2.norm1000.txt -o $OTUTABLE2.norm1000.biom --table-type="OTU table" --to-hdf5
-      module purge
+      #module purge
 
       # Run Qiime script for UniFrac matrices
-      module load $QIIME1
+      #module load $QIIME1
       beta_diversity.py -i $OTUTABLE2.norm1000.biom -m weighted_unifrac,unweighted_unifrac -o beta_div_norm1000_$ELEMENT/ -t aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre
       # Change file name of output matrices
       mv beta_div_norm1000_$ELEMENT/weighted_unifrac_$OTUTABLE2.norm1000.txt beta_div_norm1000_$ELEMENT/$ELEMENT.weighted_unifrac.txt
       mv beta_div_norm1000_$ELEMENT/unweighted_unifrac_$OTUTABLE2.norm1000.txt beta_div_norm1000_$ELEMENT/$ELEMENT.unweighted_unifrac.txt
-     module purge
+      #module purge
 
       # Run Usearch for Bray Curtis matrix
       usearch11 -beta_div $OTUTABLE2.norm1000.txt -metrics bray_curtis,jaccard,jaccard_binary -filename_prefix beta_div_norm1000_$ELEMENT/$ELEMENT. -quiet
