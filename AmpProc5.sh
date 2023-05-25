@@ -22,7 +22,8 @@ MODIFIEDDATE="17 May 2023"
 
 
 # Check if user is running in Bash or Shell
-if [ ! -n "$BASH" ]
+#if [ ! -n "$BASH" ]
+if [ -z "$BASH" ]
     then
     echo "Please rerun this script with bash (bash), not shell (sh)."
     echo ""
@@ -45,10 +46,10 @@ set -o pipefail
 NUMTHREADS=5
 
 # Server name
-HOST=`hostname`
+HOST=$(hostname)
 
 # Maximum recommended number of threads to use
-MAXTHREADS=$((`nproc`-2))
+MAXTHREADS=$(($(nproc)-2))
 
 #########################################################
 # PARAMS
@@ -717,7 +718,7 @@ echoWithDate "Strip primer regions, $STRIPLEFT bp from 5' end, $STRIPRIGHT bp fr
 
 # INFILE = input fasta after fastqc step. e.g. all.merged.nophix.qc.fa
 
-INFILE=`echo $1 | sed 's/.fa$//g'`
+INFILE=$(echo $1 | sed 's/.fa$//g')
 
 # rename original file
 mv $INFILE.fa $INFILE.primers_not_removed.fa
@@ -743,7 +744,7 @@ echoWithDate "Strip primer regions, $3 bp from 5' end of read $2."
 
 # INFILE = input fasta after fastqc step. e.g. all.merged.nophix.qc.fa
 
-INFILE=`echo $1 | sed 's/.fa$//g'`
+INFILE=$(echo $1 | sed 's/.fa$//g')
 
 # rename original file
 mv $INFILE.fa $INFILE.primers_not_removed.fa
@@ -985,7 +986,7 @@ MaketreeProk_Function() {
     INFILE=$1
     ELEMENT=$2
     #REP_ALIGNED_PATH="/space/databases/greengenes/core_set_aligned.fasta.imputed"
-    USER_PATH=`echo $PWD`
+    USER_PATH=$(echo $PWD)
 
     #echoPlus ""
     echoWithDate "Aligning the bacterial sequenced reads using PyNAST with QIIME v1 native parameters."
@@ -1003,7 +1004,7 @@ MaketreeProk_Function() {
     #export OMP_NUM_THREADS=16
     
     #fasttree
-    INFILE2=`echo $INFILE | sed 's/.fa$//g'`
+    INFILE2=$(echo $INFILE | sed 's/.fa$//g')
     #module load $FASTTREE
     fasttreeMP -nt aligned_seqs_$ELEMENT/${INFILE2}_aligned.fasta > aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre
     #module purge
@@ -1023,7 +1024,7 @@ MaketreeFung_Function() {
 
     INFILE=$1
     ELEMENT=$2
-    USER_PATH=`echo $PWD`
+    USER_PATH=$(echo $PWD)
 
     #echoPlus ""
     echoWithDate "Using USEARCH agglomerative clustering to build OTU tree"
@@ -1051,7 +1052,7 @@ MaketreeWrapper_Function() {
 
     INFILE=$1
     ELEMENT=$2
-    USER_PATH=`echo $PWD`
+    USER_PATH=$(echo $PWD)
 
    
      #if [[ $AMPREGION =~ ^(V4|V13|V35)$ ]]
@@ -1088,9 +1089,9 @@ Betadiv_Function () {
 INFILE=$1
 OTUTABLE=$2
 ELEMENT=$3
-USER_PATH=`echo $PWD`
+USER_PATH=$(echo $PWD)
 
-INFILE2=`echo $INFILE | sed 's/.fa$//g'`
+INFILE2=$(echo $INFILE | sed 's/.fa$//g')
 
 #echoPlus ""
 echoWithDate "Building beta diversity matrices."
@@ -1098,13 +1099,13 @@ echoWithDate "Building beta diversity matrices."
 # Calculate number of reads per sample
 #echoPlus ""
 echoWithDate "    Normalizing the OTU table to 1000"
-OTUTABLE2=`echo $OTUTABLE | sed -e 's/.txt$//g' -e 's/.tsv$//g'`
+OTUTABLE2=$(echo $OTUTABLE | sed -e 's/.txt$//g' -e 's/.tsv$//g')
 $USEARCH -alpha_div $OTUTABLE -output $OTUTABLE2.number_reads_per_sample.txt -metrics reads -quiet
 
   # Check that at least one sample has at least 1000 reads total.
-SAMPLESIZE=`awk -F "\t" 'NR>1{ if ($2 > 1000) {print "OVER1000"; exit} }' $OTUTABLE2.number_reads_per_sample.txt`
+SAMPLESIZE=$(awk -F "\t" 'NR>1{ if ($2 > 1000) {print "OVER1000"; exit} }' $OTUTABLE2.number_reads_per_sample.txt)
   # Check how many samples have at least 1000 reads total.
-SAMPLENUM=`awk -F "\t" 'NR>1{ if ($2 > 1000) {print "OVER1000"} }' $OTUTABLE2.number_reads_per_sample.txt | wc -l`
+SAMPLENUM=$(awk -F "\t" 'NR>1{ if ($2 > 1000) {print "OVER1000"} }' $OTUTABLE2.number_reads_per_sample.txt | wc -l)
 
 
 if [ "$SAMPLESIZE" = "OVER1000" ]
@@ -1188,7 +1189,7 @@ if [ $REFDATABASE -gt 7 ]
     then
 
     # Check that there is more than 2 OTUs in the OTU table
-    NUMOTUS=`grep -c ">" $INFILE || true`
+    NUMOTUS=$(grep -c ">" $INFILE || true)
 
     if [ $NUMOTUS -le 1 ]
       then
@@ -1405,18 +1406,18 @@ if [[ "$1" =~ ^(-help|-h)$ ]]
         Run_Time_Params_Function
 
         # Run taxonomy prediction with specified reference database
-        PREDTYPE=`echo $OTUINFILE | sed 's/\..*//g'`
+        PREDTYPE=$(echo $OTUINFILE | sed 's/\..*//g')
         Predict_taxonomy_Function $OTUINFILE $PREDTYPE
         # input file radical, remove file extension
-        FILERAD=`echo $OTUINFILE | sed -e 's/\.fa$//g' -e 's/\.fas$//g' -e 's/\.fasta$//g'`
-        TABFILERAD=`echo $OTUTAB | sed 's/\..*//g'`
+        FILERAD=$(echo $OTUINFILE | sed -e 's/\.fa$//g' -e 's/\.fas$//g' -e 's/\.fasta$//g')
+        TABFILERAD=$(echo $OTUTAB | sed 's/\..*//g')
         mv sintax_out.txt $FILERAD.sintax.$TAXFILE.txt
         # Append new sintax to otu table
         $SCRIPTPATH/otutab_sintax_to_ampvis.v1.2.sh -i $OTUTAB -t $FILERAD.sintax.$TAXFILE.txt -r $TAXFILE
         # Remove extraneous sorted no-tax otu table
         rm $TABFILERAD.sorted.txt
         # If "_notax" is present in output file, remove that.
-        TABFILERADNOTAX=`echo $TABFILERAD | sed 's/_notax//g'`
+        TABFILERADNOTAX=$(echo $TABFILERAD | sed 's/_notax//g')
         mv ${TABFILERAD}_${TAXFILE}.txt ${TABFILERADNOTAX}_${TAXFILE}.txt
         echoWithDate "Output files of the OTU/ZOTU/ASV taxonomy assignment: $FILERAD.sintax.$TAXFILE.txt, ${TABFILERADNOTAX}_${TAXFILE}.txt"
         #date
@@ -1578,7 +1579,7 @@ fi
      fi
 
      # Adjust number of threads to ASVpipeline settings.
-     #NUMTHREADS=$((`nproc`-2))
+     #NUMTHREADS=$(($(nproc)-2))
 
      # Adjust params arguments
      SINGLEREADS=R1
