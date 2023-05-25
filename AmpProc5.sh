@@ -368,9 +368,10 @@ echoWithDate "Checking the presence of a \"samples\" file"
 if [ -f "samples" ]
     then
         # remove carriage returns, add newline at the end of file if it's not there, remove empty lines and white spaces.
+        # Dereplicate if there are multiple entries of the same sample name.
         cp samples samples_tmp0.txt
         dos2unix -q samples_tmp0.txt
-        cat samples_tmp0.txt | sed -e '$a\' | sed -e '/^$/d' -e 's/ //g' > samples_tmp.txt
+        cat samples_tmp0.txt | sed -e '$a\' | sed -e '/^$/d' -e 's/ //g' | sort | uniq > samples_tmp.txt
         rm samples_tmp0.txt
         echoWithDate "    Done"
     
