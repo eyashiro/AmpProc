@@ -670,8 +670,19 @@ Fastqc_singlereads_Function () {
 
 READORIENT=$1
 
+if [ $AMPREGION = "VAR" ]
+   then
+   if [ $VARMAXLEN -lt 250 ]
+     then
+     SRTRUNC=$VARMAXLEN
+     echoWithDate "Quality filtering, removing reads less than $VARMAXLEN bp"
+   else
+     SRTRUNC=250
+     echoWithDate "Quality filtering, truncating reads to 250bp, and removing reads less than 250bp."
+fi
+
 #echoPlus ""
-echoWithDate "Quality filtering, truncating reads to 250bp, and removing reads less than 250bp."
+
 
 # make temporary directory
 mkdir -p phix_filtered/tempdir
@@ -681,7 +692,8 @@ mkdir -p phix_filtered/tempdir
 while read SAMPLES
     do
     NAME=$SAMPLES
-    $USEARCH -fastq_filter phix_filtered/$NAME.$READORIENT.fq -fastq_maxee 1.0 -fastaout phix_filtered/tempdir/$NAME.$READORIENT.QCout.fa -fastq_trunclen 250 -relabel @ -threads $NUMTHREADS -quiet
+
+    $USEARCH -fastq_filter phix_filtered/$NAME.$READORIENT.fq -fastq_maxee 1.0 -fastaout phix_filtered/tempdir/$NAME.$READORIENT.QCout.fa -fastq_trunclen $SRTRUNC -relabel @ -threads $NUMTHREADS -quiet
     cat phix_filtered/tempdir/$NAME.$READORIENT.QCout.fa >> all.singlereads.nophix.qc.$READORIENT.fa
 
     # Create concatenated fastq file of nonfiltered reads, with the sample labels
@@ -1014,7 +1026,7 @@ MaketreeFung_Function() {
     USER_PATH=`echo $PWD`
 
     #echoPlus ""
-    echoWithDate "Using USEARCH maximum linkage clustering to build OTU tree"
+    echoWithDate "Using USEARCH agglomerative clustering to build OTU tree"
     mkdir aggr_tree_$ELEMENT
 
     #usearch10 -cluster_agg $INFILE -treeout aggr_tree_$ELEMENT/$ELEMENT.cluster.tre -id 0.80 -linkage max -quiet
@@ -1024,8 +1036,8 @@ MaketreeFung_Function() {
     $USEARCH -cluster_aggd aggr_tree_$ELEMENT/$ELEMENT.dist.txt -treeout aggr_tree_$ELEMENT/$ELEMENT.cluster.tre -id 0.80 -linkage max -quiet
     
     echoPlus ""
-    echoPlus "   Warning: Fungal ITS regions are too variable for proper phylogenetic tree. Therefore the maximum linkage tree will be used for generating phlyogeny-based beta diversity matrices."
-    echoPlus "   Warning: Currently the custom amplicons (setting \"VAR\") will also build maximum linkage cluster tree rather than the phylogenetic tree."
+    echoPlus "   Warning: Fungal ITS regions and many coding genes are too variable for proper phylogenetic tree. Therefore the cluster-based tree will be used for generating phlyogeny-based beta diversity matrices."
+    echoPlus "   Warning: Currently the amplicons using custom imported databases will also build maximum linkage cluster tree rather than the phylogenetic tree."
     echoPlus "    "
     echoWithDate "    Output files of linkage tree tree are in aggr_tree_$ELEMENT/"
 }
@@ -1042,15 +1054,17 @@ MaketreeWrapper_Function() {
     USER_PATH=`echo $PWD`
 
    
-     if [[ $AMPREGION =~ ^(V4|V13|V35)$ ]]
+     #if [[ $AMPREGION =~ ^(V4|V13|V35)$ ]]
+     if [ $REFDATABASE -le 7 ] && [ $REFDATABASE -gt 0 ]
         then
         #Align reads and build prokaryotic tree
         MaketreeProk_Function $INFILE $ELEMENT
      fi
 
-     if [[ $AMPREGION =~ ^(ITS|VAR)$ ]]
+     #if [[ $AMPREGION =~ ^(ITS|VAR)$ ]]
+     if [ $REFDATABASE -gt 7 ]
         then
-        # Build clustering tree for fungi / other eukaryotes
+        # Build clustering tree for fungi / other eukaryotes / other genes
         MaketreeFung_Function $INFILE $ELEMENT
      fi
 
@@ -1107,7 +1121,8 @@ if [ "$SAMPLESIZE" = "OVER1000" ]
   echoWithDate "   Using only non-normalized OTU table."
 fi
 
-if [[ $AMPREGION =~ ^(V4|V13|V35)$ ]]
+#if [[ $AMPREGION =~ ^(V4|V13|V35)$ ]]
+if [ $REFDATABASE -le 7 ] && [ $REFDATABASE -gt 0 ]
     then
     # Make sure that a tree has already been generated.
 
@@ -1168,7 +1183,8 @@ if [[ $AMPREGION =~ ^(V4|V13|V35)$ ]]
    fi
 fi
 
-if [[ $AMPREGION =~ ^(ITS|VAR)$ ]]
+#if [[ $AMPREGION =~ ^(ITS|VAR)$ ]]
+if [ $REFDATABASE -gt 7 ]
     then
 
     # Check that there is more than 2 OTUs in the OTU table
@@ -1692,22 +1708,22 @@ echoPlus "What genomic region does your PCR amplicons amplify?"
 echoPlus "        V13 - Bacterial 16S rRNA hypervariable regions 1 & 3"
 echoPlus "        V4  - Bacterial 16S rRNA hypervariable region 4"
 echoPlus "        V35 - Archaeal 16S rRNA hypervariable region 3 to 5"
-echoPlus "        ITS - Fungal ribosomal ITS 1 region"
-echoPlus "        VAR - Custom amplicons for vertebrate/invertebrate barcoding (e.g. 12S, COI)"
+echoPlus "        ITS - Fungal ribosomal ITS 1 region (min length 200bp)"
+echoPlus "        VAR - Custom amplicons for vertebrate/invertebrate barcoding (e.g. 12S, COI) and other regions of the 16S and ITS"
 read AMPREGION
 echo "$AMPREGION" >> ampproc-$STARTTIME.log
 
-# Extra questions on custom amplicon name and minimum cut-off read lengths (after paired-end merge)
+# Extra questions on custom amplicon name and minimum cut-off read lengths (after paired-end merge), or maximum cut-off read length (single reads).
 if [ "$AMPREGION" = "VAR" ]
    then
    # Exit AmpProc if user did not specify paired-end reads.
-   if [[ ! "$SINGLEREADS" =~ ^(PE)$ ]]
-      then
-      echoPlus ""
-      echoPlus "Currently the VAR option is only enabled for paired-end reads."
-      echoPlus "    Exiting script"
-      exit 1
-   fi
+#   if [[ ! "$SINGLEREADS" =~ ^(PE)$ ]]
+#      then
+#      echoPlus ""
+#      echoPlus "Currently the VAR option is only enabled for paired-end reads."
+#      echoPlus "    Exiting script"
+#      exit 1
+#   fi
 
    # Define the custom amplicon
    echoPlus ""
@@ -1717,8 +1733,10 @@ if [ "$AMPREGION" = "VAR" ]
    read VARNAME
    echo "$VARNAME" >> ampproc-$STARTTIME.log
 
+   if [ "$SINGLEREADS" = "PE" ]
+   then
    echoPlus ""
-   echoPlus "Specify the minimum length of the amplicon reads (including primers)."
+   echoPlus "Specify the minimum length of the amplicon reads (including primers). Reads that are shorter than the minimum length will be removed."
    echoPlus "E.g. If your amplicons length ranges at 70-183bp, then specify 70."
    echoPlus "The minimum length should be at least 50bp."
    read VARMINLEN
@@ -1749,6 +1767,16 @@ if [ "$AMPREGION" = "VAR" ]
          exit 3
      fi
    fi
+   fi
+
+   if [ "$SINGLEREADS" = "SR" ]
+     then
+     echoPlus ""
+     echoPlus "Specify the maximum length of the amplicon reads (including primers). Reads that are shorter will be removed."
+     echoPlus "Warning. if your amplicons have variable lengths and you only did a single-read sequencing, you risk having residual adapter sequence in the 3' end of the amplicons that are drastically shorter than the max length. The only remedy to this is to pair end sequence and merge in order to remove adapter sequence, then to proceed with PE minimum length trimming."
+     read VARMAXLEN
+     echo "$VARMAXLEN" >> ampproc-$STARTTIME.log
+   fi
 fi
 
 # Define reference database for taxonomy prediction of OTUs (REFDATABASE)
@@ -1767,6 +1795,7 @@ echoPlus "        9  - UNITE eukaryotes ITS 1&2 v8.3 (2021-05-10)"
 echoPlus "        10 - 12S Mitofish (Mitohelper 2021-03)"
 echoPlus "        11 - 12S MIDORI Unique metazoan vGB241 (2020-12)"
 echoPlus "        12 - 12S MIDORI Longest metazoan vGB241 (2020-12)"
+echoPlus "        14 - Custom sintax-formatted reference database"
 echoPlus ""
 echoPlus "Note: MiDAS datasets are for waste water treatment systems."
 echoPlus "For general bacteria and archaea, use SILVA qiime99%"
@@ -1846,8 +1875,20 @@ if [[ ! "$AMPREGION" =~ ^(V13|V4|ITS|V35|VAR)$ ]]
     exit 1
 fi
 
-if [[ "$REFDATABASE" -lt 0 ]] || [[ "$REFDATABASE" -gt $((REFDBLISTLENGTH - 2)) ]]
+#if [[ "$REFDATABASE" -lt 0 ]] || [[ "$REFDATABASE" -gt $((REFDBLISTLENGTH - 2)) ]]
 # Note: the REFDBLISTLENGTH-2 is because I didn't use num.13 and num.14 is currently for custom dbs only for a postiori taxonomy assignment.
+if [[ "$REFDATABASE" -lt 0 ]] || [[ "$REFDATABASE" -gt $(REFDBLISTLENGTH) ]]
+    then
+    echoPlus ""
+    echoPlus "Reference database: $REFDATABASE invalid argument."
+    echoPlus "Sorry I didn't understand what you wrote. Please make sure that you select the correct database."
+    echoPlus "You can also run the help function with the option -help or -h."
+    echoWithDate "    Exiting script"
+    echoPlus ""
+    exit 1
+fi
+
+if [[ "$REFDATABASE" == 13 ]]
     then
     echoPlus ""
     echoPlus "Reference database: $REFDATABASE invalid argument."
@@ -1944,7 +1985,8 @@ READORIENT=$1
 
       # Prefilter to remove anomalous reads
       # Prefiltering at 60% ID not implemented for ITS.
-      if [ $AMPREGION = "ITS" ]
+      #if [ $AMPREGION = "ITS" ]
+      if [[ $REFDATABASE -lt 1 ]] || [[ $REFDATABASE -gt 7 ]] # Don't prefilter with non-16S dbs or when no ref db is selected.
        then
          mv otus.$READORIENT.tmp otus.$READORIENT.fa
        else
@@ -2000,7 +2042,7 @@ READORIENT=$1
 
      # Prefilter to remove anomalous reads
      # Prefiltering at 60% ID not implemented for ITS.
-     if [ $AMPREGION = "ITS" ]
+     if [[ $REFDATABASE -lt 1 ]] || [[ $REFDATABASE -gt 7 ]] # Don't prefilter with non-16S dbs or when no ref db is selected.
       then
         mv zotus.$READORIENT.tmp zotus.$READORIENT.fa
       else
@@ -2181,7 +2223,7 @@ if [[ $ZOTUS =~ ^(otu|both)$ ]]
   Cluster_otus_Function uniques.fa
   mv otus.fa otus.tmp
 
-  if [[ $AMPREGION =~ ^(ITS|VAR)$ ]]
+  if [[ $REFDATABASE -lt 1 ]] || [[ $REFDATABASE -gt 7 ]] # prefilter only for 16S samples
     then
       echoWithDate "Skipping prefiltering step."
       mv otus.tmp otus.fa
@@ -2236,7 +2278,7 @@ if [[ $ZOTUS =~ ^(zotu|both)$ ]]
      Unoise3_Function uniques.fa
      mv zotus.fa zotus.tmp
 
-     if [[ $AMPREGION =~ ^(ITS|VAR)$ ]]
+     if [[ $REFDATABASE -lt 1 ]] || [[ $REFDATABASE -gt 7 ]] # prefilter only for 16S samples
        then
          echoWithDate "Skipping prefiltering step."
          mv zotus.tmp zotus.fa
