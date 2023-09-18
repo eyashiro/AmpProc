@@ -1,13 +1,11 @@
 #!/bin/bash
 
 VERSIONNUMBER=5.2.0
-MODIFIEDDATE="17 May 2023"
+MODIFIEDDATE="19 September 2023"
 
 ###################################################################################################
 #
 #  Amplicon DNA workflow
-#
-#  Version 5.2.0
 #
 #  This workflow script generates frequency tables from raw bacterial 
 #  16S rRNA and fungal ITS 1 amplicon data.
@@ -16,7 +14,6 @@ MODIFIEDDATE="17 May 2023"
 #
 #  Author: Erika Yashiro, Ph.D.
 #
-#  Last modified: 17 May 2023
 #
 ###################################################################################################
 
@@ -34,9 +31,6 @@ fi
 # Set error check
 set -e
 set -o pipefail
-
-# Remove log file
-#rm -f ampproc.log
 
 #########################################################
 # THREADS & HOST
@@ -56,10 +50,13 @@ MAXTHREADS=$(($(nproc)-2))
 #########################################################
 
 # Define location of script
-SCRIPTPATH="/space/sharedbin_ubuntu_14_04/Non_module_software/AmpProc-v$VERSIONNUMBER"
+#SCRIPTPATH="/space/sharedbin_ubuntu_14_04/Non_module_software/AmpProc-v$VERSIONNUMBER"
+SCRIPTPATH="/home/erika/Dropbox/freelance/Projects/p0001_Amplicon_workflows/scripts/git_work/AmpProc"
 
 # Import parameters file
 source $SCRIPTPATH/ampproc_config.sh
+
+# test that
 
 #########################################################
 # OTHER PARAMS
@@ -100,9 +97,9 @@ if ! command -v $USEARCH &> /dev/null
 fi
 
 # Check if fasttreeMP exists
-if ! command -v fasttreeMP &> /dev/null
+if ! command -v FastTreeMP &> /dev/null
  then
- echo "FastTree command fasttreeMP not found. Make sure that the command exists in your path. Exiting."
+ echo "FastTree command FastTreeMP not found. Make sure that the command exists in your path. Exiting."
  exit
 fi
 
@@ -682,6 +679,7 @@ if [ $AMPREGION = "VAR" ]
      SRTRUNC=250
      echoWithDate "Quality filtering, truncating reads to 250bp, and removing reads less than 250bp."
 fi
+fi
 
 #echoPlus ""
 
@@ -988,13 +986,18 @@ MaketreeProk_Function() {
     ELEMENT=$2
     #REP_ALIGNED_PATH="/space/databases/greengenes/core_set_aligned.fasta.imputed"
     USER_PATH=$(echo $PWD)
+    INFILE2=$(echo $INFILE | sed 's/.fa$//g')
 
     #echoPlus ""
-    echoWithDate "Aligning the bacterial sequenced reads using PyNAST with QIIME v1 native parameters."
+    #echoWithDate "Aligning the bacterial sequenced reads using PyNAST with QIIME v1 native parameters."
+    echoWithDate "Aligning the bacterial sequenced reads using MAFFT with QIIME2 native parameters."
+    echoPlus ""
     # Using PyNAST in Unifrac 1.9.1
     #module load $QIIME1
-    align_seqs.py -i $USER_PATH/$INFILE -m pynast -t $REP_ALIGNED_PATH -o $USER_PATH/aligned_seqs_$ELEMENT/ -p 0.40
+    #align_seqs.py -i $USER_PATH/$INFILE -m pynast -t $REP_ALIGNED_PATH -o $USER_PATH/aligned_seqs_$ELEMENT/ -p 0.40
     #module purge
+    mkdir -p $USER_PATH/aligned_seqs_$ELEMENT
+    $MAFFT --preservecase --inputorder --thread $NUMTHREADS $USER_PATH/$INFILE > $USER_PATH/aligned_seqs_$ELEMENT/${INFILE2}_aligned.fasta 2>>ampproc-$STARTTIME.log
 
     #echoPlus ""
     echoWithDate "Generating FastTree maximum likelihood tree of the bacterial sequenced reads with QIIME native parameters"
@@ -1005,15 +1008,27 @@ MaketreeProk_Function() {
     #export OMP_NUM_THREADS=16
     
     #fasttree
-    INFILE2=$(echo $INFILE | sed 's/.fa$//g')
     #module load $FASTTREE
-    fasttreeMP -nt aligned_seqs_$ELEMENT/${INFILE2}_aligned.fasta > aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre
+    FastTreeMP -nt aligned_seqs_$ELEMENT/${INFILE2}_aligned.fasta > aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre
     #module purge
     
     # Reset the OMP threads
     #export OMP_NUM_THREADS=""
     
     # or: make_phylogeny.py -i $USER_PATH/aligned_seqs/${INFILE2}_aligned.fasta -o $USER_PATH/$INFILE.tre
+
+    # check that the FastTree tree is binary.
+    rootvar=$(newick -stats aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre | grep "unrooted")
+
+    # if not binary, then use scikit-bio function to root and binarize the tree. This is the same function used by QIIME2
+    if [ "$rootvar" ]
+      then
+      echoPlus ""
+      echoWithDate "The tree is unrooted and will cause usearch -beta_div to crash, so adding a midpoint root."
+      echoPlus ""
+      mv aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.unrooted.tre
+      $SCRIPTPATH/add_midpoint_root.py aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.unrooted.tre > aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre
+    fi
 
     echo "    "
     echoWithDate "    Output files of alignment and tree are in aligned_seqs_$ELEMENT/"
@@ -1135,7 +1150,7 @@ if [ $REFDATABASE -le 7 ] && [ $REFDATABASE -gt 0 ]
 
     # Create betadiv folder
 
-    mkdir beta_div_$ELEMENT
+    mkdir -p beta_div_$ELEMENT
 
     # Convert classic otu table to biom format
     #module load $BIOM
@@ -1167,6 +1182,9 @@ if [ $REFDATABASE -le 7 ] && [ $REFDATABASE -gt 0 ]
       #mv beta_div_norm1000_$ELEMENT/weighted_unifrac_$OTUTABLE2.norm1000.txt beta_div_norm1000_$ELEMENT/$ELEMENT.weighted_unifrac.txt
       #mv beta_div_norm1000_$ELEMENT/unweighted_unifrac_$OTUTABLE2.norm1000.txt beta_div_norm1000_$ELEMENT/$ELEMENT.unweighted_unifrac.txt
       #module purge
+
+      # Create beta div folder
+      mkdir -p beta_div_norm1000_$ELEMENT
 
       # Run Usearch for Bray Curtis, Jaccard, and weighted/unweighted UniFrac matrix
       $USEARCH -beta_div $OTUTABLE2.norm1000.txt -metrics bray_curtis,unifrac,unifrac_binary,jaccard,jaccard_binary -tree aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre -filename_prefix beta_div_norm1000_$ELEMENT/$ELEMENT. -quiet
@@ -1879,7 +1897,7 @@ fi
 
 #if [[ "$REFDATABASE" -lt 0 ]] || [[ "$REFDATABASE" -gt $((REFDBLISTLENGTH - 2)) ]]
 # Note: the REFDBLISTLENGTH-2 is because I didn't use num.13 and num.14 is currently for custom dbs only for a postiori taxonomy assignment.
-if [[ "$REFDATABASE" -lt 0 ]] || [[ "$REFDATABASE" -gt $(REFDBLISTLENGTH) ]]
+if [[ "$REFDATABASE" -lt 0 ]] || [[ "$REFDATABASE" -gt ${REFDBLISTLENGTH} ]]
     then
     echoPlus ""
     echoPlus "Reference database: $REFDATABASE invalid argument."
