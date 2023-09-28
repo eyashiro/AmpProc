@@ -1,39 +1,52 @@
 #!/bin/bash
 
-###################################################################################################
+############################################################################
 #
-#  Amplicon DNA workflow for MiDAS
+#  Amplicon DNA workflow for MiDAS: ASVpipeline.sh
 #
 #  This workflow script runs the MiDAS workflow in AmpProc
+#
 #  It generates frequency tables from raw bacterial 
 #  16S rRNA and fungal ITS 1 amplicon data.
+#
+#  The added value of this workflow is that the reads are first matched
+#  with known ASVs, then the remaining reads are taxonomy mapped using
+#  the conventional reference database approach.
+#
+#  This pipeline can only handle R1 bacterial V1-V3 250bp reads from
+#  sludge and AD.
+#
 #  It is an adapted version from what is found in
 #  https://github.com/KasperSkytte/ASV_pipeline
 #
-#  It is currently only supported for internal use at Aalborg University.
+#  Authors: Kasper Skytte Andersen, Ph.D. & Erika Yashiro, Ph.D.
 #
-#  Authors: Kasper Skytte Andersen & Erika Yashiro, Ph.D.
+#  Last modified: 26 September 2023
 #
-#  Last modified: 22 November 2021
-#
-###################################################################################################
+############################################################################
 
 
 # Set error check
 set -e
 set -o pipefail
 
+# Path to the AmpProc scripts, including this file. This path will get updated by the install.sh script.
+SCRIPTPATH=""
+
+# Import parameters file
+source $SCRIPTPATH/ampproc_config.sh
+
 #usearch=$(which usearch11_32bit)
-usearch=usearch11
+usearch=$USEARCH
 #MAX_THREADS=${1:-$((`nproc`-2))}
 #MAX_THREADS=$((`nproc`-2))
-MAX_THREADS=$2
-SEQPATH=/space/sequences/
+#SEQPATH=/space/sequences/
 #TAXDB=/space/databases/midas/MiDAS3.3_20190919/output/ESVs_w_sintax.fa
  # $1 = $REFDATAPATH from AmpProc
+#ASVDB=/space/databases/midas/ASVDB_250bp/ASVs_250bp_v3.0_20211110/ASVs.R1.fa
 TAXDB=$1
-ASVDB=/space/databases/midas/ASVDB_250bp/ASVs_250bp_v3.0_20211110/ASVs.R1.fa
-prefilterDB=/space/databases/greengenes/gg_13_8_otus/rep_set/97_otus.fasta
+MAX_THREADS=$2
+ASVDB=$SCRIPTPATH/dbs/ASVs_250bp_v3.0_20211110/ASVs.R1.fa
 SAMPLESEP="_"
   # output to log with run starting time ID from AmpProc
 STARTTIME=$3
@@ -107,13 +120,17 @@ echoWithDate "Running ASV pipeline (max threads: $MAX_THREADS)..."
 echoWithDate "Finding samples, filtering PhiX and bad reads, truncating to 250bp..."
 cp samples samples_tmp0.txt
 dos2unix -q samples_tmp0.txt
-cat samples_tmp0.txt | sed -e '$a\' | sed -e '/^$/d' -e 's/ //g' > samples_tmp.txt
+cat samples_tmp0.txt | sed -e '$a\' | sed -e '/^$/d' -e 's/ //g' | sort | uniq > samples_tmp.txt
 rm samples_tmp0.txt
 
 NSAMPLES=$(wc -w < samples_tmp.txt)
 while ((i++)); read SAMPLE
   do
     echo -ne "Processing sample: $SAMPLE ($i / $NSAMPLES)\r"
+    #find the sample fastq file and decompress (if compressed)
+    #use head -n 1 to stop find from searching further after the first hit
+    #use "|| true" to avoid exiting when the find command doesn't
+    #have permission to access some files/folders
     find "$SEQPATH" -name $SAMPLE$SAMPLESEP*R1* 2>/dev/null -exec gzip -cd {} \; > rawdata/$SAMPLE.R1.fq
     
     #continue only if the sample was actually found and is not empty
@@ -154,9 +171,9 @@ echoWithDate "Generating ASVs (zOTUs) from dereplicated reads..."
 $usearch -unoise3 uniques.R1.fa -zotus zOTUs.R1.fa
 
 echoWithDate "Filtering ASVs that are <60% similar to reference reads..."
-if [ -s "$prefilterDB" ]
+if [ -s "$GG97REF" ]
   then
-    $usearch -usearch_global zOTUs.R1.fa -db $prefilterDB \
+    $usearch -usearch_global zOTUs.R1.fa -db $GG97REF \
       -strand both -id 0.6 -maxaccepts 1 -maxrejects 8 -matched prefilt_out.fa -threads $MAX_THREADS -quiet
     mv prefilt_out.fa zOTUs.R1.fa
   else
