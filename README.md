@@ -456,7 +456,7 @@ If you wish to contact me, you can reach me at e-y-a-s-h-i-r-o-2-at-g.m.a.i.l.do
 # VERSION HISTORY
 
 AmpProc v5.2.0 \
-Released for user evaluation: XXX
+Released for user evaluation: 29 September 2023
 - updated the following reference databases to the latest version
    - UNITE eukaryotes version 9.0
    - UNITE fungi version 9.0
