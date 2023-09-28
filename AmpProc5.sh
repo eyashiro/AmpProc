@@ -1,21 +1,23 @@
 #!/bin/bash
 
 VERSIONNUMBER=5.2.0
-MODIFIEDDATE="19 September 2023"
+MODIFIEDDATE="26 September 2023"
 
-###################################################################################################
+###########################################################################
 #
-#  Amplicon DNA workflow
+#  AmpProc: Amplicon Processing DNA workflow
 #
-#  This workflow script generates frequency tables from raw bacterial 
-#  16S rRNA and fungal ITS 1 amplicon data.
+#  This workflow generates frequency tables from raw bacterial
+#  16S rRNA, fungal and eukaryotic ITS, and other custom amplicon data.
 #
-#  It is currently only supported for internal use at Aalborg University.
+#  AmpProc is distributed without guarantees that everything will
+#  function flawlessly, although I strive to make it work as best as
+#  possible.
 #
 #  Author: Erika Yashiro, Ph.D.
 #
 #
-###################################################################################################
+###########################################################################
 
 
 # Check if user is running in Bash or Shell
@@ -46,6 +48,11 @@ HOST=$(hostname)
 MAXTHREADS=$(($(nproc)-2))
 
 #########################################################
+# Test
+#########################################################
+
+
+#########################################################
 # PARAMS
 #########################################################
 
@@ -53,10 +60,24 @@ MAXTHREADS=$(($(nproc)-2))
 #SCRIPTPATH="/space/sharedbin_ubuntu_14_04/Non_module_software/AmpProc-v$VERSIONNUMBER"
 SCRIPTPATH="/home/erika/Dropbox/freelance/Projects/p0001_Amplicon_workflows/scripts/git_work/AmpProc"
 
+# Test that scripts path is correct
+if [[ "$1" == "-testpath" ]]
+  then
+  TESTVAL=$(bash $SCRIPTPATH/test.sh)
+  if [ $TESTVAL != "TestTrue" ]
+    then
+    echoPlus ""
+    echoWithDate "The install script failed to run properly. The Scriptpath is not correct. The test.sh script did not run properly. Exiting."
+    exit 1
+    else
+    echo "Script's path is $SCRIPTPATH"
+    exit 0
+  fi
+fi
+
 # Import parameters file
 source $SCRIPTPATH/ampproc_config.sh
 
-# test that
 
 #########################################################
 # OTHER PARAMS
@@ -73,9 +94,9 @@ STARTTIME=$(date '+%Y%m%d-%H%M%S')
 
 # Define midas versions because they keep changing.
 MIDAS3VERS="MiDAS v3.7 (2020-06-04)"
-MIDAS4VERS="MiDAS v4.8.1 (2021-07-02)"
+MIDAS4VERS="MiDAS v5.1 (2023-07-26)"
 MIDAS3VERSABBREV="3.7"
-MIDAS4VERSABBREV="4.8.1"
+MIDAS4VERSABBREV="5.1"
 
 # Lmod modules
 #FASTTREE=FastTree/2.1.10-foss-2018a
@@ -97,7 +118,7 @@ if ! command -v $USEARCH &> /dev/null
 fi
 
 # Check if fasttreeMP exists
-if ! command -v FastTreeMP &> /dev/null
+if ! command -v $FASTTREEMP &> /dev/null
  then
  echo "FastTree command FastTreeMP not found. Make sure that the command exists in your path. Exiting."
  exit
@@ -115,12 +136,18 @@ Help_Function () {
     echo ""
     echo "############################################################################"
     echo "#"
-    echo "#  AmpProc5  version $VERSIONNUMBER"
+    echo "#  AmpProc  Amplicon Processing DNA workflow"
+    echo "#  version $VERSIONNUMBER"
     echo "#"
-    echo "#  This workflow script generates OTU and ZOTU tables from raw bacterial "
-    echo "#  16S rRNA and fungal ITS 1 amplicon data."
+    echo "#  AmpProc is a custom and automated workflow that helps"
+    echo "#  microbiologists process amplicon sequenced raw data with only"
+    echo "#  little prior technical knowledge of the details on proper "
+    echo "#  sequence cleaning and handling."
+    echo "#  This workflow script generates OTU and ZOTU tables from raw"
+    echo "#  amplicon data in fastq.gz files."
     echo "#"
-    echo "#  It is currently only supported for internal use at Aalborg University."
+    echo "#  AmpProc is distributed without guarantees that everything will"
+    echo "#  work flawlessly."
     echo "#"
     echo "#  Erika Yashiro, Ph.D."
     echo "#"
@@ -158,11 +185,11 @@ Help_Function () {
     echo "              5  - $MIDAS3VERS"
     echo "              6  - $MIDAS4VERS"
     echo "              7  - RDP training set v16"
-    echo "              8  - UNITE fungi ITS 1&2 v8.3 (2021-05-10)"
-    echo "              9  - UNITE eukaryotes ITS 1&2 v8.3 (2021-05-10)"
+    echo "              8  - UNITE fungi ITS 1&2 v9.0 (2023-07-25)"
+    echo "              9  - UNITE eukaryotes ITS 1&2 v9.0 (2021-07-25)"
     echo "             10  - 12S Mitofish (Mitohelper 2021-03)"
-    echo "             11  - 12S MIDORI Unique metazoan vGB241 (2020-12)"
-    echo "             12  - 12S MIDORI Longest metazoan vGB241 (2020-12)"
+    echo "             11  - 12S MIDORI Unique metazoan vGB257 (2023-09)"
+    echo "             12  - 12S MIDORI Longest metazoan vGB257 (2023-09)"
     echo "             14  - Custom sintax-formatted reference database. AmpProc will ask you the path. "
     echo "                   No spaces in the file/folder names!"
     echo "                   Must not contain Windows characters. If unsure, run dos2unix."
@@ -675,10 +702,10 @@ if [ $AMPREGION = "VAR" ]
      then
      SRTRUNC=$VARMAXLEN
      echoWithDate "Quality filtering, removing reads less than $VARMAXLEN bp"
+   fi
    else
      SRTRUNC=250
      echoWithDate "Quality filtering, truncating reads to 250bp, and removing reads less than 250bp."
-fi
 fi
 
 #echoPlus ""
@@ -984,18 +1011,13 @@ MaketreeProk_Function() {
 
     INFILE=$1
     ELEMENT=$2
-    #REP_ALIGNED_PATH="/space/databases/greengenes/core_set_aligned.fasta.imputed"
+
     USER_PATH=$(echo $PWD)
     INFILE2=$(echo $INFILE | sed 's/.fa$//g')
 
-    #echoPlus ""
-    #echoWithDate "Aligning the bacterial sequenced reads using PyNAST with QIIME v1 native parameters."
     echoWithDate "Aligning the bacterial sequenced reads using MAFFT with QIIME2 native parameters."
     echoPlus ""
-    # Using PyNAST in Unifrac 1.9.1
-    #module load $QIIME1
-    #align_seqs.py -i $USER_PATH/$INFILE -m pynast -t $REP_ALIGNED_PATH -o $USER_PATH/aligned_seqs_$ELEMENT/ -p 0.40
-    #module purge
+
     mkdir -p $USER_PATH/aligned_seqs_$ELEMENT
     $MAFFT --preservecase --inputorder --thread $NUMTHREADS $USER_PATH/$INFILE > $USER_PATH/aligned_seqs_$ELEMENT/${INFILE2}_aligned.fasta 2>>ampproc-$STARTTIME.log
 
@@ -1008,17 +1030,14 @@ MaketreeProk_Function() {
     #export OMP_NUM_THREADS=16
     
     #fasttree
-    #module load $FASTTREE
-    FastTreeMP -nt aligned_seqs_$ELEMENT/${INFILE2}_aligned.fasta > aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre
+    $FASTTREEMP -nt aligned_seqs_$ELEMENT/${INFILE2}_aligned.fasta > aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre
     #module purge
     
     # Reset the OMP threads
     #export OMP_NUM_THREADS=""
     
-    # or: make_phylogeny.py -i $USER_PATH/aligned_seqs/${INFILE2}_aligned.fasta -o $USER_PATH/$INFILE.tre
-
     # check that the FastTree tree is binary.
-    rootvar=$(newick -stats aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre | grep "unrooted")
+    rootvar=$($NEWICK -stats aligned_seqs_$ELEMENT/$INFILE2.$ELEMENT.tre | grep "unrooted")
 
     # if not binary, then use scikit-bio function to root and binarize the tree. This is the same function used by QIIME2
     if [ "$rootvar" ]
@@ -1046,9 +1065,9 @@ MaketreeFung_Function() {
     echoWithDate "Using USEARCH agglomerative clustering to build OTU tree"
     mkdir aggr_tree_$ELEMENT
 
-    #usearch10 -cluster_agg $INFILE -treeout aggr_tree_$ELEMENT/$ELEMENT.cluster.tre -id 0.80 -linkage max -quiet
     # create distance matrix
-    $USEARCH -calc_distmx $INFILE -distmxout aggr_tree_$ELEMENT/$ELEMENT.dist.txt
+   # $USEARCH -calc_distmx $INFILE -distmxout aggr_tree_$ELEMENT/$ELEMENT.dist.txt
+    $USEARCH -calc_distmx $INFILE -tabbedout aggr_tree_$ELEMENT/$ELEMENT.dist.txt -maxdist 1.0 -termdist 1.0
     # build agglomerative clustering tree from distance matrix
     $USEARCH -cluster_aggd aggr_tree_$ELEMENT/$ELEMENT.dist.txt -treeout aggr_tree_$ELEMENT/$ELEMENT.cluster.tre -id 0.80 -linkage max -quiet
     
@@ -1072,16 +1091,16 @@ MaketreeWrapper_Function() {
 
    
      #if [[ $AMPREGION =~ ^(V4|V13|V35)$ ]]
-     if [ $REFDATABASE -le 7 ] && [ $REFDATABASE -gt 0 ]
+     if [ $REFDATABASE -le 7 ] && [ $REFDATABASE -gt 0 ] || [ $REFDATABASE -ge 10 ]
         then
-        #Align reads and build prokaryotic tree
+        #Align reads and build phylogenetic tree
         MaketreeProk_Function $INFILE $ELEMENT
      fi
 
      #if [[ $AMPREGION =~ ^(ITS|VAR)$ ]]
-     if [ $REFDATABASE -gt 7 ]
+     if [ $REFDATABASE -gt 7 ] && [ $REFDATABASE -lt 10 ]
         then
-        # Build clustering tree for fungi / other eukaryotes / other genes
+        # Build clustering tree for fungal ITS / eukaryote ITS
         MaketreeFung_Function $INFILE $ELEMENT
      fi
 
@@ -1139,7 +1158,7 @@ if [ "$SAMPLESIZE" = "OVER1000" ]
 fi
 
 #if [[ $AMPREGION =~ ^(V4|V13|V35)$ ]]
-if [ $REFDATABASE -le 7 ] && [ $REFDATABASE -gt 0 ]
+if [ $REFDATABASE -le 7 ] && [ $REFDATABASE -gt 0 ] || [ $REFDATABASE -ge 10 ]
     then
     # Make sure that a tree has already been generated.
 
@@ -1204,7 +1223,7 @@ if [ $REFDATABASE -le 7 ] && [ $REFDATABASE -gt 0 ]
 fi
 
 #if [[ $AMPREGION =~ ^(ITS|VAR)$ ]]
-if [ $REFDATABASE -gt 7 ]
+if [ $REFDATABASE -gt 7 ] && [ $REFDATABASE -lt 10 ]
     then
 
     # Check that there is more than 2 OTUs in the OTU table
@@ -1344,6 +1363,8 @@ echo "Make a phylo/cluster tree:                                      $MAKETREE"
 echo "Generate beta diversity output:                                 $BETADIV" >> ampproc_params-$STARTTIME.log
 
 }
+
+
 
 #########################################################
 # ARGUMENTS
@@ -1729,7 +1750,7 @@ echoPlus "        V13 - Bacterial 16S rRNA hypervariable regions 1 & 3"
 echoPlus "        V4  - Bacterial 16S rRNA hypervariable region 4"
 echoPlus "        V35 - Archaeal 16S rRNA hypervariable region 3 to 5"
 echoPlus "        ITS - Fungal ribosomal ITS 1 region (min length 200bp)"
-echoPlus "        VAR - Custom amplicons for vertebrate/invertebrate barcoding (e.g. 12S, COI) and other regions of the 16S and ITS"
+echoPlus "        VAR - Custom amplicons for vertebrate/invertebrate barcoding (e.g. 12S, COI) and other regions of the 16S, 18S, and ITS"
 read AMPREGION
 echo "$AMPREGION" >> ampproc-$STARTTIME.log
 
@@ -1819,7 +1840,7 @@ echoPlus "        14 - Custom sintax-formatted reference database"
 echoPlus ""
 echoPlus "Note: MiDAS datasets are for waste water treatment systems."
 echoPlus "For general bacteria and archaea, use SILVA qiime99%"
-echoPlus "For amplicons not targetting 16S, 18S, or ITS, use 0 (=zero)."
+echoPlus "For amplicons not targetting 16S, 18S, ITS, or 12S use 0 (=zero)."
 echoPlus ""
 echoPlus "If you have a custom sintax-formatted reference database, first rum AmpProc with "
 echoPlus "above settings, and then run AmpProc in a postiori mode where you can specify"
