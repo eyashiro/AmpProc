@@ -86,7 +86,7 @@ fi
 printf "Can I find any fastq.gz files in the SEQPATH?   "
 if [ -d "$SEQPATH" ]
   then
-  TESTFIND=$(find $SEQPATH -name *.fastq.gz | head -n 1)
+  TESTFIND=$(find $SEQPATH -name *.fastq.gz | sed -n '1p')
   if [ "$TESTFIND" ]
     then
     echo "... yes"
